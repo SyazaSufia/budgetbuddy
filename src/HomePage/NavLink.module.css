@@ -1,0 +1,29 @@
+.navLink {
+    color: var(--backgroundColor);
+    text-decoration: none;
+    font-size: 16px;
+    padding: 4px;
+  }
+  
+  .active {
+    border-bottom: 1px solid var(--backgroundColor);
+  }
+  
+  .dropdown {
+    position: relative;
+    padding-right: 20px;
+  }
+  
+  .dropdownIcon {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+  }
+  
+  @media (max-width: 991px) {
+    .navLink {
+      white-space: nowrap;
+    }
+  }

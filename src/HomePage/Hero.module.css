@@ -1,0 +1,59 @@
+.hero {
+  background-image: url('../../public/BudgetBuddy-Home.png');
+  background-size: cover;
+  background-position: center;
+  padding: 140px 50px;
+  display: flex;
+  justify-content: flex-start;
+}
+  
+.contentContainer {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 200px;
+}
+
+  .heroImage {
+    width: 600px;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  .textContent {
+    flex: 1;
+    max-width: 677px;
+  }
+  
+  .mainHeading {
+    color: var(--backgroundColor);
+    font: 700 60px/72px Montserrat;
+  }
+  
+  .subHeading {
+    color: var(--backgroundColor);
+    font: italic 400 20px/30px Montserrat;
+    margin-top: 24px;
+  }
+  
+  .actionArea {
+    margin-top: 16px;
+  }
+  
+  @media (max-width: 991px) {
+    .hero {
+      padding: 100px 20px;
+    }
+  
+    .content {
+      max-width: 100%;
+    }
+  
+    .title {
+      font-size: 40px;
+    }
+  
+    .details {
+      font-size: 18px;
+    }
+  }

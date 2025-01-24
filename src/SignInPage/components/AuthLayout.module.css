@@ -1,0 +1,92 @@
+.authContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 100vh;
+  min-width: fit-content;
+  background-image: url('../../public/BudgetBuddy-Home.png');
+  background-size: 110%;
+  background-position: center;
+  background-repeat: no-repeat;
+  }
+  
+  .logo {
+    color: #fff;
+    font: 800 36px Montserrat, -apple-system, Roboto, Helvetica;
+  }
+  
+  .content {
+    display: flex;
+    margin-top: 19vh;
+    width: 100%;
+    gap: 40px 60px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .heroContent {
+    display: flex;
+    min-width: 240px;
+    flex-direction: column;
+    font-family: 'Montserrat';
+    justify-content: center;
+    width: 514px;
+    padding: 7px 0;
+  }
+  
+  .heroTitle {
+    color: var(--primaryColor);
+    font-size: 84px;
+    font-weight: 700;
+    line-height: 101px;
+  }
+  
+  .heroDescription {
+    color: var(--textColor);
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 32px;
+    margin-top: 16px;
+  }
+  
+  .authBox {
+    border-radius: 20px;
+    background-color: var(--backgroundColor);
+    display: flex;
+    min-width: 240px;
+    width: 517px;
+    margin: auto 0;
+    padding: 24px;
+  }
+
+  .heroImage {
+    width: 100%; /* Adjust to fit the layout */
+    max-width: 514px; /* Match the original width of the hero content */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
+  @media (max-width: 991px) {
+    .authContainer {
+      padding: 0 20px;
+    }
+    
+    .content {
+      margin-top: 40px;
+    }
+    
+    .heroContent,
+    .heroTitle,
+    .heroDescription,
+    .authBox {
+      max-width: 100%;
+    }
+    
+    .heroTitle {
+      font-size: 40px;
+      line-height: 53px;
+    }
+    
+    .authBox {
+      padding: 0 20px;
+    }
+  }

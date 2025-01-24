@@ -1,0 +1,57 @@
+.featureCard {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 130px;
+  }
+  
+  .featureCard:last-child {
+    margin-bottom: 0;
+  }
+  
+  .reversed {
+    flex-direction: row-reverse;
+  }
+  
+  .content {
+    flex: 1;
+  }
+  
+  .title {
+    font-family: 'Montserrat';
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--textColor);
+    margin-bottom: 24px;
+  }
+  
+  .description {
+    font-family: 'Montserrat';
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--textColor);
+  }
+  
+  .image {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  @media (max-width: 991px) {
+    .featureCard {
+      flex-direction: column;
+      margin-bottom: 40px;
+    }
+  
+    .reversed {
+      flex-direction: column;
+    }
+  
+    .title {
+      font-size: 28px;
+    }
+  
+    .description {
+      font-size: 16px;
+    }
+  }

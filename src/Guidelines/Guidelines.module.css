@@ -1,0 +1,25 @@
+.background {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 20vh;
+    overflow: hidden;
+    background-color: var(--backgroundColor);
+  }
+  
+  .mainContent {
+    width: 100%;
+    max-width: 1290px;
+    margin-top: 6vh;
+  }
+  
+  @media (max-width: 991px) {
+    .background {
+      padding-bottom: 100px;
+    }
+  
+    .mainContent {
+      max-width: 100%;
+      margin-top: 40px;
+    }
+  }

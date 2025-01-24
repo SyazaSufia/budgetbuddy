@@ -1,0 +1,75 @@
+.button {
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-family: 'Montserrat';
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .primary {
+    background-color: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+    transition: background-color 0.3s ease;
+  }
+  
+  .secondary {
+    background-color: var(--secondaryColor);
+    color: var(--primaryColor);
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta {
+    background-color: var(--secondaryColor);
+    color: var(--primaryColor);
+    border: none;
+    font-size: 20px;
+    padding: 16px 24px;
+    transition: background-color 0.3s ease;
+  }
+
+  .backButton {
+    background-color: #fff;
+    color: var(--secondaryColor);
+    border: 1px solid var(--secondaryColor);
+    font-size: 20px;
+    padding: 16px 24px;
+    transition: background-color 0.3s ease;
+  }
+
+  .nextButton {
+    background-color: var(--secondaryColor);
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    padding: 16px 24px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    opacity: 0.9;
+  }
+
+  .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  
+  .actionArea {
+    margin-top: 16px;
+  }
+
+  @media (max-width: 991px) {
+    .button {
+      padding: 8px 12px;
+    }
+  
+    .cta {
+      font-size: 18px;
+      padding: 12px 20px;
+    }
+  }

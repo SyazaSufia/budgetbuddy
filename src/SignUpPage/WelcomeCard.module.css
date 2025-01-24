@@ -1,0 +1,101 @@
+.welcomeCard {
+    border-radius: 30px;
+    background-color: var(--backgroundColor);
+    box-shadow: var(--borderColor);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 539px;
+    padding: 40px 32px;
+    margin-top: 5vh;
+    margin-bottom: 5vh;
+  }
+  
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  
+  .titleWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .welcomeText {
+    font: 400 20px 'Montserrat', sans-serif;
+  }
+  
+  .brandName {
+    color: var(--textColor);
+  }
+  
+  .signInTitle {
+    font: 500 55px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
+    margin-top: 8px;
+  }
+  
+  .signUpPrompt {
+    display: flex;
+    align-items: center;
+  }
+  
+  .noAccountText {
+    color: #8d8d8d;
+    font: 500 16px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
+    margin-right: 8px;
+  }
+  
+  .signUpLink {
+    color: var(--primaryColor);
+    font: 400 16px Poppins, sans-serif;
+    text-decoration: none;
+  }
+  
+  .signInForm {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+  
+  .forgotPassword {
+    align-self: flex-end;
+    color: var(--primaryColor);
+    font: 500 13px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
+    text-decoration: none;
+    margin-top: -24px;
+  }
+  
+  .signInButton {
+    border-radius: 8px;
+    background-color: var(--backkgroundColor);
+    color: #9e9e9e;
+    font: 600 16px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
+    padding: 16px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .signInButton:hover {
+    background-color: #d4d4d4;
+  }
+  
+  .orDivider {
+    color: var(--borderColor);
+    text-align: center;
+    font: 600 16px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
+    margin-top: 16px;
+  }
+  
+  @media (max-width: 991px) {
+    .welcomeCard {
+      max-width: 100%;
+      padding: 20px;
+    }
+  
+    .signInTitle {
+      font-size: 40px;
+    }
+  }

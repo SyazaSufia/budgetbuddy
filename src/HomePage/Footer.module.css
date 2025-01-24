@@ -1,0 +1,61 @@
+.footer {
+  background-color: var(--primaryColor);
+  color: var(--backgroundColor);
+  padding: 50px 0;
+}
+
+.mainFooter {
+  background: #151aa5;
+  padding: 80px 24px;
+  color: #fff;
+}
+
+.footerContent {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.footerBrand {
+  font-family: "Montserrat";
+  font-size: 36px;
+  font-weight: 800;
+  margin-left: 4vw;
+  color: white;
+}
+
+.brandDot {
+  color: var(--secondaryColor);
+}
+
+.footerNav {
+  display: flex;
+  gap: 64px;
+}
+
+.navColumn {
+  min-width: 200px;
+}
+
+.columnTitle {
+  font: 700 18px Montserrat, sans-serif;
+  margin-bottom: 16px;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footerLink {
+  color: #fff;
+  text-decoration: none;
+  font: 500 14px Montserrat, sans-serif;
+  padding: 8px 0;
+  display: block;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}

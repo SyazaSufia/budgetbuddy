@@ -1,0 +1,10 @@
+.featureSection {
+    background-color: var(--backgroundColor);
+    padding: 110px 64px;
+  }
+  
+  @media (max-width: 991px) {
+    .featureSection {
+      padding: 100px 20px;
+    }
+  }

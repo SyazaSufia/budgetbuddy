@@ -1,0 +1,90 @@
+.header {
+  background-color: var(--primaryColor);
+  padding: 12px 20px;
+  overflow-x: auto;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px; /* Add space between items */
+  flex-wrap: nowrap; /* Prevent wrapping */
+  max-width: 100%; /* Keep content within the viewport width */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.logo {
+  color: var(--backgroundColor);
+  font-family: 'Montserrat';
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0;
+  white-space: nowrap; /* Prevent text wrapping for long titles */
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  flex-shrink: 0; /* Prevent shrinking */
+  white-space: nowrap; /* Prevent button wrapping */
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the gap as needed */
+}
+
+.navigation {
+  display: flex; /* Use flexbox to align links horizontally */
+  gap: 1rem; /* Add space between each link */
+}
+
+.navigation a {
+  color: var(--backgroundColor); /* Set the default color to white */
+  text-decoration: none; /* Remove underline */
+  padding: 5px; /* Optional: Add padding for better click area and spacing */
+}
+
+.navigation a:hover {
+  text-decoration: underline; /* Add underline on hover */
+  text-underline-offset: 6px;
+}
+
+.navigation a.activeLink {
+  text-decoration: underline; /* Underline for active link */
+  color: var(--backgroundColor); /* Ensure the active link color is white */
+  text-underline-offset: 6px;
+}
+
+
+.userName {
+  color: #fff; /* Make the text white */
+  font-size: 16px; /* Optional: Adjust font size if needed */
+  font-weight: bold;
+}
+
+/* Adjustments for smaller screens */
+@media (max-width: 991px) {
+  .logo {
+    font-size: 20px; /* Adjust logo size */
+  }
+
+  .navigation {
+    gap: 8px; /* Reduce gap between links */
+  }
+
+  .buttonGroup button {
+    font-size: 12px; /* Adjust button size */
+    padding: 8px 12px; /* Adjust padding for smaller buttons */
+  }
+}

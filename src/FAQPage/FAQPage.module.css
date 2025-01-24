@@ -1,0 +1,26 @@
+.faqPage {
+    background-color: var(--backgroundColor);
+    background-size: cover;
+    overflow: hidden;
+    padding-bottom: 8vh;
+  }
+  
+  .mainContent {
+    max-width: 1440px;
+    width: 100%;
+    padding: 50px;
+  }
+  
+  .faqSection {
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+    max-width: 90vw;
+    margin: 0 1.5vw;
+  }
+  
+  @media (max-width: 991px) {
+    .mainContent {
+      padding: 50px;
+    }
+  }

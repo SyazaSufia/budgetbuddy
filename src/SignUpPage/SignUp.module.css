@@ -1,0 +1,130 @@
+.container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    flex: 1;
+    padding-top: 0;
+  }
+  
+  .header {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    font-family: Montserrat, sans-serif;
+    font-weight: 400;
+  }
+  
+  .welcome {
+    color: var(--textColor);
+    font-weight: normal;
+    font-size: 20px;
+    text-align: center;
+  }
+  
+  .brandText {
+    font-weight: 600;
+  }
+  
+  .authNav {
+    border-radius: 8px;
+    background-color: var(--secondaryColor);
+    display: flex;
+    margin-top: 16px;
+    width: 97%;
+    align-items: center;
+    font-size: 16px;
+    justify-content: space-between;
+    padding: 8px;
+    margin-bottom: 2vh;
+  }
+  
+  .activeButton {
+    border-radius: 4px;
+    font-family: 'Montserrat';
+    font-size: 16px;
+    background-color: var(--primaryColor);
+    color: var(--secondaryColor);
+    flex: 1;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .inactiveButton {
+    color: var(--primaryColor);
+    font-family: 'Montserrat';
+    font-size: 16px;
+    flex: 1;
+    text-align: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .form {
+    display: flex;
+    margin-top: 16px;
+    width: 100%;
+    flex-direction: column;
+    gap: 19px;
+  }
+  
+  /* .submitButton {
+    border-radius: 8px;
+    background-color: var(--disableColor);
+    color: var(--disableText);
+    font: 600 16px Montserrat, sans-serif;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 16px;
+  } */
+
+  .error {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    text-align: center;
+  }
+  
+  .submitButton {
+    border-radius: 8px;
+    background-color: var(--disableColor);
+    color: var(--disableText);
+    font: 600 16px Montserrat, sans-serif;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    cursor: not-allowed;
+    margin-top: 16px;
+    transition: background-color 0.3s ease, color 0.3s ease, cursor 0.3s ease;
+  }
+  
+  .submitButton.enabled {
+    background-color: var(--primaryColor);
+    color: white;
+    cursor: pointer;
+  }
+  
+  .submitButton.disabled {
+    background-color: var(--disableColor);
+    color: var(--disableText);
+    cursor: not-allowed;
+  }
+
+  .navLink {
+    text-decoration: none; /* Remove underline from links */
+    display: flex; /* Ensure button takes up the same space */
+    flex: 1; /* Match the flex behavior of the buttons */
+  }
+  
+  @media (max-width: 991px) {
+    .container,
+    .header,
+    .authNav,
+    .form {
+      max-width: 100%;
+    }
+  }
