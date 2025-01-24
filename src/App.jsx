@@ -10,6 +10,7 @@ import SignUp from './SignUpPage/SignUp';
 import FAQPage from './FAQPage/FAQPage';
 import Guidelines from './Guidelines/Guidelines';
 import './App.css';
+import axios from 'axios';
 
 const App = () => {
   const [user, setUser] = useState(null);
