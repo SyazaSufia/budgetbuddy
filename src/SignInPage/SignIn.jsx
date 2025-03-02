@@ -1,36 +1,52 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthLayout } from './components/AuthLayout';
-import { Link, useLocation } from 'react-router-dom';
-import { Input } from './components/Input';
-import styles from './SignIn.module.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthLayout } from "./components/AuthLayout";
+import { Link, useLocation } from "react-router-dom";
+import { Input } from "./components/Input";
+import styles from "./SignIn.module.css";
 
 const SignIn = ({ onSignIn }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
-  
-    if (email === 'user@email.com' && password === 'user123') {
-      const userData = { name: 'Syaza', role: 'user' }; 
-      onSignIn(userData); 
-      navigate('/');
+    try {
+      const response = await fetch("http://localhost:8080/sign-in", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Important for session cookies
+        body: JSON.stringify({ email, password }),
+      });
 
-    } else if (email === 'admin@email.com' && password === 'admin123') {
-      const adminData = { name: 'Admin', role: 'admin' };
-      onSignIn(adminData);
-      navigate('/admin-home');
+      const data = await response.json();
+      console.log("Parsed data:", data);
 
-    } else {
-      setError('Invalid email or password');
+      if (data.success) {
+        onSignIn(data.user);
+        const { role, id } = data.user;
+        console.log("User ID:", id);
+
+        if (role === "user") {
+          navigate("/", { state: { userID: id } });
+        } else if (role === "admin") {
+          navigate("/admin-home");
+        }
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      console.error("Error during sign-in:", error);
+      setError("Something went wrong. Please try again.");
     }
   };
 
-  const isFormValid = email.trim() !== '' && password.trim() !== '';
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
     <AuthLayout>
@@ -41,18 +57,26 @@ const SignIn = ({ onSignIn }) => {
           </h2>
           <nav className={styles.authNav}>
             <Link to="/sign-in" className={styles.navLink}>
-              <button className={`${styles.activeButton} ${location.pathname === '/sign-in' ? styles.active : ''}`}>
+              <button
+                className={`${styles.activeButton} ${
+                  location.pathname === "/sign-in" ? styles.active : ""
+                }`}
+              >
                 Sign In
               </button>
             </Link>
             <Link to="/sign-up" className={styles.navLink}>
-              <button className={`${styles.inactiveButton} ${location.pathname === '/sign-up' ? styles.active : ''}`}>
+              <button
+                className={`${styles.inactiveButton} ${
+                  location.pathname === "/sign-up" ? styles.active : ""
+                }`}
+              >
                 Sign Up
               </button>
             </Link>
           </nav>
         </header>
-        
+
         <form className={styles.form} onSubmit={handleSignIn}>
           <Input
             label="Enter your email address"
@@ -71,7 +95,9 @@ const SignIn = ({ onSignIn }) => {
           {error && <p className={styles.error}>{error}</p>}
           <button
             type="submit"
-            className={`${styles.submitButton} ${isFormValid ? styles.enabled : styles.disabled}`}
+            className={`${styles.submitButton} ${
+              isFormValid ? styles.enabled : styles.disabled
+            }`}
             disabled={!isFormValid}
           >
             Sign In

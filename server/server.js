@@ -89,6 +89,132 @@ app.post("/sign-up", (req, res) => {
   });
 });
 
+// Sign in with session management
+app.post("/sign-in", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const userQuery = "SELECT userID AS id, userName AS name, userEmail AS email, userPassword AS password, 'user' AS role FROM user WHERE userEmail = ?";
+    db.query(userQuery, [email], async (userErr, userData) => {
+      if (userErr) {
+        return res.json({ error: true, message: "Error querying database." });
+      }
+
+      if (userData.length > 0) {
+        const user = userData[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+          // Set session data
+          req.session.user = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          };
+          return res.json({ success: true, user: user });
+        }
+      }
+
+      // admin table
+      const adminQuery = "SELECT adminID AS id, adminName AS name, adminEmail AS email, adminPassword AS password, 'admin' AS role FROM admin WHERE adminEmail = ?";
+      db.query(adminQuery, [email], async (adminErr, adminData) => {
+        if (adminErr) {
+          return res.json({ error: true, message: "Error querying database." });
+        }
+
+        if (adminData.length > 0) {
+          const admin = adminData[0];
+          const isMatch = await bcrypt.compare(password, admin.password);
+          if (isMatch) {
+            req.session.user = {
+              id: admin.id,
+              name: admin.name,
+              email: admin.email,
+              role: admin.role
+            };
+            console.log("user Session data:", req.session);
+            console.log("user Session ID:", req.sessionID);
+            return res.json({ success: true, user: admin });
+          }
+        }
+
+        return res.json({
+          success: false,
+          message: "Invalid email or password.",
+        });
+      });
+    });
+
+  } catch (err) {
+    console.error("Error processing sign-in:", err);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
+// New route to check authentication status
+app.get("/check-auth", (req, res) => {
+  if (req.session.user) {
+    res.json({ 
+      isAuthenticated: true, 
+      user: req.session.user 
+    });
+  } else {
+    res.json({ 
+      isAuthenticated: false 
+    });
+  }
+});
+
+// Sign out
+app.post("/sign-out", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: "Error logging out" });
+    }
+    res.clearCookie('connect.sid');
+    res.json({ success: true, message: "Logged out successfully" });
+  });
+});
+
+// Protect routes that require authentication
+app.get("/protected-route", isAuthenticated, (req, res) => {
+  res.json({ success: true, data: "Protected data" });
+});
+
+// ------------------------------------- ADMIN SIDE -------------------------------------
+
+// Route to add an admin with hashed password
+app.post("/add-admin", (req, res) => {
+  const { adminName, adminEmail, adminPassword } = req.body;
+
+  console.log("Received request to add admin:", req.body);
+
+  // Check if all required fields are provided
+  if (!adminName || !adminEmail || !adminPassword) {
+    console.error("Missing required fields");
+    return res.status(400).json({ success: false, message: "All fields are required." });
+  }
+
+  // Hash the password
+  bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
+    if (err) {
+      console.error("Error hashing password:", err);
+      return res.status(500).json({ success: false, message: "Error encrypting password." });
+    }
+
+    // Insert new admin into the database
+    const insertAdminSql = "INSERT INTO admin (adminName, adminEmail, adminPassword, role) VALUES (?, ?, ?, 'admin')";
+    db.query(insertAdminSql, [adminName, adminEmail, hash], (err, result) => {
+      if (err) {
+        console.error("Error inserting admin into database:", err);
+        return res.status(500).json({ success: false, message: "Error saving admin to database." });
+      }
+      console.log("Admin added successfully");
+      return res.status(201).json({ success: true, message: "Admin added successfully." });
+    });
+  });
+});
+
 app.listen(8080, () => {
     console.log("Server running on port 8080");
 });
