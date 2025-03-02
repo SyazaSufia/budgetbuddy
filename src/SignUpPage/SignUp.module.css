@@ -28,7 +28,7 @@
   
   .authNav {
     border-radius: 8px;
-    background-color: #f1d2c5;
+    background-color: var(--secondaryColor);
     display: flex;
     margin-top: 16px;
     width: 97%;
@@ -43,7 +43,7 @@
     border-radius: 4px;
     font-family: 'Montserrat', sans-serif;
     font-size: 16px;
-    background-color: #931510;
+    background-color: var(--primaryColor);
     color: #fff;
     flex: 1;
     padding: 10px;
@@ -52,7 +52,7 @@
   }
   
   .inactiveButton {
-    color: #931510;
+    color: var(--primaryColor);;
     font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     flex: 1;
@@ -83,7 +83,7 @@
   }
 
   .error {
-    color: red;
+    color: var(--primaryColor);;
     font-size: 0.9rem;
     margin-top: 8px;
     text-align: center;

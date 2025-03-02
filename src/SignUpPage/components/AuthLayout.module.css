@@ -4,7 +4,6 @@
   overflow: hidden;
   min-height: 100vh;
   min-width: fit-content;
-  /* background-image: url('/Users/rajihahrosydi/Documents/USM/YEAR 4/SEM 1/CMT322/PROJECT/cmt322-project/usm-bloodconnect/public/SignIn.png'); */
   background-color: #FBF5E9;
   background-size: 110%;
   background-position: center;
@@ -37,7 +36,7 @@
   }
   
   .heroTitle {
-    color: #AE0D05;
+    color: var(--primaryColor);
     font-size: 84px;
     font-weight: 700;
     line-height: 101px;
