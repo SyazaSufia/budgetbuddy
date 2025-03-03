@@ -20,14 +20,16 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: false,
-    maxAge: 60 * 60 * 1000 // 1 hour
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 60 * 60 * 1000, // 1 hour,
+    sameSite: "none"
   }
 }));
 
 // Updated CORS configuration to allow credentials
 const corsOptions = {
-  origin: ["https://budgetbuddy.space", "http://localhost:5173"],
+  origin: ["https://budgetbuddy.space"],
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: ["Content-Type"],
   credentials: true
