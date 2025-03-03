@@ -1,0 +1,47 @@
+.field {
+    display: flex;
+    min-width: 240px;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  
+  .label {
+    align-self: stretch;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 144px;
+    margin: auto 0;
+    padding: 2px 0;
+    color: #000;
+    font: 500 16px Montserrat, sans-serif;
+  }
+  
+  .input {
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 0 16px;
+    height: 40px;
+    width: 100%;
+    font: 400 14px Montserrat, sans-serif;
+    color: #757575;
+  }
+  
+  .select {
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 0 16px;
+    height: 40px;
+    width: 100%;
+    font: 400 14px Montserrat, sans-serif;
+    color: #757575;
+    appearance: none;
+    background-image: url('https://cdn.builder.io/api/v1/image/assets/TEMP/f4e17e78b6477eef12714b79a9a18f47248cc7d92a60229b8dc2e00435c43e4c?placeholderIfAbsent=true&apiKey=f57fde44dc854af1bb149ad964888ac0');
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+  }

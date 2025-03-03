@@ -8,7 +8,7 @@ const Hero = ({user}) => {
   const navigate = useNavigate();
   const handleBookNow = () => {
     if (user?.role === 'user') {
-      navigate('/questionnaire-start-page'); // Redirect to sign-in page if not signed in
+      navigate('/profile'); // Redirect to sign-in page if not signed in
     } else {
       navigate('/sign-in'); // Proceed to booking if signed in
     }

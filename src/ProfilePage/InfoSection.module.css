@@ -1,0 +1,48 @@
+.section {
+    border-radius: 8px;
+    background: #fff;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .sectionHeader {
+    position: relative;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+  }
+  
+  .sectionTitle {
+    color: #000;
+    font: 600 16px Montserrat, sans-serif;
+  }
+  
+  .required {
+    color: #ff0202;
+    font: 500 16px Montserrat, sans-serif;
+  }
+  
+  .sectionContent {
+    border-radius: 8px;
+    display: flex;
+    margin-top: 16px;
+    width: 100%;
+    flex-direction: column;
+    padding: 16px;
+    border: 1px solid #000;
+  }
+  
+  .row {
+    display: flex;
+    width: 100%;
+    align-items: start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  
+  .rowSpaced {
+    margin-top: 24px;
+  }

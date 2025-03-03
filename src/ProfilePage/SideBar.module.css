@@ -1,0 +1,117 @@
+.sidebar {
+    background: #151aa5;
+    display: flex;
+    flex-direction: column;
+    width: 228px;
+  }
+  
+  .sidebarContent {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    padding: 24px 8px;
+  }
+  
+  .brand {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    padding: 0 4px;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    overflow: hidden;
+    margin: auto 0;
+  }
+  
+  .logoImage {
+    aspect-ratio: 0.45;
+    object-fit: contain;
+    object-position: center;
+    width: 9px;
+    align-self: stretch;
+    margin: auto 0;
+  }
+  
+  .logoImageSecondary {
+    aspect-ratio: 0.5;
+    object-fit: contain;
+    object-position: center;
+    width: 10px;
+    align-self: stretch;
+    margin: auto 0;
+  }
+  
+  .brandName {
+    color: #fff;
+    flex: 1;
+    margin: auto 0;
+    font: 700 18px Montserrat, sans-serif;
+  }
+  
+  .brandNameHighlight {
+    color: #a5d6a7;
+  }
+  
+  .menuList {
+    display: flex;
+    margin-top: 24px;
+    width: 100%;
+    flex-direction: column;
+    color: #fff;
+    flex: 1;
+    font: 500 12px Montserrat, sans-serif;
+  }
+  
+  .menuItem {
+    border-radius: 8px;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 16px;
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  .menuItemActive {
+    background: #2c33ee;
+  }
+  
+  .menuIcon {
+    aspect-ratio: 1;
+    object-fit: contain;
+    object-position: center;
+    width: 20px;
+    margin: auto 0;
+  }
+  
+  .collapseButton {
+    background: #2c33ee;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    color: #fff;
+    padding: 8px 16px;
+    font: 500 15px Montserrat, sans-serif;
+    cursor: pointer;
+  }
+  
+  .collapseText {
+    flex: 1;
+    margin: auto 0;
+  }
+  
+  .collapseIcon {
+    aspect-ratio: 1;
+    object-fit: contain;
+    object-position: center;
+    width: 24px;
+    margin: auto 0;
+  }

@@ -2,18 +2,11 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const db = require("./db");
-
-const corsOptions = {
-    origin: "http://localhost:5173",
-};
-
-app.use(cors(corsOptions));
-
-const bodyParser = require("body-parser");
+const bodyParser = require("body-parser"); // Add this line
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
-
 const bcrypt = require("bcrypt");
+
 const saltRounds = 10;
 
 // Middleware setup
@@ -33,12 +26,20 @@ app.use(session({
 }));
 
 // Updated CORS configuration to allow credentials
-app.use(cors({
+const corsOptions = {
   origin: ["https://budgetbuddy.space", "http://localhost:5173"],
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: ["Content-Type"],
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Ensure Access-Control-Allow-Credentials header is set
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -92,35 +93,43 @@ app.post("/sign-up", (req, res) => {
 // Sign in with session management
 app.post("/sign-in", async (req, res) => {
   const { email, password } = req.body;
+  console.log("Sign-in request received. Email:", email);
 
   try {
     const userQuery = "SELECT userID AS id, userName AS name, userEmail AS email, userPassword AS password, 'user' AS role FROM user WHERE userEmail = ?";
     db.query(userQuery, [email], async (userErr, userData) => {
       if (userErr) {
+        console.error("Error querying user:", userErr);
         return res.json({ error: true, message: "Error querying database." });
       }
+
+      console.log("User query result:", userData);
 
       if (userData.length > 0) {
         const user = userData[0];
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
-          // Set session data
           req.session.user = {
             id: user.id,
             name: user.name,
             email: user.email,
             role: user.role
           };
+          console.log("User authenticated:", user);
           return res.json({ success: true, user: user });
+        } else {
+          console.log("Password does not match");
         }
       }
 
-      // admin table
       const adminQuery = "SELECT adminID AS id, adminName AS name, adminEmail AS email, adminPassword AS password, 'admin' AS role FROM admin WHERE adminEmail = ?";
       db.query(adminQuery, [email], async (adminErr, adminData) => {
         if (adminErr) {
+          console.error("Error querying admin:", adminErr);
           return res.json({ error: true, message: "Error querying database." });
         }
+
+        console.log("Admin query result:", adminData);
 
         if (adminData.length > 0) {
           const admin = adminData[0];
@@ -132,9 +141,10 @@ app.post("/sign-in", async (req, res) => {
               email: admin.email,
               role: admin.role
             };
-            console.log("user Session data:", req.session);
-            console.log("user Session ID:", req.sessionID);
+            console.log("Admin authenticated:", admin);
             return res.json({ success: true, user: admin });
+          } else {
+            console.log("Password does not match");
           }
         }
 

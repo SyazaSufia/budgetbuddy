@@ -7,41 +7,11 @@ const Header = ({ user, onSignOut }) => {
   const location = useLocation();  // Get current location (path)
 
   // Default navigation links for all users (even guests)
-  const allNavLinks = [
+  const navLinks = [
     { text: 'Home', path: '/' },
     { text: 'Guidelines', path: '/guidelines' },
     { text: 'FAQs', path: '/faqs' },
   ];
-
-  // Conditionally add the "Appointments" link based on user role (user or medical-staff)
-  const userNavLinks = [
-    ...allNavLinks,
-    { text: 'Appointments', path: user?.role === 'user' ? '/appointment-view' : '/' },
-  ];
-
-  const staffNavLinks = [
-    { text: 'Appointments', path: '/appointment-view-ms' }
-  ];
-
-  // Admin-specific navigation links
-  const adminNavLinks = [
-    { text: 'Home', path: '/admin-home' },
-    { text: 'Event Details', path: '/admin-event' },
-    { text: 'Medical Staff', path: '/admin-medical-staff' },
-    { text: 'Appointments', path: '/admin-appointment' },
-    { text: 'Feedback', path: '/admin-feedback' },
-    { text: 'BloodBank', path: '/bloodbank' }
-  ];
-
-  // Determine the links to show based on the user role
-  const linksToShow =
-  user?.role === 'admin'
-    ? adminNavLinks
-    : user?.role === 'medical-staff'
-    ? staffNavLinks
-    : user
-    ? userNavLinks
-    : allNavLinks;
 
   return (
     <header className={styles.header}>
@@ -49,16 +19,16 @@ const Header = ({ user, onSignOut }) => {
         <div className={styles.logoSection}>
           <h1 className={styles.logo}>BUDGETBUDDY.</h1>
 
-          {/* Conditionally render navigation links */}
+          {/* Render navigation links */}
           <nav className={styles.navigation}>
-            {linksToShow.map((link, index) => (
+            {navLinks.map((link, index) => (
               <Link
-              key={index}
-              to={link.path}
-              className={location.pathname === link.path ? styles.activeLink : ''}
-            >
-              {link.text}
-            </Link>
+                key={index}
+                to={link.path}
+                className={location.pathname === link.path ? styles.activeLink : ''}
+              >
+                {link.text}
+              </Link>
             ))}
           </nav>
         </div>
