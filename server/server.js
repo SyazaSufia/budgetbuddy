@@ -53,7 +53,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -66,7 +66,7 @@ const isAuthenticated = (req, res, next) => {
 
 // Routes
 app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
 app.post('/sign-up', (req, res) => {

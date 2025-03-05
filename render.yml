@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: budgetbuddy-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: srv1761.hstgr.io
+      - key: DB_HOST
+        value: srv1761.hstgr.io
+      - key: DB_USER
+        value: u858196522_budgetbuddy
+      - key: DB_PASSWORD
+        value: Dv7>74Xr]
+      - key: DB_NAME
+        value: u858196522_budgetbuddy
+    autoDeploy: true
