@@ -8,11 +8,15 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 
-const corsOptions = {
-  origin: 'http://localhost:5173',
-};
-
 const saltRounds = 10;
+
+// Determine the appropriate origin based on the environment
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' ? process.env.PROD_ORIGIN : process.env.LOCAL_ORIGIN,
+  methods: ['GET', 'POST', 'DELETE', 'PUT'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true,
+};
 
 // Middleware setup
 app.use(express.json());
@@ -26,24 +30,13 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      //secure: process.env.NODE_ENV === "production",
       httpOnly: false,
-      maxAge: 60 * 60 * 1000, // 1 hour,
-      //sameSite: "none",
+      maxAge: 60 * 60 * 1000, // 1 hour
     },
   })
 );
 
-// Updated CORS configuration to allow credentials
-app.use(
-  cors({
-    origin: ['https://budgetbuddy.space'],
-    methods: ['GET', 'POST', 'DELETE', 'PUT'],
-    allowedHeaders: ['Content-Type'],
-    credentials: true,
-  })
-);
-
+// Consolidated CORS configuration
 app.use(cors(corsOptions));
 
 // Ensure Access-Control-Allow-Credentials header is set
@@ -51,9 +44,6 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   next();
 });
-
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../dist')));
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -63,11 +53,6 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).json({ success: false, message: 'Not authenticated' });
   }
 };
-
-// Routes
-app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
-});
 
 app.post('/sign-up', (req, res) => {
   const { userName, userEmail, userPassword, userDOB } = req.body;
@@ -175,27 +160,27 @@ app.post('/sign-in', async (req, res) => {
   }
 });
 
-app.get('/check-auth', (req, res) => {
-  if (req.session.user) {
-    res.json({
-      isAuthenticated: true,
-      user: req.session.user,
-    });
-  } else {
-    res.json({
-      isAuthenticated: false,
-    });
-  }
-});
-
 app.post('/sign-out', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ success: false, message: 'Error logging out' });
     }
-    res.clearCookie('connect.sid');
-    res.json({ success: true, message: 'Logged out successfully' });
+    res.clearCookie('connect.sid'); // Make sure the cookie name matches your session configuration
+    return res.json({ success: true, message: 'Logged out successfully' });
   });
+});
+
+app.get('/check-auth', (req, res) => {
+  if (req.session.user) {
+    return res.json({
+      isAuthenticated: true,
+      user: req.session.user,
+    });
+  } else {
+    return res.json({
+      isAuthenticated: false,
+    });
+  }
 });
 
 app.get('/protected-route', isAuthenticated, (req, res) => {
