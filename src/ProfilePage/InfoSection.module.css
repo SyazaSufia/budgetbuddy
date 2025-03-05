@@ -4,6 +4,8 @@
     display: flex;
     width: 100%;
     flex-direction: column;
+    max-width: 2500px; /* Adjust as needed */
+    margin: 0 auto;
   }
   
   .sectionHeader {
@@ -16,13 +18,17 @@
   }
   
   .sectionTitle {
-    color: #000;
+    color: var(--textColor);
     font: 600 16px Montserrat, sans-serif;
+    margin-bottom: 2;
+    margin-top: 2;
   }
   
   .required {
-    color: #ff0202;
+    color: red;
     font: 500 16px Montserrat, sans-serif;
+    margin-bottom: 2;
+    margin-top: 2;
   }
   
   .sectionContent {
@@ -32,7 +38,7 @@
     width: 100%;
     flex-direction: column;
     padding: 16px;
-    border: 1px solid #000;
+    border: 1px solid var(--borderColor);
   }
   
   .row {

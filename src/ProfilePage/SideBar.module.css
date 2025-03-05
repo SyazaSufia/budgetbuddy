@@ -1,9 +1,15 @@
 .sidebar {
-    background: #151aa5;
-    display: flex;
-    flex-direction: column;
-    width: 228px;
-  }
+  background: var(--primaryColor);
+  display: flex;
+  flex-direction: column;
+  width: 245px;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 0;
+  overflow-y: auto; /* Allows vertical scrolling if needed */
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
   
   .sidebarContent {
     display: flex;
@@ -78,11 +84,18 @@
     gap: 16px;
     padding: 8px;
     cursor: pointer;
-  }
+    margin-top: 8px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 500;
+  }  
   
   .menuItemActive {
-    background: #2c33ee;
-  }
+    background: var(--activeColor);
+    padding: 8px 8px;
+    border-radius: 8px;
+    width: 100%;
+}
   
   .menuIcon {
     aspect-ratio: 1;
@@ -93,15 +106,16 @@
   }
   
   .collapseButton {
-    background: #2c33ee;
+    background: var(--activeColor);
     display: flex;
-    width: 100%;
+    width: calc(100% - 8px); /* Adjust width to prevent cutoff */
     align-items: center;
     color: #fff;
-    padding: 8px 16px;
+    padding: 8px;
     font: 500 15px Montserrat, sans-serif;
     cursor: pointer;
-  }
+    margin: 0 auto; /* Ensures it is centered */
+}
   
   .collapseText {
     flex: 1;

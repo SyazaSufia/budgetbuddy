@@ -3,10 +3,14 @@ const path = require("path");
 const app = express();
 const cors = require("cors");
 const db = require("./db");
-const bodyParser = require("body-parser"); // Add this line
+const bodyParser = require("body-parser");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
+
+const corsOptions = {
+  origin: "http://localhost:5173",
+};
 
 const saltRounds = 10;
 
@@ -21,20 +25,20 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === "production",
-    httpOnly: true,
+    //secure: process.env.NODE_ENV === "production",
+    httpOnly: false,
     maxAge: 60 * 60 * 1000, // 1 hour,
-    sameSite: "none"
+    //sameSite: "none"
   }
 }));
 
 // Updated CORS configuration to allow credentials
-const corsOptions = {
+app.use(cors({
   origin: ["https://budgetbuddy.space"],
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: ["Content-Type"],
   credentials: true
-};
+}));
 
 app.use(cors(corsOptions));
 
@@ -43,6 +47,9 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'build')));
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
