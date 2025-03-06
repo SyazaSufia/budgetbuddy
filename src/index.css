@@ -60,9 +60,16 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+html {
+  font-size: 16px; /* Standard base size */
+}
+body {
+  font-size: 1rem; /* Ensures elements scale correctly */
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    color: #f3f8fd;
     background-color: var(--backgroundColor);
   }
   a:hover {

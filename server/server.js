@@ -8,20 +8,21 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 
-const saltRounds = 10;
-
-// Determine the appropriate origin based on the environment
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? process.env.PROD_ORIGIN : process.env.LOCAL_ORIGIN,
-  methods: ['GET', 'POST', 'DELETE', 'PUT'],
-  allowedHeaders: ['Content-Type'],
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "DELETE", "PUT"],
+  allowedHeaders: ["Content-Type"],
   credentials: true,
 };
+
+const saltRounds = 10;
 
 // Middleware setup
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(cors(corsOptions)); // Single CORS configuration
+app.options('*', cors(corsOptions)); // Allow preflight requests
 
 // Session configuration
 app.use(
@@ -31,29 +32,27 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: false,
+      //secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 1000, // 1 hour
     },
   })
 );
 
-// Consolidated CORS configuration
-app.use(cors(corsOptions));
-
 // Ensure Access-Control-Allow-Credentials header is set
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) {
-    next();
-  } else {
-    res.status(401).json({ success: false, message: 'Not authenticated' });
+    return next();
   }
+  res.status(401).json({ success: false, message: 'Not authenticated' });
 };
 
+// Sign-up endpoint
 app.post('/sign-up', (req, res) => {
   const { userName, userEmail, userPassword, userDOB } = req.body;
 
@@ -89,6 +88,7 @@ app.post('/sign-up', (req, res) => {
   });
 });
 
+// Sign-in endpoint
 app.post('/sign-in', async (req, res) => {
   const { email, password } = req.body;
   console.log('Sign-in request received. Email:', email);
@@ -160,32 +160,38 @@ app.post('/sign-in', async (req, res) => {
   }
 });
 
-app.post('/sign-out', (req, res) => {
+// Sign-out endpoint
+app.post("/sign-out", (req, res) => {
+  if (!req.session.user) {
+    return res.status(400).json({ success: false, message: "No active session" });
+  }
+
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ success: false, message: 'Error logging out' });
+      console.error("Error destroying session:", err);
+      return res.status(500).json({ success: false, message: "Error logging out" });
     }
-    res.clearCookie('connect.sid'); // Make sure the cookie name matches your session configuration
-    return res.json({ success: true, message: 'Logged out successfully' });
+
+    res.clearCookie("connect.sid", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+    });
+
+    return res.json({ success: true, message: "Logged out successfully" });
   });
 });
 
-app.get('/check-auth', (req, res) => {
+// Check authentication status
+app.get("/check-auth", (req, res) => {
   if (req.session.user) {
-    return res.json({
-      isAuthenticated: true,
-      user: req.session.user,
-    });
-  } else {
-    return res.json({
-      isAuthenticated: false,
-    });
+    return res.json({ isAuthenticated: true, user: req.session.user });
   }
+  return res.json({ isAuthenticated: false });
 });
 
-app.get('/protected-route', isAuthenticated, (req, res) => {
-  res.json({ success: true, data: 'Protected data' });
-});
+//-------------------- Admin routes --------------------
 
 app.post('/add-admin', (req, res) => {
   const { adminName, adminEmail, adminPassword } = req.body;
