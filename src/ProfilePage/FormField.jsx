@@ -1,9 +1,9 @@
 import React from 'react';
 import styles from './FormField.module.css';
 
-export function FormField({ label, type = 'text', placeholder, options }) {
+export function FormField({ label, type = 'text', placeholder, options, onChange }) {
   const inputId = `${label.toLowerCase().replace(/\s+/g, '-')}-input`;
-  
+
   return (
     <div className={styles.field}>
       <label className={styles.label} htmlFor={inputId}>
@@ -13,13 +13,16 @@ export function FormField({ label, type = 'text', placeholder, options }) {
         <select 
           id={inputId}
           className={styles.select}
+          onChange={onChange}
         >
           <option value="">{placeholder}</option>
-          {options?.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {options
+            ?.filter(option => option !== "Select your university" && option !== "Select your year of study")
+            .map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
         </select>
       ) : (
         <input
@@ -27,6 +30,7 @@ export function FormField({ label, type = 'text', placeholder, options }) {
           type={type}
           className={styles.input}
           placeholder={placeholder}
+          onChange={onChange}
         />
       )}
     </div>
