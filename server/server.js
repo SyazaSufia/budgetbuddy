@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://budgetbuddy.space"],
+  origin: "https://budgetbuddy.space",
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: ["Content-Type"],
   credentials: true,
