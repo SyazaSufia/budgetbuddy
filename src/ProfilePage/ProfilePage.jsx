@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import SideBar from "./SideBar";
 import InfoSection from "./InfoSection";
 import FormField from "./FormField";
@@ -22,29 +24,169 @@ const yearsOfStudy = [
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
-    username: "",
     age: "",
     email: "",
     phoneNumber: "",
     university: "",
     course: "",
     yearOfStudy: "",
+    profileImage: "",
   });
+
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isFormComplete, setIsFormComplete] = useState(false);
+
+  useEffect(() => {
+    // Fetch user data from the backend
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/get-user-details", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await response.json();
+
+        if (data.user) {
+          const userData = data.user;
+          const age = calculateAge(userData.userDOB);
+          let profileImageUrl = '';
+
+          // Fetch the profile image blob if it exists
+          if (userData.profileImage) {
+            const imageResponse = await fetch(`http://localhost:8080/profile-image/${userData.id}`);
+            if (imageResponse.ok) {
+              const imageBlob = await imageResponse.blob();
+              profileImageUrl = URL.createObjectURL(imageBlob);
+            }
+          }
+
+          setFormData({
+            id: userData.id,
+            name: userData.name,
+            age: age.toString(),
+            email: userData.email,
+            phoneNumber: userData.phoneNumber || "",
+            university: userData.university || "",
+            course: userData.course || "",
+            yearOfStudy: userData.yearOfStudy || "",
+            profileImage: profileImageUrl,
+          });
+
+          // Update form completion status
+          checkFormCompletion({
+            id: userData.id,
+            name: userData.name,
+            age: age.toString(),
+            email: userData.email,
+            phoneNumber: userData.phoneNumber || "",
+            university: userData.university || "",
+            course: userData.course || "",
+            yearOfStudy: userData.yearOfStudy || "",
+            profileImage: profileImageUrl,
+          });
+        } else {
+          console.error("No user data found");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const calculateAge = (dob) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => {
       const updatedForm = { ...prev, [field]: value };
+      checkFormCompletion(updatedForm);
       return updatedForm;
     });
   };
 
-  const isFormComplete = Object.values(formData).every(
-    (value) => value.trim() !== ""
-  );
+  const checkFormCompletion = (form) => {
+    const requiredFields = ["name", "age", "email", "phoneNumber", "university", "course", "yearOfStudy", "profileImage"];
+    const isComplete = requiredFields.every((field) => form[field] && form[field].trim() !== "");
+    setIsFormComplete(isComplete);
+  };
+
+  const handleImageChange = (e) => {
+    setSelectedImage(e.target.files[0]);
+    handleInputChange("profileImage", e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : "");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let imageUrl = formData.profileImage;
+  
+    if (selectedImage) {
+      const imageData = new FormData();
+      imageData.append("image", selectedImage);
+  
+      try {
+        const response = await fetch("http://localhost:8080/upload", {
+          method: "POST",
+          credentials: "include",
+          body: imageData,
+        });
+        const data = await response.json();
+        imageUrl = data.imageUrl;
+        handleInputChange("profileImage", `http://localhost:8080${imageUrl}`);
+  
+        // Update profile picture URL in the database
+        await fetch("http://localhost:8080/update-profile-picture", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ id: formData.id, profileImage: imageUrl }),
+        });
+  
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Failed to upload image.");
+      }
+    }
+  
+    // Save other form data
+    try {
+      const response = await fetch("http://localhost:8080/update-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
+  
+      if (response.ok) {
+        toast.success("Profile updated successfully!");
+      } else {
+        toast.error("Failed to update profile.");
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast.error("Error saving profile.");
+    }
+  };  
 
   return (
     <main className={styles.profile}>
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className={styles.content}>
         <SideBar />
         <div className={styles.mainContent}>
@@ -53,11 +195,19 @@ const ProfilePage = () => {
               <div className={styles.row}>
                 <div className={styles.field}>
                   <label className={styles.label}>Profile Image:</label>
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/190302b558048d193c9098f2b965722789bfd4bc188b926ea4ba98cba82e1f01?placeholderIfAbsent=true&apiKey=f57fde44dc854af1bb149ad964888ac0"
-                    alt="User profile"
-                    className={styles.profileImage}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange} 
+                    className={styles.profileImageInput} 
                   />
+                  {formData.profileImage && (
+                    <img
+                      src={formData.profileImage}
+                      alt="User profile"
+                      className={styles.profileImage}
+                    />
+                  )}
                 </div>
               </div>
             </InfoSection>
@@ -68,16 +218,8 @@ const ProfilePage = () => {
                   <FormField
                     label="Name"
                     placeholder="Full name"
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <FormField
-                    label="Username"
-                    placeholder="Username"
-                    onChange={(e) =>
-                      handleInputChange("username", e.target.value)
-                    }
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e)}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -85,17 +227,17 @@ const ProfilePage = () => {
                     label="Age"
                     placeholder="Age"
                     type="number"
-                    onChange={(e) => handleInputChange("age", e.target.value)}
+                    value={formData.age}
+                    onChange={(e) => handleInputChange("age", e)}
                   />
                 </div>
-              </div>
-              <div className={styles.row}>
                 <div className={styles.formGroup}>
                   <FormField
                     label="Email"
                     placeholder="Email address"
                     type="email"
-                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e)}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -103,12 +245,10 @@ const ProfilePage = () => {
                     label="Phone Number"
                     placeholder="Phone Number"
                     type="tel"
-                    onChange={(e) =>
-                      handleInputChange("phoneNumber", e.target.value)
-                    }
+                    value={formData.phoneNumber}
+                    onChange={(e) => handleInputChange("phoneNumber", e)}
                   />
                 </div>
-                <div className={styles.formGroup}></div>
               </div>
             </InfoSection>
 
@@ -120,18 +260,16 @@ const ProfilePage = () => {
                     type="select"
                     placeholder="Select your university"
                     options={universities}
-                    onChange={(e) =>
-                      handleInputChange("university", e.target.value)
-                    }
+                    value={formData.university}
+                    onChange={(e) => handleInputChange("university", e)}
                   />
                 </div>
                 <div className={styles.formGroup}>
                   <FormField
                     label="Course"
                     placeholder="Course Name"
-                    onChange={(e) =>
-                      handleInputChange("course", e.target.value)
-                    }
+                    value={formData.course}
+                    onChange={(e) => handleInputChange("course", e)}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -140,9 +278,8 @@ const ProfilePage = () => {
                     type="select"
                     placeholder="Select your year of study"
                     options={yearsOfStudy}
-                    onChange={(e) =>
-                      handleInputChange("yearOfStudy", e.target.value)
-                    }
+                    value={formData.yearOfStudy}
+                    onChange={(e) => handleInputChange("yearOfStudy", e)}
                   />
                 </div>
               </div>
@@ -152,6 +289,7 @@ const ProfilePage = () => {
           <button
             className={styles.saveButton}
             type="submit"
+            onClick={handleSubmit}
             disabled={!isFormComplete}
           >
             Save

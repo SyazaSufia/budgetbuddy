@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './FormField.module.css';
 
-export function FormField({ label, type = 'text', placeholder, options, onChange }) {
+export function FormField({ label, type = 'text', placeholder, options, value, onChange }) {
   const inputId = `${label.toLowerCase().replace(/\s+/g, '-')}-input`;
 
   return (
@@ -13,7 +13,8 @@ export function FormField({ label, type = 'text', placeholder, options, onChange
         <select 
           id={inputId}
           className={styles.select}
-          onChange={onChange}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         >
           <option value="">{placeholder}</option>
           {options
@@ -30,7 +31,8 @@ export function FormField({ label, type = 'text', placeholder, options, onChange
           type={type}
           className={styles.input}
           placeholder={placeholder}
-          onChange={onChange}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         />
       )}
     </div>

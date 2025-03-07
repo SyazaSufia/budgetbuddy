@@ -7,7 +7,10 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const multer = require('multer'); // Import multer for file uploads
+const fs = require('fs');
 
+// CORS options
 const corsOptions = {
   origin: ["http://localhost:5173", "https://budgetbuddy.space"],
   methods: ["GET", "POST", "DELETE", "PUT"],
@@ -43,6 +46,23 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
+
+// File storage configuration for multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = "uploads";
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -189,6 +209,145 @@ app.get("/check-auth", (req, res) => {
     return res.json({ isAuthenticated: true, user: req.session.user });
   }
   return res.json({ isAuthenticated: false });
+});
+
+// Profile Image Upload Endpoint
+app.post('/upload', isAuthenticated, upload.single('image'), (req, res) => {
+  if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+  }
+  const imageUrl = `/uploads/${req.file.filename}`;
+  const mimeType = req.file.mimetype;
+
+  const updateProfilePictureSql = 'UPDATE user SET profileImage = ?, imageMimeType = ? WHERE userID = ?';
+
+  db.query(updateProfilePictureSql, [imageUrl, mimeType, req.session.user.id], (err, result) => {
+      if (err) {
+          console.error('Error updating profile picture:', err);
+          return res.status(500).json({ success: false, message: 'Error updating profile picture.' });
+      }
+      res.json({ success: true, imageUrl });
+  });
+});
+
+// Update Profile Picture Endpoint
+app.post('/update-profile-picture', isAuthenticated, (req, res) => {
+  const { id, profileImage } = req.body;
+
+  if (!id || !profileImage) {
+    return res.status(400).json({ success: false, message: 'User ID and profile image URL are required.' });
+  }
+
+  const updateProfilePictureSql = 'UPDATE user SET profileImage = ? WHERE userID = ?';
+
+  db.query(updateProfilePictureSql, [profileImage, id], (err, result) => {
+    if (err) {
+      console.error('Error updating profile picture:', err);
+      return res.status(500).json({ success: false, message: 'Error updating profile picture.' });
+    }
+    return res.json({ success: true, message: 'Profile picture updated successfully.' });
+  });
+});
+
+/// Fetch User Details Endpoint
+app.get('/get-user-details', isAuthenticated, (req, res) => {
+  const { id } = req.session.user;
+
+  const getUserDetailsSql = `
+    SELECT 
+      userID AS id, 
+      userName AS name, 
+      userEmail AS email, 
+      userDOB, 
+      userPhoneNumber AS phoneNumber, 
+      userUniversity AS university, 
+      userCourse AS course, 
+      userYearOfStudy AS yearOfStudy, 
+      profileImage 
+    FROM user 
+    WHERE userID = ?`;
+
+  db.query(getUserDetailsSql, [id], (err, data) => {
+    if (err) {
+      console.error('Error fetching user details:', err);
+      return res.status(500).json({ success: false, message: 'Error fetching user details.' });
+    }
+
+    if (data.length === 0) {
+      console.log('User not found');
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    const user = data[0];
+    console.log('User details:', user);
+    return res.json({ success: true, user });
+  });
+});
+
+// Endpoint to get profile image blob
+app.get('/profile-image/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  const getImageBlobSql = 'SELECT profileImage, imageMimeType FROM user WHERE userID = ?';
+  db.query(getImageBlobSql, [userId], (err, data) => {
+      if (err) {
+          console.error('Error fetching image blob:', err);
+          return res.status(500).json({ success: false, message: 'Error fetching image blob.' });
+      }
+
+      if (data.length === 0 || !data[0].profileImage) {
+          return res.status(404).json({ success: false, message: 'Image not found.' });
+      }
+
+      const imageBlob = data[0].profileImage;
+      const mimeType = data[0].imageMimeType;
+
+      if (!mimeType) {
+          console.error("MIME type not found for image");
+          return res.status(500).json({success: false, message: "MIME type not found."})
+      }
+
+      // Debugging: Log the MIME type
+      console.log("MIME Type:", mimeType);
+
+      res.writeHead(200, {
+          'Content-Type': mimeType,
+          'Content-Length': imageBlob.length,
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+      });
+      res.end(imageBlob);
+  });
+});
+
+// Update Profile Endpoint
+app.post('/update-profile', isAuthenticated, (req, res) => {
+  const { id, name, age, email, phoneNumber, university, course, yearOfStudy, profileImage } = req.body;
+
+  if (!id || !name || !age || !email || !phoneNumber || !university || !course || !yearOfStudy) {
+    return res.status(400).json({ success: false, message: 'All fields are required.' });
+  }
+
+  const updateProfileSql = `
+    UPDATE user 
+    SET 
+      userName = ?, 
+      userEmail = ?, 
+      userPhoneNumber = ?, 
+      userUniversity = ?, 
+      userCourse = ?, 
+      userYearOfStudy = ?, 
+      profileImage = ? 
+    WHERE userID = ?`;
+
+  db.query(updateProfileSql, [name, email, phoneNumber, university, course, yearOfStudy, profileImage, id], (err, result) => {
+    if (err) {
+      console.error('Error updating profile:', err);
+      return res.status(500).json({ success: false, message: 'Error updating profile.' });
+    }
+    return res.json({ success: true, message: 'Profile updated successfully.' });
+  });
 });
 
 //-------------------- Admin routes --------------------

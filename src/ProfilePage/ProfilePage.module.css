@@ -45,13 +45,13 @@
 
 .saveButton {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px var(--primaryColor);
   padding: 0.6em 1.2em;
   font-size: 1em;
-  font-weight: 500;
+  font-weight: 600;
   font-family: inherit;
-  background-color: var(--textColor);
-  color: white;
+  background-color: var(--secondaryColor);
+  color: var(--primaryColor);
   cursor: pointer;
   transition: background-color 0.25s, border-color 0.25s;
   margin-top: 16px;
