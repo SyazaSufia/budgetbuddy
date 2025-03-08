@@ -3,6 +3,21 @@
     flex-direction: column;
     width: 100%;
   }
+
+  .inputContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon {
+    position: absolute;
+    right: 35px;
+    top: 15px;
+    cursor: pointer;
+    font-size: 18px;
+    color: gray;
+  }
   
   .label {
     color: var(--textColor);
@@ -17,7 +32,8 @@
     padding: 16px;
     font: 400 14px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
     color: #757575;
-    width: 93%;
+    width: 100%;
+    padding-right: 40px;
   }
   
   .input::placeholder {

@@ -3,6 +3,21 @@
     flex-direction: column;
     width: 100%;
   }
+
+  .inputContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon {
+    position: absolute;
+    right: 35px;
+    top: 15px;
+    cursor: pointer;
+    font-size: 18px;
+    color: gray;
+  }
   
   .label {
     color: #000;

@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { AuthLayout } from './components/AuthLayout';
-import { Input } from './components/Input';
-import axios from 'axios';
-import styles from './SignUp.module.css';
+import React, { useState } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { AuthLayout } from "./components/AuthLayout";
+import { Input } from "./components/Input";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons
+import axios from "axios";
+import styles from "./SignUp.module.css";
 
 const SignUp = ({ onSignUp }) => {
-  const [name, setName] = useState('');
-  const [dob, setDob] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState(''); 
+  const [name, setName] = useState("");
+  const [dob, setDob] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -55,11 +58,11 @@ const SignUp = ({ onSignUp }) => {
   };
 
   const isFormValid =
-    name.trim() !== '' &&
-    email.trim() !== '' &&
-    dob.trim() !== '' &&
-    password.trim() !== '' &&
-    confirmPassword.trim() !== '';
+    name.trim() !== "" &&
+    email.trim() !== "" &&
+    dob.trim() !== "" &&
+    password.trim() !== "" &&
+    confirmPassword.trim() !== "";
 
   return (
     <AuthLayout>
@@ -70,12 +73,20 @@ const SignUp = ({ onSignUp }) => {
           </h2>
           <nav className={styles.authNav}>
             <Link to="/sign-in" className={styles.navLink}>
-              <button className={`${styles.inactiveButton} ${location.pathname === '/sign-in' ? styles.active : ''}`}>
+              <button
+                className={`${styles.inactiveButton} ${
+                  location.pathname === "/sign-in" ? styles.active : ""
+                }`}
+              >
                 Sign In
               </button>
             </Link>
             <Link to="/sign-up" className={styles.navLink}>
-              <button className={`${styles.activeButton} ${location.pathname === '/sign-up' ? styles.active : ''}`}>
+              <button
+                className={`${styles.activeButton} ${
+                  location.pathname === "/sign-up" ? styles.active : ""
+                }`}
+              >
                 Sign Up
               </button>
             </Link>
@@ -107,23 +118,41 @@ const SignUp = ({ onSignUp }) => {
           <Input
             label="Enter your password"
             placeholder="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            icon={
+              <span
+                className={styles.eyeIcon}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            }
           />
           <Input
             label="Confirm password"
             placeholder="Confirm password"
-            type="password"
+            type={showConfirmPassword ? "text" : "password"}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            icon={
+              <span
+                className={styles.eyeIcon}
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            }
           />
           {successMessage && <p className={styles.success}>{successMessage}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
           <button
             type="submit"
-            className={`${styles.submitButton} ${isFormValid ? styles.enabled : styles.disabled}`}
+            className={`${styles.submitButton} ${
+              isFormValid ? styles.enabled : styles.disabled
+            }`}
             disabled={!isFormValid}
           >
             Sign Up

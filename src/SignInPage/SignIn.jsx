@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "./components/AuthLayout";
 import { Link, useLocation } from "react-router-dom";
 import { Input } from "./components/Input";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import styles from "./SignIn.module.css";
 
 const SignIn = ({ onSignIn }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,7 +22,7 @@ const SignIn = ({ onSignIn }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // Important for session cookies
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
@@ -85,13 +87,20 @@ const SignIn = ({ onSignIn }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <Input
-            label="Enter your password"
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className={styles.passwordContainer}>
+            <Input
+              label="Enter your password"
+              placeholder="Password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              icon={
+                <span className={styles.eyeIcon} onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              }
+            />
+          </div>
           {error && <p className={styles.error}>{error}</p>}
           <button
             type="submit"

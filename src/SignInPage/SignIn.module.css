@@ -119,6 +119,11 @@
     cursor: not-allowed;
   }
   
+  .eyeIcon {
+    font-size: 20px;
+    cursor: pointer;
+    position: absolute;
+  }
   
   @media (max-width: 991px) {
     .container,

@@ -23,6 +23,7 @@
     "mysql": "^2.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.0.2",
     "react-toastify": "^11.0.5",
     "typeface-montserrat": "^1.1.13"
