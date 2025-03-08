@@ -37,6 +37,11 @@ const ProfilePage = () => {
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [isFormComplete, setIsFormComplete] = useState(false);
+  const [errors, setErrors] = useState({
+    age: "",
+    email: "",
+    phoneNumber: "",
+  });
 
   useEffect(() => {
     // Fetch user data from the backend
@@ -110,11 +115,23 @@ const ProfilePage = () => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => {
-      const updatedForm = { ...prev, [field]: value };
-      checkFormCompletion(updatedForm);
-      return updatedForm;
-    });
+    let updatedErrors = { ...errors };
+
+    if (field === "age") {
+      updatedErrors.age = !/^\d+$/.test(value) ? "Age must be a number" : "";
+    }
+
+    if (field === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      updatedErrors.email = emailRegex.test(value) ? "" : "Please enter a valid email address";
+    }
+
+    if (field === "phoneNumber") {
+      updatedErrors.phoneNumber = !/^\d*$/.test(value) ? "Phone number must contain only numbers" : "";
+    }
+
+    setErrors(updatedErrors);
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const checkFormCompletion = (form) => {
@@ -230,6 +247,7 @@ const ProfilePage = () => {
                     value={formData.age}
                     onChange={(e) => handleInputChange("age", e)}
                   />
+                  {errors.age && <p className={styles.errorText}>{errors.age}</p>}
                 </div>
                 <div className={styles.formGroup}>
                   <FormField
@@ -239,6 +257,7 @@ const ProfilePage = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e)}
                   />
+                  {errors.age && <p className={styles.errorText}>{errors.email}</p>}
                 </div>
                 <div className={styles.formGroup}>
                   <FormField
@@ -248,6 +267,7 @@ const ProfilePage = () => {
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e)}
                   />
+                  {errors.age && <p className={styles.errorText}>{errors.phoneNumber}</p>}
                 </div>
               </div>
             </InfoSection>
@@ -290,7 +310,7 @@ const ProfilePage = () => {
             className={styles.saveButton}
             type="submit"
             onClick={handleSubmit}
-            disabled={!isFormComplete}
+            disabled={!isFormComplete || Object.values(errors).some((err) => err)}
           >
             Save
           </button>

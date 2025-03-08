@@ -72,6 +72,13 @@
   gap: 24px; /* Space between fields */
 }
 
+.errorText {
+  margin-top: 5px;
+  font-size: 14px;
+  color: red;
+  margin-left: 95px;
+}
+
 .formGroup {
   display: flex;
   flex-direction: column;
