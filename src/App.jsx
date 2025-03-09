@@ -12,6 +12,7 @@ import ResetPassword from './ForgotPassword/ResetPassword';
 import FAQPage from './FAQPage/FAQPage';
 import Guidelines from './Guidelines/Guidelines';
 import ProfilePage from './ProfilePage/ProfilePage';
+import IncomePage from './IncomePage/Income';
 import './App.css';
 
 const App = () => {
@@ -93,6 +94,7 @@ const App = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/income" element={<IncomePage />} />
           <Route path="/faqs" element={<FAQPage />} />
           <Route path="/guidelines" element={<Guidelines />} />
         </Routes>

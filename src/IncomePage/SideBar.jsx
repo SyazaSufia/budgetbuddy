@@ -4,8 +4,8 @@ import styles from "./SideBar.module.css";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: "/dashboard-icon.svg" , path: "/dashboard" },
-  { id: "personal", label: "Personal", icon: "/profile-icon.svg", path: "/profile", active: true },
-  { id: "income", label: "Income", icon: "/income-icon.svg", path: "/income" },
+  { id: "personal", label: "Personal", icon: "/profile-icon.svg", path: "/profile"},
+  { id: "income", label: "Income", icon: "/income-icon.svg", path: "/income", active: true },
   { id: "expenses", label: "Expenses", icon: "/expenses-icon.svg", path: "/expense" },
   { id: "budget", label: "Budget", icon: "/budget-icon.svg", path: "/budget" },
   { id: "community", label: "Community", icon: "/community-icon.svg", path: "/community" }
