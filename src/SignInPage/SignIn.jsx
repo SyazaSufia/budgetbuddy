@@ -95,13 +95,24 @@ const SignIn = ({ onSignIn }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               icon={
-                <span className={styles.eyeIcon} onClick={() => setShowPassword(!showPassword)}>
+                <span
+                  className={styles.eyeIcon}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
               }
             />
           </div>
           {error && <p className={styles.error}>{error}</p>}
+
+          {/* Forgot Password Link */}
+          <div className={styles.forgotPasswordContainer}>
+            <Link to="/forgot-password" className={styles.forgotPasswordLink}>
+              Forgot Password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             className={`${styles.submitButton} ${

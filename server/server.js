@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const multer = require('multer'); // Import multer for file uploads
 const fs = require('fs');
+const passwordRoutes = require('./routes/passwordRoutes'); // Import password routes
 
 // CORS options
 const corsOptions = {
@@ -71,6 +72,9 @@ const isAuthenticated = (req, res, next) => {
   }
   res.status(401).json({ success: false, message: 'Not authenticated' });
 };
+
+// Password reset routes
+app.use('/api', passwordRoutes);
 
 // Sign-up endpoint
 app.post('/sign-up', (req, res) => {

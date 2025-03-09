@@ -7,6 +7,8 @@ import Footer from './HomePage/Footer';
 import ContactBar from './HomePage/ContactBar';
 import SignIn from './SignInPage/SignIn';
 import SignUp from './SignUpPage/SignUp';
+import ForgotPassword from './ForgotPassword/ForgotPassword';
+import ResetPassword from './ForgotPassword/ResetPassword';
 import FAQPage from './FAQPage/FAQPage';
 import Guidelines from './Guidelines/Guidelines';
 import ProfilePage from './ProfilePage/ProfilePage';
@@ -76,7 +78,7 @@ const App = () => {
   };
 
   // Define pages where the Header should be visible
-  const showHeaderPages = ["/", "/sign-in", "/sign-up", "/faqs", "/guidelines"];
+  const showHeaderPages = ["/", "/sign-in", "/sign-up", "/forgot-password", "/faqs", "/guidelines"];
   const showHeader = showHeaderPages.includes(location.pathname);
 
   return (
@@ -88,6 +90,8 @@ const App = () => {
           <Route path="/" element={<Hero user={user} />} />
           <Route path="/sign-in" element={<SignIn onSignIn={handleSignIn} />} />
           <Route path="/sign-up" element={<SignUp onSignUp={handleSignUp} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/faqs" element={<FAQPage />} />
           <Route path="/guidelines" element={<Guidelines />} />
