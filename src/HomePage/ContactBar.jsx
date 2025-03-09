@@ -9,7 +9,7 @@ const ContactBar = () => {
         <div className={styles.contactInfo}>
           <span className={styles.phoneNumber}>Phone Number: 04-653 4900</span>
           <span className={styles.divider}></span>
-          <span className={styles.email}>Email: budgetbuddy@info.my</span>
+          <span className={styles.email}>Email: Info@budgetbuddy.space</span>
         </div>
         <SocialLinks />
       </div>

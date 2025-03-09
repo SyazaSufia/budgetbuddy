@@ -6,7 +6,7 @@ import Button from './Button';
 const Hero = ({user}) => {
 
   const navigate = useNavigate();
-  const handleBookNow = () => {
+  const handleGetStarted = () => {
     if (user?.role === 'user') {
       navigate('/profile'); // Redirect to sign-in page if not signed in
     } else {
@@ -26,7 +26,7 @@ const Hero = ({user}) => {
             and visualize your financial habits, so you can make every Ringgit count.
           </p>
         <div className={styles.actionArea}>
-          <Button text="Get Started" variant="cta" onClick={handleBookNow} />
+          <Button text="Get Started" variant="cta" onClick={handleGetStarted} />
         </div>
       </div>
       <img
