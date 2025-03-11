@@ -13,6 +13,10 @@ import FAQPage from './FAQPage/FAQPage';
 import Guidelines from './Guidelines/Guidelines';
 import ProfilePage from './ProfilePage/ProfilePage';
 import IncomePage from './IncomePage/Income';
+import BudgetPage from './BudgetPage/Budget';
+import DashboardPage from './DashboardPage/Dashboard';
+//import ExpensePage from './ExpensePage/Expense';
+//import CommunityPage from './CommunityPage/Community';
 import './App.css';
 
 const App = () => {
@@ -95,6 +99,8 @@ const App = () => {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/income" element={<IncomePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/budget" element={<BudgetPage />} />
           <Route path="/faqs" element={<FAQPage />} />
           <Route path="/guidelines" element={<Guidelines />} />
         </Routes>
