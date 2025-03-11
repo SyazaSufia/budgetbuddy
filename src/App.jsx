@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from "./AuthContext";
+import ProtectedRoute from "./ProtectedRoute";
 import Header from './HomePage/Header';
 import Hero from './HomePage/Hero';
 import FeatureSection from './HomePage/FeatureSection';
@@ -15,14 +17,12 @@ import ProfilePage from './ProfilePage/ProfilePage';
 import IncomePage from './IncomePage/Income';
 import BudgetPage from './BudgetPage/Budget';
 import DashboardPage from './DashboardPage/Dashboard';
-//import ExpensePage from './ExpensePage/Expense';
-//import CommunityPage from './CommunityPage/Community';
 import './App.css';
 
-const App = () => {
-  const [user, setUser] = useState(null);
+const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, login, logout } = useAuth();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -33,7 +33,7 @@ const App = () => {
         });
         const data = await response.json();
         if (data.isAuthenticated) {
-          setUser(data.user);
+          login(data.user);
         }
       } catch (error) {
         console.error("Error checking authentication status:", error);
@@ -41,48 +41,20 @@ const App = () => {
     };
 
     checkAuthStatus();
-  }, []);
+  }, [login]);
 
   const handleSignIn = (userData) => {
-    setUser(userData);
-    if (userData.role === 'admin') {
-      navigate('/admin-home');
-    } else {
-      navigate('/profile');
-    }
+    login(userData);
+    navigate(userData.role === 'admin' ? '/admin-home' : '/profile');
   };
 
-  const handleSignUp = (userData) => {
-    setUser(userData);
-    navigate('/sign-in');
-  };
+  const handleSignUp = () => navigate('/sign-in');
 
   const handleSignOut = async () => {
-    try {
-      // Call backend to log out the user (if applicable)
-      await fetch("http://localhost:8080/sign-out", {
-        method: "POST",
-        credentials: "include",
-      });
-  
-      // Clear user session data
-      setUser(null);
-      
-      // Remove any stored authentication tokens
-      localStorage.removeItem("authUser");
-      localStorage.removeItem("authToken");
-  
-      // Remove authentication cookie
-      document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  
-      // Redirect to home after logout
-      navigate('/');
-    } catch (error) {
-      console.error("Error during sign-out:", error);
-    }
+    await logout();
+    navigate('/');
   };
 
-  // Define pages where the Header should be visible
   const showHeaderPages = ["/", "/sign-in", "/sign-up", "/forgot-password", "/faqs", "/guidelines"];
   const showHeader = showHeaderPages.includes(location.pathname);
 
@@ -97,12 +69,19 @@ const App = () => {
           <Route path="/sign-up" element={<SignUp onSignUp={handleSignUp} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/income" element={<IncomePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/budget" element={<BudgetPage />} />
           <Route path="/faqs" element={<FAQPage />} />
           <Route path="/guidelines" element={<Guidelines />} />
+
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/income" element={<IncomePage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/budget" element={<BudgetPage />} />
+          </Route>
+
+          {/* Redirect unknown routes */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
         {location.pathname === '/' && (
@@ -116,5 +95,11 @@ const App = () => {
     </div>
   );
 };
+
+const App = () => (
+  <AuthProvider>
+    <AppContent />
+  </AuthProvider>
+);
 
 export default App;

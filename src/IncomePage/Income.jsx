@@ -4,14 +4,16 @@ import SidebarNav from './SideBar';
 import IncomeList from './IncomeList';
 import TimeFilter from './TimeFilter';
 
-export default function IncomeLayout() {
+export default function IncomeLayout({ user }) {
   return (
     <main className={styles.incomeDefault}>
       <div className={styles.content}>
         <SidebarNav />
         <section className={styles.main}>
           <header className={styles.headerSection}>
-            <h1 className={styles.pageHeader}>Hello, Syaza!</h1>
+            <h1 className={styles.pageHeader}>
+              Hello, {user ? user.name : 'Guest'}!
+            </h1>
             <TimeFilter />
           </header>
           
