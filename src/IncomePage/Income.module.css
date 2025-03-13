@@ -74,6 +74,11 @@
     object-fit: contain;
     width: 20px;
   }
+
+  .icons {
+    display: flex;
+    gap: 10px; /* Adjust this value as needed */
+  }  
   
   .allIncomes {
     background: #2c33ee;

@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider, useAuth } from "./AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 import Header from './HomePage/Header';
@@ -74,10 +76,10 @@ const AppContent = () => {
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/income" element={<IncomePage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/budget" element={<BudgetPage />} />
+            <Route path="/profile" element={<ProfilePage user={user} />} />
+            <Route path="/income" element={<IncomePage user={user} />} />
+            <Route path="/dashboard" element={<DashboardPage user={user} />} />
+            <Route path="/budget" element={<BudgetPage user={user} />} />
           </Route>
 
           {/* Redirect unknown routes */}
@@ -92,6 +94,9 @@ const AppContent = () => {
           </>
         )}
       </main>
+
+      {/* Toast Container (Global) */}
+    <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </div>
   );
 };
