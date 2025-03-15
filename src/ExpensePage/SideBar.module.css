@@ -9,6 +9,9 @@
     padding: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    position: sticky;
+    top: 0;
+    bottom: 0;
   }
     
     .sidebarContent {
@@ -184,4 +187,17 @@
     width: 20px;
     height: 20px;
   }
+
+  html, body {
+    height: 100%; /* Ensure the body is at least as tall as the viewport */
+    margin: 0; /* Remove any default margin */
+    padding: 0; /* Remove any default padding */
+    box-sizing: border-box; /* Ensure border and padding are included in the element’s size */
+}
+
+#root {
+    height: 100%; /* Full height for React's root container */
+    display: flex; /* Allow content to stretch alongside the sidebar */
+}
+
   
