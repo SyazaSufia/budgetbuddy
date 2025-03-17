@@ -19,6 +19,7 @@ import ProfilePage from './ProfilePage/ProfilePage';
 import IncomePage from './IncomePage/Income';
 import BudgetPage from './BudgetPage/Budget';
 import DashboardPage from './DashboardPage/Dashboard';
+import ExpensePage from './ExpensePage/Expense';
 import './App.css';
 
 const AppContent = () => {
@@ -80,6 +81,7 @@ const AppContent = () => {
             <Route path="/income" element={<IncomePage user={user} />} />
             <Route path="/dashboard" element={<DashboardPage user={user} />} />
             <Route path="/budget" element={<BudgetPage user={user} />} />
+            <Route path="/expense" element={<ExpensePage user={user} />} />
           </Route>
 
           {/* Redirect unknown routes */}

@@ -1,0 +1,228 @@
+.main {
+  display: flex;
+  min-width: 240px;
+  flex-direction: column;
+  flex: 1;
+  padding: 48px 24px;
+}
+
+.content {
+  background: #f5f5f5;
+  display: flex;
+  width: 100%;
+  flex: 1;
+  flex-wrap: wrap;
+  height: 100%;
+}
+
+.headerSection {
+  display: flex;
+  width: 100%;
+  align-items: start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.pageHeader {
+  min-width: 240px;
+  color: #101828;
+  flex: 1;
+  font: 600 30px/1 Montserrat, sans-serif;
+  margin: 0;
+}
+
+.categoryContainer {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.categoryInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.categoryTitle {
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'montserrat';
+  color: black;
+}
+
+.categoryTotal {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #444;
+}
+
+.categoryTotalChevron {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.chevronIcon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s;
+}
+
+.expanded {
+  transform: rotate(90deg);
+}
+
+.expenseListContainer {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 16px;
+}
+
+.expenseList {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expenseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.expenseDetails {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.expenseDate{
+  font-size: 14px;
+  font-weight: 500;
+  color: #757575;
+}
+
+.textDetails {
+  display: flex;
+  flex-direction: column;
+  color: black;
+}
+
+.amountDisplay {
+  display: flex;
+  align-items: center;
+  color: #757575;
+  font-weight: 500;
+  font-size: 14px;
+  margin-left: auto;
+  padding-right: 8px;
+}
+
+.currency {
+  margin-right: 5px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.iconButton:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0px; /* Adjusts spacing between buttons */
+  align-items: center; /* Ensures proper alignment */
+}
+
+.iconButton img {
+  width: 20px;
+  height: 20px;
+}
+
+.addExpenseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border-radius: 4px;
+  background: var(--secondaryColor);
+  color: var(--primaryColor);
+  font: 600 14px Montserrat, sans-serif;
+  cursor: pointer;
+}
+
+.content3 {
+  display: flex;
+  margin-top: 16px;
+  width: 100%;
+  flex-direction: column;
+}
+
+.totalExpense {
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex-direction: row;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--borderColor);
+}
+
+.labelM {
+  font: 500 16px Montserrat, sans-serif;
+  color: #000;
+}
+
+.inputC input {
+  border: none;
+  background: transparent;
+  font: 400 14px Montserrat, sans-serif;
+  color: #0a0a0a;
+  padding: 10px 0;
+}
+
+@media (max-width: 991px) {
+  .categoryWrapper,
+  .expenseCategory,
+  .categoryContent {
+    max-width: 100%;
+  }
+}
