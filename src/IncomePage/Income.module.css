@@ -256,10 +256,9 @@
     width: 100%;
     margin-top: 8px;
     padding: 10px 16px;
-    border: 1px solid #151aa5;
     border-radius: 4px;
-    background: none;
-    color: #151aa5;
+    background: var(--secondaryColor);
+    color: var(--primaryColor);
     font: 600 14px Montserrat, sans-serif;
     cursor: pointer;
   }
