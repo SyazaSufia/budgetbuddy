@@ -11,6 +11,9 @@ const multer = require('multer'); // Import multer for file uploads
 const fs = require('fs');
 const passwordRoutes = require('./routes/passwordRoutes'); // Import password routes
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../dist')));
+
 // CORS options
 const corsOptions = {
   origin: ["http://localhost:5173", "https://budgetbuddy.space", "https://www.budgetbuddy.space"],
@@ -383,6 +386,11 @@ app.post('/add-admin', (req, res) => {
       return res.status(201).json({ success: true, message: 'Admin added successfully.' });
     });
   });
+});
+
+// Catch-all for frontend routes (React Router)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(8080, () => {
