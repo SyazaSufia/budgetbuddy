@@ -4,15 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "npm --prefix server run dev-server",
+    "build": "npm --prefix src run build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server/server.js",
+    "start": "npm --prefix server start-server",
     "postbuild": "cp -r dist ../dist/",
     "vercel-build": "npm run build-next",
-    "build-next": "next build",
-    "start-next": "next start"
+    "install": "npm install --prefix src && npm install --prefix server"
   },
   "dependencies": {
     "axios": "^1.7.9",
