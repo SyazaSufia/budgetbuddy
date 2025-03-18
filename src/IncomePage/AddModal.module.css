@@ -39,7 +39,7 @@
 
 .label {
   color: var(--textColor);
-  min-width: 80px;
+  min-width: 100px;
   text-align: left;
   font-weight: 600;
   font-family: 'Montserrat';

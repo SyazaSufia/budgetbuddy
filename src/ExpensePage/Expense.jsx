@@ -94,7 +94,7 @@ export default function Expense({ user }) {
             <section className={styles.content3}>
               <form className={styles.totalExpense}>
                 <label htmlFor="totalExpense" className={styles.labelM}>
-                  Total Expense
+                  Total Expenses
                 </label>
                 <div className={styles.inputC}>
                   <div className={styles.inputM}>
