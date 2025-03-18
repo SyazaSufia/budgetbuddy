@@ -17,12 +17,14 @@ const SignIn = ({ onSignIn }) => {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://api.budgetbuddy.space/sign-in", {
+      const response = await fetch("http://localhost:8080/sign-in", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify({ email, password }),
-      });      
+      });
 
       const data = await response.json();
       console.log("Parsed data:", data);
