@@ -18,6 +18,7 @@ import Guidelines from './Guidelines/Guidelines';
 import ProfilePage from './ProfilePage/ProfilePage';
 import IncomePage from './IncomePage/Income';
 import BudgetPage from './BudgetPage/Budget';
+import BudgetDetails from './BudgetPage/BudgetDetails/BudgetDetails';
 import DashboardPage from './DashboardPage/Dashboard';
 import ExpensePage from './ExpensePage/Expense';
 import './App.css';
@@ -82,6 +83,7 @@ const AppContent = () => {
             <Route path="/dashboard" element={<DashboardPage user={user} />} />
             <Route path="/budget" element={<BudgetPage user={user} />} />
             <Route path="/expense" element={<ExpensePage user={user} />} />
+            <Route path="/BudgetPage/BudgetDetails" element={<BudgetDetails user={user} />} />
           </Route>
 
           {/* Redirect unknown routes */}

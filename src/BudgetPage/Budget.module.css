@@ -1,82 +1,56 @@
-.layout {
-    background: #f5f5f5;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+.container {
+  background-color: #f5f5f5;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+.content {
+  flex-direction: column;
+  flex: 1;
+  padding: 48px 0;
+  display: flex;
+}
+
+@media (width<=991px) {
+  .content {
+    padding: 32px 0;
   }
-  
-  .container {
-    background: #f5f5f5;
-    display: flex;
-    width: 100%;
-    flex: 1;
-    flex-wrap: wrap;
-    height: 100%;
+}
+
+@media (width<=640px) {
+  .content {
+    padding: 24px 0;
   }
-  
-  @media (max-width: 991px) {
-    .container {
-      max-width: 100%;
-    }
+}
+
+.greeting {
+  color: #101828;
+  padding: 0 24px;
+  font-family: Montserrat;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+@media (width<=640px) {
+  .greeting {
+    padding: 0 16px;
   }
-  
-  .mainContent {
-    display: flex;
-    min-width: 240px;
-    flex-direction: column;
-    flex: 1;
-    flex-basis: 0%;
-    padding: 48px 0;
+}
+
+.budgetSection {
+  flex: 1;
+  padding: 0 24px;
+}
+
+@media (width<=640px) {
+  .budgetSection {
+    padding: 0 16px;
   }
-  
-  @media (max-width: 991px) {
-    .mainContent {
-      max-width: 100%;
-    }
-  }
-  
-  .welcomeText {
-    flex: 1;
-    width: 100%;
-    gap: 24px;
-    color: #101828;
-    padding: 0 32px;
-    font: 600 30px/1 Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
-  }
-  
-  @media (max-width: 991px) {
-    .welcomeText {
-      max-width: 100%;
-      padding: 0 20px;
-    }
-  }
-  
-  .budgetGrid {
-    display: flex;
-    margin-top: 32px;
-    width: 100%;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-    padding: 0 24px;
-  }
-  
-  @media (max-width: 991px) {
-    .budgetGrid {
-      max-width: 100%;
-      padding: 0 20px;
-    }
-  }
-  
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
+}
+
+.budgetList {
+  flex-direction: column;
+  gap: 24px;
+  display: flex;
+}

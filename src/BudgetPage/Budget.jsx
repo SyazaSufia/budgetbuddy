@@ -1,62 +1,29 @@
-import React from 'react';
-import Sidebar from './SideBar';
-import BudgetCard from './BudgetCard';
-import styles from './Budget.module.css';
+"use client";
+import React, { useState } from "react";
+import styles from "./Budget.module.css";
+import SidebarNav from "./SideBar";
+import BudgetCard from "./BudgetCard";
 
-const mockBudgets = [
-  {
-    id: 1,
-    title: "Title",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  },
-  {
-    id: 2,
-    title: "Title",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  },
-  {
-    id: 3,
-    title: "Title",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  },
-  {
-    id: 4,
-    title: "Title",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  },
-  {
-    id: 5,
-    title: "Title",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  },
-  {
-    id: 6,
-    title: "Title",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  }
-];
-
-function BudgetLayout() {
+function Budget({ user }) {
   return (
-    <div className={styles.layout}>
-      <div className={styles.container}>
-        <Sidebar />
-        <main className={styles.mainContent}>
-          <h1 className={styles.welcomeText}>Hello, Syaza!</h1>
-          <section className={styles.budgetGrid}>
-            {mockBudgets.map(budget => (
-              <BudgetCard
-                key={budget.id}
-                title={budget.title}
-                description={budget.description}
-              />
-            ))}
-            <BudgetCard isCreateNew />
-          </section>
-        </main>
-      </div>
-    </div>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+      <main className={styles.container}>
+        <SidebarNav />
+        <section className={styles.content}>
+          <h2 className={styles.greeting}>Hello, {user ? user.name : "Guest"}!</h2>
+          <div className={styles.budgetSection}>
+            <div className={styles.budgetList}>
+              <BudgetCard />
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }
 
-export default BudgetLayout;
+export default Budget;
