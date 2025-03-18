@@ -13,7 +13,7 @@ const passwordRoutes = require('./routes/passwordRoutes'); // Import password ro
 
 // CORS options
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://budgetbuddy.space", "https://api.budgetbuddy.space"],
+  origin: ["http://localhost:5173", "https://budgetbuddy.space", "https://www.budgetbuddy.space"],
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: ["Content-Type"],
   credentials: true,
