@@ -31,7 +31,7 @@ const AppContent = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch("https://www.budgetbuddy.space/check-auth", {
+        const response = await fetch("https://budgetbuddy.space/check-auth", {
           method: "GET",
           credentials: "include",
         });

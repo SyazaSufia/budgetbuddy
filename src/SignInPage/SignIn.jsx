@@ -17,7 +17,7 @@ const SignIn = ({ onSignIn }) => {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://www.budgetbuddy.space/sign-in", {
+      const response = await fetch("https://budgetbuddy.space/sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
