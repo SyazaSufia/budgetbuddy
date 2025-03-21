@@ -106,6 +106,7 @@
     flex-direction: column;
     flex: 1;
     padding: 48px 0;
+    gap: 24px;
   }
   
   .headerSection {
@@ -153,11 +154,12 @@
   
   .content3 {
     display: flex;
-    margin-top: 32px;
+    margin-top: 0px;
     width: 100%;
     flex-direction: column;
     flex: 1;
     padding: 0 24px;
+    gap: 24px;
   }
   
   .totalIncome {
@@ -188,7 +190,6 @@
   .incomeLists {
     border-radius: 8px;
     background: #fff;
-    margin-top: 16px;
     padding: 16px;
     border: 1px solid var(--borderColor);
   }

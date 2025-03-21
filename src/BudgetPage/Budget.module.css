@@ -10,6 +10,7 @@
   flex: 1;
   padding: 48px 0;
   display: flex;
+  gap: 24px;
 }
 
 @media (width<=991px) {
@@ -30,6 +31,8 @@
   font-family: Montserrat;
   font-size: 30px;
   font-weight: 600;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 @media (width<=640px) {
