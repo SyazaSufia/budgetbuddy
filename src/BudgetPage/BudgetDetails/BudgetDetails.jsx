@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import styles from "./BudgetDetails.module.css";
 import Sidebar from "../SideBar";

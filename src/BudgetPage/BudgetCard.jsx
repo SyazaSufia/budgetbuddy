@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./BudgetCard.module.css";
@@ -9,7 +8,7 @@ function BudgetCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCardClick = () => {
-    navigate("/BudgetPage/BudgetDetails");
+    navigate("/budgetdetails");
   };
 
   return (
