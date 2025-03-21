@@ -21,6 +21,7 @@ import BudgetPage from './BudgetPage/Budget';
 import BudgetDetails from './BudgetPage/BudgetDetails/BudgetDetails';
 import DashboardPage from './DashboardPage/Dashboard';
 import ExpensePage from './ExpensePage/Expense';
+import CommunityPage from './CommunityPage/Community';
 import './App.css';
 
 const AppContent = () => {
@@ -31,7 +32,7 @@ const AppContent = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch("https://budgetbuddy.space/check-auth", {
+        const response = await fetch("http://localhost:8080/check-auth", {
           method: "GET",
           credentials: "include",
         });
@@ -82,8 +83,9 @@ const AppContent = () => {
             <Route path="/income" element={<IncomePage user={user} />} />
             <Route path="/dashboard" element={<DashboardPage user={user} />} />
             <Route path="/budget" element={<BudgetPage user={user} />} />
-            <Route path="/expense" element={<ExpensePage user={user} />} />
             <Route path="/BudgetPage/BudgetDetails" element={<BudgetDetails user={user} />} />
+            <Route path="/expense" element={<ExpensePage user={user} />} />
+            <Route path="/community" element={<CommunityPage user={user} />} />
           </Route>
 
           {/* Redirect unknown routes */}

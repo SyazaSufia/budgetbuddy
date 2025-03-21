@@ -1,0 +1,144 @@
+.postCard {
+    background-color: #fff;
+    border: 1px solid var(--borderColor);
+    border-radius: 8px;
+    align-items: center;
+    gap: 8px;
+    height: 230px;
+    width: 100%;
+    padding: 16px;
+    display: flex;
+    box-sizing: border-box; /* Ensures padding is included in the total height */
+    overflow: hidden;
+  }
+  
+  @media (width<=991px) {
+    .postCard {
+      width: 100%;
+    }
+  }
+  
+  @media (width<=640px) {
+    .postCard {
+      height: auto;
+      min-height: 230px;
+    }
+  }
+  
+  .postContent {
+    flex-grow: 1; /* Ensures all post contents take equal height */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Keeps spacing consistent */
+    max-height: 100%;
+}
+
+  .iconContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    display: flex;
+  }
+  
+  .postBody {
+    display: flex;
+    flex-direction: column; /* Stacks the elements vertically */
+    flex: 1 0 auto; /* Ensures the container grows as needed */
+    align-items: flex-start;
+    gap: 24px; /* Spacing between elements */
+    width: 100%;
+  }
+  
+  .textContent {
+    flex-direction: column;
+    flex: 1 0 0;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    display: flex;
+  }
+  
+  .postTitle {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    line-height: 20px; 
+    color: #151aa5;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 0px;
+  }  
+  
+  .postDescription {
+    display: -webkit-box; /* Ensures the clamp works */
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    color: #8d8d8d;
+    width: 100%;
+    font-family: Montserrat;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+  
+  .postMeta {
+    margin-top: auto; /* Pushes the element to the bottom */
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    display: flex;
+  }
+  
+  .commentCount {
+    flex: 1 0 0;
+    align-items: center;
+    gap: 8px;
+    display: flex;
+  }
+  
+  .metaText {
+    color: #8d8d8d;
+    font-family: Montserrat;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  
+  .postDate {
+    flex: 1 0 0;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    display: flex;
+  }
+
+.postRow {
+    align-items: stretch; /* Ensures all cards in the row match the tallest one */
+    gap: 24px;
+    width: 100%;
+    display: flex;
+}
+
+.iconContainer img {
+    max-width: 100%; /* Prevents the icon from getting too large */
+    height: auto;
+    object-fit: contain; /* Ensures it stays within the box */
+}
+
+.textContent, .postBody {
+    flex-shrink: 1; /* Ensures content doesn’t grow beyond the container */
+  }
+  
+  .postTitle, .postDescription {
+    -webkit-line-clamp: 2; /* Keeps titles and descriptions constrained */
+    line-clamp: 2;
+    overflow: hidden;
+  }
