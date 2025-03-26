@@ -1,9 +1,16 @@
-"use client";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./ForumFeed.module.css";
 import PostCard from "./PostCard";
+import AddPostPage from "./AddPostPage/InputDesign";
 
 function ForumFeed({ user }) {
+  const navigate = useNavigate();
+
+  const handleAddPost = () => {
+    navigate("/addpost");
+  };
+
   return (
     <>
       <link
@@ -56,7 +63,7 @@ function ForumFeed({ user }) {
             />
           </div>
           <div className={styles.actionContainer}>
-            <button className={styles.addButton}>
+            <button className={styles.addButton} onClick={handleAddPost}>
               <img
                 src="/add-icon.svg"
                 alt="Add Icon"

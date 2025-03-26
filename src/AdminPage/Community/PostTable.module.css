@@ -1,0 +1,96 @@
+.tableContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    display: flex;
+  }
+  
+  .tableContent {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    display: flex;
+  }
+  
+  .tableHeader {
+    border-width: 2px;
+    border-color: #dee2e6;
+    align-items: center;
+    width: 100%;
+    display: flex;
+  }
+  
+  .idHeader {
+    color: #212529;
+    width: 110px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  @media (width<=640px) {
+    .idHeader {
+      width: 80px;
+    }
+  }
+  
+  .contentHeader {
+    color: #212529;
+    width: 300px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  @media (width<=991px) {
+    .contentHeader {
+      width: 250px;
+    }
+  }
+  @media (width<=640px) {
+    .contentHeader {
+      width: 120px;
+    }
+  }
+  
+  .dateHeader {
+    color: #212529;
+    width: 150px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  
+  .statusHeader {
+    color: #212529;
+    width: 200px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  @media (width<=991px) {
+    .statusHeader {
+      width: 150px;
+    }
+  }
+  @media (width<=640px) {
+    .statusHeader {
+      width: 100px;
+    }
+  }
+  
+  .actionHeader {
+    color: #212529;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  

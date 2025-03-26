@@ -22,6 +22,10 @@ import BudgetDetails from './BudgetPage/BudgetDetails/BudgetDetails';
 import DashboardPage from './DashboardPage/Dashboard';
 import ExpensePage from './ExpensePage/Expense';
 import CommunityPage from './CommunityPage/Community';
+import AddPostPage from './CommunityPage/AddPostPage/InputDesign';
+import CommunityDetails from './CommunityPage/PostDetailsPage/Main';
+import AdminUserPage from './AdminPage/Users/InputDesign';
+import AdminCommunityPage from './AdminPage/Community/CommunityManagement';
 import './App.css';
 
 const AppContent = () => {
@@ -50,7 +54,7 @@ const AppContent = () => {
 
   const handleSignIn = (userData) => {
     login(userData);
-    navigate(userData.role === 'admin' ? '/admin-home' : '/profile');
+    navigate(userData.role === 'admin' ? '/adminUser' : '/profile');
   };
 
   const handleSignUp = () => navigate('/sign-in');
@@ -83,9 +87,13 @@ const AppContent = () => {
             <Route path="/income" element={<IncomePage user={user} />} />
             <Route path="/dashboard" element={<DashboardPage user={user} />} />
             <Route path="/budget" element={<BudgetPage user={user} />} />
-            <Route path="/BudgetPage/BudgetDetails" element={<BudgetDetails user={user} />} />
+            <Route path="/budgetdetails" element={<BudgetDetails user={user} />} />
             <Route path="/expense" element={<ExpensePage user={user} />} />
             <Route path="/community" element={<CommunityPage user={user} />} />
+            <Route path="/addpost" element={<AddPostPage user={user} />} />
+            <Route path="/postdetails" element={<CommunityDetails user={user} />} />
+            <Route path="/adminUser" element={<AdminUserPage />} />
+            <Route path="/adminCommunity" element={<AdminCommunityPage />} />
           </Route>
 
           {/* Redirect unknown routes */}

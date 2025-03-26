@@ -1,0 +1,375 @@
+.div {
+    flex-direction: column;
+    flex: 1 0 0;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    padding: 48px 24px;
+    display: flex;
+  }
+  @media (width<=991px) {
+    .div {
+      padding: 32px 20px;
+    }
+  }
+  @media (width<=640px) {
+    .div {
+      padding: 24px 16px;
+    }
+  }
+  .div2 {
+    color: black;
+    width: 100%;
+    font-family: Montserrat;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 35px;
+    margin-bottom: 0px;
+    margin-top: 0px;
+  }
+  @media (width<=991px) {
+    .div2 {
+      font-size: 24px;
+    }
+  }
+  @media (width<=640px) {
+    .div2 {
+      font-size: 22px;
+    }
+  }
+  .div3 {
+    border-width: 1px solid #dee2e6;
+    background-color: #fff;
+    border-radius: 4px;
+    flex-direction: column;
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+  }
+  .div4 {
+    border-width: 1px solid #00000021;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    padding: 6px 16px;
+    display: flex;
+  }
+  .div5 {
+    color: #212529;
+    flex: 1;
+    font-family: Montserrat;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .div6 {
+    background-color: #fff;
+    align-items: center;
+    gap: 8px;
+    width: 375px;
+    padding: 8px 16px;
+    display: flex;
+  }
+  @media (width<=991px) {
+    .div6 {
+      width: 300px;
+    }
+  }
+  @media (width<=640px) {
+    .div6 {
+      width: 100%;
+    }
+  }
+  .div7 {
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    display: flex;
+  }
+  .div8 {
+    align-items: flex-start;
+    width: 100%;
+    display: flex;
+  }
+  .div9 {
+    align-items: flex-start;
+    width: 100%;
+    display: flex;
+    position: relative;
+  }
+  .div10 {
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    height: 24px;
+    display: flex;
+  }
+  .div11 {
+    border-width: 1px solid #e0e0e0;
+    background-color: #fff;
+    border-radius: 4px;
+    flex: 1;
+    height: 100%;
+  }
+  .div12 {
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 8px;
+    display: flex;
+    position: absolute;
+    top: 0;
+  }
+  .div13 {
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    display: flex;
+  }
+  .div14 {
+    flex: 1;
+    align-items: flex-start;
+    padding: 2px 0;
+    display: flex;
+  }
+  .div15 {
+    color: #757575;
+    gap: 2px;
+    font-family: Montserrat;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .div16 {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .table {
+    width: 100%;
+    min-width: 1000px;
+  }
+  .tr {
+    border-width: 2px solid #dee2e6;
+  }
+  .th {
+    text-align: left;
+    color: #212529;
+    width: 110px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .th2 {
+    text-align: left;
+    color: #212529;
+    width: 150px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .th3,
+  .th4,
+  .th5 {
+    text-align: left;
+    color: #212529;
+    width: 200px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .th6 {
+    text-align: left;
+    color: #212529;
+    width: 184px;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .th7 {
+    text-align: left;
+    color: #212529;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .tr2 {
+    border-width: 1px solid #dee2e6;
+  }
+  .td {
+    color: #212529;
+    padding: 8px 16px;
+    font-family: Montserrat;
+    font-size: 12px;
+  }
+  .td2 {
+    padding: 8px 16px;
+  }
+  .div17 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td3 {
+    padding: 8px 16px;
+  }
+  .div18 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td4 {
+    padding: 8px 16px;
+  }
+  .div19 {
+    justify-content: center;
+    display: flex;
+  }
+  .tr3 {
+    border-width: 1px solid #dee2e6;
+  }
+  .td5 {
+    padding: 8px 16px;
+  }
+  .div20 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td6 {
+    padding: 8px 16px;
+  }
+  .div21 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td7 {
+    padding: 8px 16px;
+  }
+  .div22 {
+    justify-content: center;
+    display: flex;
+  }
+  .tr4 {
+    border-width: 1px solid #dee2e6;
+  }
+  .td8 {
+    padding: 8px 16px;
+  }
+  .div23 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td9 {
+    padding: 8px 16px;
+  }
+  .div24 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td10 {
+    padding: 8px 16px;
+  }
+  .div25 {
+    justify-content: center;
+    display: flex;
+  }
+  .tr5 {
+    border-width: 1px solid #dee2e6;
+  }
+  .td11 {
+    padding: 8px 16px;
+  }
+  .div26 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td12 {
+    padding: 8px 16px;
+  }
+  .div27 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td13 {
+    padding: 8px 16px;
+  }
+  .div28 {
+    justify-content: center;
+    display: flex;
+  }
+  .tr6 {
+    border-width: 1px solid #dee2e6;
+  }
+  .td14 {
+    padding: 8px 16px;
+  }
+  .div29 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td15 {
+    padding: 8px 16px;
+  }
+  .div30 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td16 {
+    padding: 8px 16px;
+  }
+  .div31 {
+    justify-content: center;
+    display: flex;
+  }
+  .tr7 {
+    border-width: 1px solid #dee2e6;
+  }
+  .td17 {
+    padding: 8px 16px;
+  }
+  .div32 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td18 {
+    padding: 8px 16px;
+  }
+  .div33 {
+    color: #0a0a0a;
+    font-family: Montserrat;
+    font-size: 14px;
+  }
+  .td19 {
+    padding: 8px 16px;
+  }
+  .div34 {
+    justify-content: center;
+    display: flex;
+  }
+
+  .container {
+    display: flex;
+    align-items: flex-start; /* Ensures the content starts from the top */
+    min-height: 100vh;
+  }
+  
+  .content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    justify-content: flex-start; /* Align content to the top */
+    align-items: flex-start; /* Align to the left */
+  }
+  

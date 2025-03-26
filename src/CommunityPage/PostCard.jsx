@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./PostCard.module.css";
 
 function PostCard({ title, description, commentCount, date }) {
