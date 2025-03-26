@@ -207,6 +207,9 @@ const ProfilePage = () => {
       <div className={styles.content}>
         <SideBar />
         <div className={styles.mainContent}>
+        <header className={styles.headerSection}>
+            <h1 className={styles.pageHeader}>Hello, {formData.name || 'Guest'}!</h1>
+          </header>
           <div className={styles.contentWrapper}>
             <InfoSection title="Account Information">
               <div className={styles.row}>
@@ -257,7 +260,7 @@ const ProfilePage = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e)}
                   />
-                  {errors.age && <p className={styles.errorText}>{errors.email}</p>}
+                  {errors.email && <p className={styles.errorText}>{errors.email}</p>}
                 </div>
                 <div className={styles.formGroup}>
                   <FormField
@@ -267,7 +270,7 @@ const ProfilePage = () => {
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e)}
                   />
-                  {errors.age && <p className={styles.errorText}>{errors.phoneNumber}</p>}
+                  {errors.phoneNumber && <p className={styles.errorText}>{errors.phoneNumber}</p>}
                 </div>
               </div>
             </InfoSection>
