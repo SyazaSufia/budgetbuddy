@@ -17,7 +17,7 @@ const SignIn = ({ onSignIn }) => {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://budgetbuddy.space/sign-in", {
+      const response = await fetch("http://localhost:8080/sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -35,7 +35,7 @@ const SignIn = ({ onSignIn }) => {
         if (role === "user") {
           navigate("/", { state: { userID: id } });
         } else if (role === "admin") {
-          navigate("/admin-home");
+          navigate("/adminUser");
         }
       } else {
         setError(data.message);
