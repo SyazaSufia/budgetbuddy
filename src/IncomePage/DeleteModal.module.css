@@ -58,3 +58,27 @@
     border: none;
     color: #fff;
   }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4caf50; /* Success green */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    animation: fade-in 0.3s ease-in-out;
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

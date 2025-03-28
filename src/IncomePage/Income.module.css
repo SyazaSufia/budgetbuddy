@@ -215,7 +215,7 @@
   }
   
   .title2 {
-    color: #000;
+    color: black;
     flex: 1;
     font: 400 14px Montserrat, sans-serif;
     margin: 0;
@@ -228,8 +228,13 @@
     font: 400 14px Montserrat, sans-serif;
   }
   
-  .date {
+  .date,
+  .type {
     color: #8d8d8d;
+    font: 400 14px Montserrat, sans-serif;
+    display: flex;
+    align-items: center;
+    margin: 0;
   }
   
   .amount {

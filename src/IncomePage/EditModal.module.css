@@ -63,13 +63,15 @@
   gap: 16px;
 }
 
-.cancelButton, .confirmButton {
-  background-color: #c01f1f;
+.cancelButton,
+.confirmButton {
+  flex: 1;
+  background: #ccc;
+  color: #000;
   padding: 12px 16px;
   border-radius: 16px;
   cursor: pointer;
-  font-weight: 600;
-  flex: 1;
+  font-size: 16px;
 }
 
 .cancelButton {
@@ -82,8 +84,4 @@
   background-color: var(--secondaryColor);
   border: none;
   color: var(--primaryColor);
-}
-
-form, input, button {
-  background-color: #fff;
 }
