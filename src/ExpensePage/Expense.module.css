@@ -29,7 +29,7 @@
   color: #101828;
   flex: 1;
   font: 600 30px/1 Montserrat, sans-serif;
-  margin: 0;
+  margin: 0px;
 }
 
 .categoryContainer {
@@ -92,7 +92,7 @@
 .expenseListContainer {
   background: white;
   flex-direction: column;
-  padding: 20px;
+  padding: 16px;
   border-radius: 12px;
   border: 1px solid var(--borderColor);
 }
@@ -108,7 +108,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
+  padding: 12px;
   background: #f9f9f9;
   border-radius: 8px;
 }
@@ -119,18 +119,20 @@
   gap: 10px;
   flex: 1;
   margin-left: 8px;
+  margin-bottom: 0px;
 }
 
-.expenseDate{
+.expenseDate,
+.expenseAmount{
   font-size: 14px;
   font-weight: 500;
   color: #757575;
 }
 
 .textDetails {
-  display: flex;
   flex-direction: column;
   color: black;
+  margin: 0px;
 }
 
 .amountDisplay {
@@ -225,6 +227,38 @@
   font: 400 14px Montserrat, sans-serif;
   color: #0a0a0a;
   padding: 10px 0;
+}
+
+.categoryTitleWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titleSection {
+  flex: 1; /* Left section takes more space */
+  text-align: left; /* Align text to the left */
+  font-family: "Montserrat";
+  font-size: 14px;
+  font-weight: 500;
+  color: #757575;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center; /* Align elements in the row */
+  gap: 15px; /* Add space between amount, date, and buttons */
+}
+
+.expenseAmount,
+.expenseDate {
+  white-space: nowrap; /* Ensure text doesn't wrap */
+}
+
+.categoryIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 @media (max-width: 991px) {

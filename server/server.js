@@ -12,6 +12,7 @@ const fs = require('fs');
 const isAuthenticated = require("./middleware/isAuthenticated"); // Import isAuthenticated middleware
 const passwordRoutes = require('./routes/passwordRoutes'); // Import password routes
 const incomeRoutes = require("./routes/incomeRoutes"); // Import income routes
+const expenseRoutes = require('./routes/expenseRoutes'); // Import expense routes
 
 // Serve frontend static files
 //app.use(express.static(path.join(__dirname, '../dist')));
@@ -74,6 +75,8 @@ const upload = multer({ storage });
 app.use('/api', passwordRoutes);
 // Income routes
 app.use("/income", incomeRoutes);
+// Expense routes
+app.use('/expense', expenseRoutes);
 
 // Sign-up endpoint
 app.post('/sign-up', (req, res) => {
@@ -114,7 +117,6 @@ app.post('/sign-up', (req, res) => {
 // Sign-in endpoint
 app.post('/sign-in', async (req, res) => {
   const { email, password } = req.body;
-  console.log('Sign-in request received. Email:', email);
 
   try {
     const userQuery = 'SELECT userID AS id, userName AS name, userEmail AS email, userPassword AS password, ' +
@@ -124,8 +126,6 @@ app.post('/sign-in', async (req, res) => {
         console.error('Error querying user:', userErr);
         return res.json({ error: true, message: 'Error querying database.' });
       }
-
-      console.log('User query result:', userData);
 
       if (userData.length > 0) {
         const user = userData[0];
@@ -137,7 +137,6 @@ app.post('/sign-in', async (req, res) => {
             email: user.email,
             role: user.role,
           };
-          console.log('User authenticated:', user);
           return res.json({ success: true, user: user });
         } else {
           console.log('Password does not match');
@@ -152,8 +151,6 @@ app.post('/sign-in', async (req, res) => {
           return res.json({ error: true, message: 'Error querying database.' });
         }
 
-        console.log('Admin query result:', adminData);
-
         if (adminData.length > 0) {
           const admin = adminData[0];
           const isMatch = await bcrypt.compare(password, admin.password);
@@ -164,7 +161,6 @@ app.post('/sign-in', async (req, res) => {
               email: admin.email,
               role: admin.role,
             };
-            console.log('Admin authenticated:', admin);
             return res.json({ success: true, user: admin });
           } else {
             console.log('Password does not match');
@@ -282,7 +278,6 @@ app.get('/get-user-details', isAuthenticated, (req, res) => {
     }
 
     const user = data[0];
-    console.log('User details:', user);
     return res.json({ success: true, user });
   });
 });
@@ -309,9 +304,6 @@ app.get('/profile-image/:userId', (req, res) => {
           console.error("MIME type not found for image");
           return res.status(500).json({success: false, message: "MIME type not found."})
       }
-
-      // Debugging: Log the MIME type
-      console.log("MIME Type:", mimeType);
 
       res.writeHead(200, {
           'Content-Type': mimeType,
@@ -357,8 +349,6 @@ app.post('/update-profile', isAuthenticated, (req, res) => {
 
 app.post('/add-admin', (req, res) => {
   const { adminName, adminEmail, adminPassword } = req.body;
-
-  console.log('Received request to add admin:', req.body);
 
   if (!adminName || !adminEmail || !adminPassword) {
     console.error('Missing required fields');

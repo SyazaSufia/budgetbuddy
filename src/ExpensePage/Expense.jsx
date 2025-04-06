@@ -1,83 +1,238 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Expense.module.css";
 import SidebarNav from "./SideBar";
-import { AddExpenseModal } from "./AddModal";
+import { AddModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";
 import { DeleteExpenseModal } from "./DeleteExpenseModal";
-
-const initialExpenses = [
-  { id: 1, category: "Food", date: "15-11-2024", amount: "150.00", icon: "/food-icon.svg" },
-  { id: 2, category: "Transport", date: "16-11-2024", amount: "50.00", icon: "/transport-icon.svg" },
-  { id: 3, category: "Shopping", date: "17-11-2024", amount: "200.00", icon: "/shopping-icon.svg" },
-  { id: 4, category: "Food", date: "18-11-2024", amount: "120.00", icon: "/food-icon.svg" },
-];
+import { AddExpenseModal } from "./AddExpenseModal";
+import { toast } from "react-toastify";
 
 export default function Expense({ user }) {
-  const [expenses, setExpenses] = useState(initialExpenses);
+  const [categories, setCategories] = useState([]);
+  const [expenses, setExpenses] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] = useState(false);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] =
+    useState(false);
+  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] =
+    useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [expenseTitle, setExpenseTitle] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseDate, setExpenseDate] = useState("");
 
-  // Calculate total expense
-  const totalExpense = expenses.reduce(
-    (sum, expense) => sum + parseFloat(expense.amount),
-    0
-  );
+  // Fetch categories from the backend
+  const fetchCategories = async () => {
+    try {
+      // Try the /categories endpoint first, which is what the fixed route structure uses
+      const response = await fetch("http://localhost:8080/expense/categories", {
+        credentials: "include", // Send session cookies
+      });
 
-  // Group expenses by category
-  const groupedExpenses = expenses.reduce((acc, expense) => {
-    if (!acc[expense.category]) acc[expense.category] = [];
-    acc[expense.category].push(expense);
-    return acc;
-  }, {});
+      // If that fails, try the original endpoint that might be in your current backend
+      if (!response.ok) {
+        const fallbackResponse = await fetch("http://localhost:8080/expense", {
+          credentials: "include",
+        });
+
+        if (!fallbackResponse.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+
+        return handleApiResponse(fallbackResponse);
+      }
+
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // Helper function to process API response
+  const handleApiResponse = async (response) => {
+    const result = await response.json();
+
+    if (!Array.isArray(result.data)) {
+      console.error("Expected an array but got:", result.data);
+      throw new Error("Unexpected response format: 'data' should be an array.");
+    }
+
+    // Check if data is empty
+    if (result.data.length === 0) {
+      console.warn("No categories found.");
+      setCategories([]); // Initialize with an empty array
+      return;
+    }
+
+    setCategories(result.data); // Store the categories
+
+    // Fetch expenses for each category
+    result.data.forEach((category) => {
+      fetchCategoryExpenses(category.categoryID || category.id);
+    });
+  };
+
+  // Fetch expenses for a specific category
+  const fetchCategoryExpenses = async (categoryId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/expense/category/${categoryId}/expenses`,
+        {
+          credentials: "include", // Send session cookies
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch expenses for category ${categoryId}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && Array.isArray(result.data)) {
+        // Format dates and store expenses by category ID
+        const formattedExpenses = result.data.map((expense) => ({
+          ...expense,
+          date: expense.date ? expense.date.split("T")[0] : "N/A", // Format date or use N/A
+        }));
+
+        setExpenses((prev) => ({
+          ...prev,
+          [categoryId]: formattedExpenses,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching expenses for category ${categoryId}:`,
+        error
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories(); // Fetch categories on component mount
+  }, []);
+
+  // Calculate total expense across all categories
+  const totalExpense = Object.values(expenses)
+    .flat()
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
 
   // Calculate total for each category
-  const categoryTotals = Object.keys(groupedExpenses).reduce((acc, category) => {
-    acc[category] = groupedExpenses[category].reduce(
-      (sum, exp) => sum + parseFloat(exp.amount),
+  const getCategoryTotal = (categoryId) => {
+    return (expenses[categoryId] || []).reduce(
+      (sum, expense) => sum + parseFloat(expense.amount || 0),
       0
     );
-    return acc;
-  }, {});
+  };
 
-  const toggleCategory = (category) => {
+  const toggleCategory = (categoryId) => {
     setExpandedCategories((prev) => ({
       ...prev,
-      [category]: !prev[category],
+      [categoryId]: !prev[categoryId],
     }));
   };
 
-  const handleDeleteCategoryClick = (category) => {
-    setSelectedCategory(category);
-    setIsDeleteModalOpen(true);
+  const handleDeleteCategoryClick = (categoryId) => {
+    setSelectedCategoryId(categoryId);
+    setIsDeleteCategoryModalOpen(true);
   };
 
-  const handleDeleteCategoryConfirm = () => {
-    setExpenses((prevItems) => prevItems.filter((item) => item.category !== selectedCategory));
-    setIsDeleteModalOpen(false);
-    setSelectedCategory(null);
+  const handleDeleteCategoryConfirm = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/expense/category/${selectedCategoryId}`,
+        {
+          method: "DELETE",
+          credentials: "include", // Send session cookies
+        }
+      );
+      if (response.ok) {
+        // Remove the category and its expenses
+        setCategories((prevCategories) =>
+          prevCategories.filter((cat) => cat.categoryID !== selectedCategoryId)
+        );
+
+        setExpenses((prevExpenses) => {
+          const updatedExpenses = { ...prevExpenses };
+          delete updatedExpenses[selectedCategoryId];
+          return updatedExpenses;
+        });
+
+        setIsDeleteCategoryModalOpen(false);
+        setSelectedCategoryId(null);
+      } else {
+        const error = await response.json();
+        console.error("Failed to delete category:", error.message);
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
   };
 
-  const handleDeleteExpenseClick = (id) => {
-    setSelectedExpenseId(id);
+  // Add expense
+  const handleAddExpenseSuccess = (newExpense) => {
+    // Update the state with the new expense
+    setExpenses((prev) => ({
+      ...prev,
+      [selectedCategoryId]: [...(prev[selectedCategoryId] || []), newExpense],
+    }));
+
+    // Show success toast
+    toast.success("Expense added successfully!");
+
+    // Reset form state
+    setIsAddExpenseModalOpen(false);
+    setExpenseTitle("");
+    setExpenseAmount("");
+    setExpenseDate("");
+  };
+
+  // Delete expense
+  const handleDeleteExpenseClick = (expenseId) => {
+    setSelectedExpenseId(expenseId);
     setIsDeleteExpenseModalOpen(true);
   };
 
-  const handleDeleteExpenseConfirm = () => {
-    setExpenses((prevItems) => prevItems.filter((item) => item.id !== selectedExpenseId));
-    setIsDeleteExpenseModalOpen(false);
-    setSelectedExpenseId(null);
+  const handleDeleteExpenseConfirm = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/expense/expense/${selectedExpenseId}`,
+        {
+          method: "DELETE",
+          credentials: "include", // Send session cookies
+        }
+      );
+      if (response.ok) {
+        setExpenses((prevExpenses) => {
+          const updated = {};
+          Object.keys(prevExpenses).forEach((categoryId) => {
+            updated[categoryId] = prevExpenses[categoryId].filter(
+              (expense) => expense.expenseID !== selectedExpenseId
+            );
+          });
+          return updated;
+        });
+        setIsDeleteExpenseModalOpen(false);
+        setSelectedExpenseId(null);
+      } else {
+        const error = await response.json();
+        console.error("Failed to delete expense:", error.message);
+      }
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+    }
   };
 
-  const handleAddCategory = (category) => {
-    // Add new expense with the new category
-    const newId = expenses.length + 1;
-    const newCategory = { id: newId, category, date: "N/A", amount: "0.00" };
+  const handleAddCategory = () => {
+    fetchCategories(); // Re-fetch everything properly from backend
+  };
 
-    setExpenses((prev) => [...prev, newCategory]);
+  const handleAddExpenseClick = (categoryId) => {
+    console.log("Category selected:", categoryId); // Debugging
+    setSelectedCategoryId(categoryId); // Set category to add expense for
+    setIsAddModalOpen(true);
   };
 
   return (
@@ -87,7 +242,9 @@ export default function Expense({ user }) {
           <SidebarNav />
           <section className={styles.main}>
             <header className={styles.headerSection}>
-              <h1 className={styles.pageHeader}>Hello, {user ? user.name : "Guest"}!</h1>
+              <h1 className={styles.pageHeader}>
+                Hello, {user ? user.name : "Guest"}!
+              </h1>
             </header>
 
             {/* Total Expense Section */}
@@ -113,92 +270,120 @@ export default function Expense({ user }) {
 
             {/* Expense Categories */}
             <section className={styles.expenseListContainer}>
-              {Object.keys(groupedExpenses).map((category) => (
-                <div key={category} className={styles.categoryContainer}>
+              {categories.map((category) => (
+                <div
+                  key={category.categoryID}
+                  className={styles.categoryContainer}
+                >
                   <div className={styles.categoryHeader}>
                     <div className={styles.categoryInfo}>
-                      <h3 className={styles.categoryTitle}>{category}</h3>
+                      <div className={styles.categoryTitleWithIcon}>
+                        <img
+                          src={category.icon}
+                          alt={`${category.categoryName} icon`}
+                          className={styles.categoryIcon}
+                        />
+                        <h3 className={styles.categoryTitle}>
+                          {category.categoryName}
+                        </h3>
+                      </div>
                       <span className={styles.categoryTotal}>
-                        RM {categoryTotals[category].toFixed(2)}
+                        RM {getCategoryTotal(category.categoryID).toFixed(2)}
                       </span>
                       <button
                         className={styles.expandButton}
-                        onClick={() => toggleCategory(category)}
+                        onClick={() => toggleCategory(category.categoryID)}
                       >
                         <img
                           src="/chevron-right.svg"
                           alt="Expand"
-                          className={`${styles.chevronIcon} ${expandedCategories[category] ? styles.expanded : ""}`}
+                          className={`${styles.chevronIcon} ${expandedCategories[category.categoryID] ? styles.expanded : ""}`}
                         />
                       </button>
                     </div>
                     <div className={styles.actionButtons}>
                       <button
                         className={styles.iconButton}
-                        onClick={() => console.log("Add expense clicked")}
+                        onClick={() => {
+                          setSelectedCategoryId(category.categoryID);
+                          setIsAddExpenseModalOpen(true);
+                        }}
                       >
                         <img src="/add-icon.svg" alt="Add" />
                       </button>
                       <button
                         className={styles.iconButton}
-                        onClick={() => console.log("Edit category clicked")}
-                      >
-                        <img src="/edit-icon.svg" alt="Edit" />
-                      </button>
-                      <button
-                        className={styles.iconButton}
-                        onClick={() => handleDeleteCategoryClick(category)}
+                        onClick={() =>
+                          handleDeleteCategoryClick(category.categoryID)
+                        }
                       >
                         <img src="/delete-icon.svg" alt="Delete" />
                       </button>
                     </div>
                   </div>
 
-                  {expandedCategories[category] && (
+                  {expandedCategories[category.categoryID] && (
                     <div className={styles.expenseList}>
-                      {groupedExpenses[category].map((expense) => (
-                        <article key={expense.id} className={styles.expenseItem}>
+                      {(expenses[category.categoryID] || []).map((expense) => (
+                        <article
+                          key={expense.expenseID}
+                          className={styles.expenseItem}
+                        >
                           <div className={styles.expenseDetails}>
-                            <div className={styles.textDetails}>
-                              <h4 className={styles.expenseDate}>{expense.date}</h4>
+                            {/* Title on the left */}
+                            <div className={styles.titleSection}>
+                              <span className={styles.expenseTitle}>
+                                {expense.title}
+                              </span>
                             </div>
-                          </div>
-                          <div className={styles.amountDisplay}>
-                            <span className={styles.currency}>RM</span>
-                            <span className={styles.expenseAmount}>{expense.amount}</span>
-                          </div>
-                          <div className={styles.actionButtons}>
-                            <button className={styles.iconButton} onClick={() => console.log("Edit clicked")}>
-                              <img src="/edit-icon.svg" alt="Edit" />
-                            </button>
-                            <button
-                              className={styles.iconButton}
-                              onClick={() => handleDeleteExpenseClick(expense.id)}
-                            >
-                              <img src="/delete-icon.svg" alt="Delete" />
-                            </button>
+                            {/* Amount, Date, and Action Buttons on the right */}
+                            <div className={styles.rightSection}>
+                              <span className={styles.expenseAmount}>
+                                RM {expense.amount}
+                              </span>
+                              <span className={styles.expenseDate}>
+                                {expense.date}
+                              </span>
+                              <div className={styles.actionButtons}>
+                                <button className={styles.iconButton}>
+                                  <img src="/edit-icon.svg" alt="Edit" />
+                                </button>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() =>
+                                    handleDeleteExpenseClick(expense.expenseID)
+                                  }
+                                >
+                                  <img src="/delete-icon.svg" alt="Delete" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </article>
                       ))}
+                      {(expenses[category.categoryID] || []).length === 0 && (
+                        <p className={styles.noExpenses}>No expenses yet</p>
+                      )}
                     </div>
                   )}
                 </div>
               ))}
+
+              {/* Add Category Button */}
+              <div className={styles.addCategoryContainer}>
+                <button
+                  className={styles.addExpenseButton}
+                  onClick={() => setIsAddCategoryModalOpen(true)}
+                >
+                  <img src="/add-icon.svg" alt="Add" />
+                  <span>Add Category</span>
+                </button>
+              </div>
             </section>
 
-            <section className={styles.addCategoryButton}>
-              <button
-                className={styles.addExpenseButton}
-                onClick={() => setIsModalOpen(true)}
-              >
-                <img src="/add-icon.svg" alt="Add" />
-                <span>Add Category</span>
-              </button>
-            </section>
-
-            {isDeleteModalOpen && (
+            {isDeleteCategoryModalOpen && (
               <DeleteModal
-                onCancel={() => setIsDeleteModalOpen(false)}
+                onCancel={() => setIsDeleteCategoryModalOpen(false)}
                 onConfirm={handleDeleteCategoryConfirm}
               />
             )}
@@ -211,10 +396,19 @@ export default function Expense({ user }) {
           </section>
         </div>
 
-        {isModalOpen && (
-          <AddExpenseModal
-            onClose={() => setIsModalOpen(false)}
+        {/* Add Category Modal */}
+        {isAddCategoryModalOpen && (
+          <AddModal
+            onClose={() => setIsAddCategoryModalOpen(false)}
             onAdd={handleAddCategory}
+          />
+        )}
+
+        {isAddExpenseModalOpen && (
+          <AddExpenseModal
+            categoryId={selectedCategoryId}
+            onClose={() => setIsAddExpenseModalOpen(false)}
+            onAdd={handleAddExpenseSuccess}
           />
         )}
       </main>

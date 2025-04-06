@@ -14,10 +14,9 @@ const categories = [
   { name: "Others", icon: "/otherExpense-icon.svg" },
 ];
 
-export const AddExpenseModal = ({ onClose, onAdd }) => {
+export const AddModal = ({ onClose, onAdd }) => {
   const [formData, setFormData] = useState({
     category: "",
-    amount: "",
   });
 
   // Handle input changes dynamically
@@ -25,23 +24,67 @@ export const AddExpenseModal = ({ onClose, onAdd }) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.category) {
-      alert("Please select a category!");
+      toast.error("Please select a category!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
       return;
     }
 
-    // Close modal first
-    onClose();
+    const selectedCategory = categories.find(cat => cat.name === formData.category);
+    const icon = selectedCategory ? selectedCategory.icon : "";
 
-    // Pass data back to parent
-    onAdd(formData);
+    try {
+      // API call to add category
+      const response = await fetch("http://localhost:8080/expense/category", {
+        method: "POST",
+        credentials: "include", // Send session cookies
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          category: formData.category, 
+          icon: icon 
+        }),
+      });
 
-    // Display success toast notification
-    setTimeout(() => {
-      toast.success("Category added successfully!", {
+      if (response.ok) {
+        // Display success toast notification
+        toast.success("Category added successfully!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
+
+        // Trigger the parent component to refresh categories
+        onAdd();
+        
+        // Close the modal
+        onClose();
+      } else {
+        const error = await response.json();
+        console.error("Failed to add category:", error.message);
+        toast.error("Failed to add category. Please try again.", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast.error("An error occurred. Please try again.", {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -50,7 +93,7 @@ export const AddExpenseModal = ({ onClose, onAdd }) => {
         draggable: true,
         theme: "light",
       });
-    }, 200); // Slight delay for a smoother experience
+    }
   };
 
   return (
