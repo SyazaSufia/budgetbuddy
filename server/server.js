@@ -13,6 +13,7 @@ const isAuthenticated = require("./middleware/isAuthenticated"); // Import isAut
 const passwordRoutes = require('./routes/passwordRoutes'); // Import password routes
 const incomeRoutes = require("./routes/incomeRoutes"); // Import income routes
 const expenseRoutes = require('./routes/expenseRoutes'); // Import expense routes
+const budgetRoutes = require("./routes/budgetRoutes"); // Import budget routes
 
 // Serve frontend static files
 //app.use(express.static(path.join(__dirname, '../dist')));
@@ -77,6 +78,8 @@ app.use('/api', passwordRoutes);
 app.use("/income", incomeRoutes);
 // Expense routes
 app.use('/expense', expenseRoutes);
+// Budget routes
+app.use("/budget", budgetRoutes);
 
 // Sign-up endpoint
 app.post('/sign-up', (req, res) => {

@@ -1,33 +1,89 @@
-import React, { useState } from "react";
-import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
 import styles from "./CreateModal.module.css";
 
-export const CreateBudgetModal = ({ onClose }) => {
-  const [formData, setFormData] = useState({ title: "", description: "" });
+export const CreateBudgetModal = ({ onClose, onAdd }) => {
+  const [categories, setCategories] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [selectedCategoryID, setSelectedCategoryID] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle input changes dynamically
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, budgetRes] = await Promise.all([
+          fetch("http://localhost:8080/expense/categories", {
+            credentials: "include",
+          }),
+          fetch("http://localhost:8080/budget/budgets", {
+            credentials: "include",
+          }),
+        ]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page refresh
+        const catData = await catRes.json();
+        const budgetData = await budgetRes.json();
 
-    // Close modal first
-    onClose();
+        if (catData.success && budgetData.success) {
+          setCategories(catData.data);
+          setBudgets(budgetData.data);
+        } else {
+          alert("Failed to load categories or budgets.");
+        }
+      } catch (err) {
+        console.error("Error loading modal data:", err);
+        alert("Error loading data. Please try again.");
+      }
+    };
 
-    // Delay toast appearance slightly after modal closes
-    setTimeout(() => {
-      toast.success("Budget Created successfully!", {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
+    fetchData();
+  }, []);
+
+  const usedCategoryIDs = budgets.map((b) => b.categoryID);
+  const availableCategories = categories.filter(
+    (cat) => !usedCategoryIDs.includes(cat.categoryID)
+  );
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedCategoryID) {
+      alert("Please select a category.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("http://localhost:8080/budget/budgets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ categoryID: selectedCategoryID }),
       });
-    }, 200); // Delay toast by 200ms
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        const selected = categories.find(
+          (c) => c.categoryID === parseInt(selectedCategoryID)
+        );
+
+        onAdd({
+          budgetID: result.insertId,
+          categoryID: selectedCategoryID,
+          categoryName: selected.categoryName,
+          icon: selected.icon,
+        });
+
+        onClose();
+      } else {
+        alert(result.message || "Error creating budget.");
+      }
+    } catch (err) {
+      console.error("Error submitting budget:", err);
+      alert("An error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,36 +92,47 @@ export const CreateBudgetModal = ({ onClose }) => {
         <h2 className={styles.modalTitle}>Create New Budget</h2>
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
-            <label htmlFor="title" className={styles.label}>Title:</label>
-            <input
-              id="title"
-              type="text"
+            <label htmlFor="categoryID" className={styles.label}>
+              Select Category:
+            </label>
+            <select
+              id="categoryID"
               className={styles.input}
-              placeholder="Title"
-              value={formData.title}
-              onChange={handleChange}
+              value={selectedCategoryID}
+              onChange={(e) => setSelectedCategoryID(e.target.value)}
               required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="description" className={styles.label}>Description:</label>
-            <input
-              id="description"
-              type="text"
-              className={styles.input}
-              placeholder="Description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-            />
+              disabled={availableCategories.length === 0}
+            >
+              <option value="">
+                {availableCategories.length === 0
+                  ? "-- No Available Categories --"
+                  : "-- Select --"}
+              </option>
+              {availableCategories.map((cat) => (
+                <option key={cat.categoryID} value={cat.categoryID}>
+                  {cat.categoryName}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={styles.modalActions}>
-            <button type="button" className={styles.cancelButton} onClick={onClose}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={onClose}
+            >
               Cancel
             </button>
-            <button type="submit" className={styles.confirmButton}>Get Started</button>
+            {availableCategories.length > 0 && (
+              <button
+                type="submit"
+                className={styles.confirmButton}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating..." : "Create Budget"}
+              </button>
+            )}
           </div>
         </form>
       </div>

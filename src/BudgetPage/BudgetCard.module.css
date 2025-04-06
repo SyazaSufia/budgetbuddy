@@ -6,8 +6,15 @@
   gap: 8px;
   padding: 16px 16px;
   display: flex;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
+
+.card:hover {
+  transform: scale(1.01); /* Optional: adds a nice hover effect */
+}
+
 @media (width<=640px) {
   .card {
     flex-direction: column;
