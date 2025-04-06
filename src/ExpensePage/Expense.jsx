@@ -19,32 +19,38 @@ export default function Expense({ user }) {
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
-  const [expenseTitle, setExpenseTitle] = useState("");
-  const [expenseAmount, setExpenseAmount] = useState("");
-  const [expenseDate, setExpenseDate] = useState("");
 
   // Fetch categories from the backend
   const fetchCategories = async () => {
     try {
-      // Try the /categories endpoint first, which is what the fixed route structure uses
       const response = await fetch("http://localhost:8080/expense/categories", {
         credentials: "include", // Send session cookies
       });
-
-      // If that fails, try the original endpoint that might be in your current backend
+  
       if (!response.ok) {
-        const fallbackResponse = await fetch("http://localhost:8080/expense", {
-          credentials: "include",
-        });
-
-        if (!fallbackResponse.ok) {
-          throw new Error("Failed to fetch categories");
-        }
-
-        return handleApiResponse(fallbackResponse);
+        throw new Error("Failed to fetch categories");
       }
-
-      return handleApiResponse(response);
+      
+      const result = await response.json();
+  
+      if (!Array.isArray(result.data)) {
+        console.error("Expected an array but got:", result.data);
+        throw new Error("Unexpected response format: 'data' should be an array.");
+      }
+  
+      // Check if data is empty
+      if (result.data.length === 0) {
+        console.warn("No categories found.");
+        setCategories([]); // Initialize with an empty array
+        return;
+      }
+  
+      setCategories(result.data); // Store the categories
+  
+      // Fetch expenses for each category
+      for (const category of result.data) {
+        await fetchCategoryExpenses(category.categoryID || category.id);
+      }
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
@@ -85,7 +91,15 @@ export default function Expense({ user }) {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch expenses for category ${categoryId}`);
+        console.warn(
+          `Failed to fetch expenses for category ${categoryId} - status: ${response.status}`
+        );
+        // Initialize with empty array if fetch fails
+        setExpenses((prev) => ({
+          ...prev,
+          [categoryId]: [],
+        }));
+        return;
       }
 
       const result = await response.json();
@@ -107,6 +121,11 @@ export default function Expense({ user }) {
         `Error fetching expenses for category ${categoryId}:`,
         error
       );
+      // Initialize with empty array if fetch fails
+      setExpenses((prev) => ({
+        ...prev,
+        [categoryId]: [],
+      }));
     }
   };
 
@@ -172,21 +191,44 @@ export default function Expense({ user }) {
   };
 
   // Add expense
-  const handleAddExpenseSuccess = (newExpense) => {
-    // Update the state with the new expense
+  const handleAddExpenseSuccess = async (newExpense) => {
+    // Step 1: Update the state with the new expense optimistically
     setExpenses((prev) => ({
       ...prev,
       [selectedCategoryId]: [...(prev[selectedCategoryId] || []), newExpense],
     }));
 
-    // Show success toast
-    toast.success("Expense added successfully!");
+    // Step 2: Refresh all data after adding an expense
+    try {
+      // Re-fetch all categories to get updated categoryAmount values
+      await fetchCategories();
 
-    // Reset form state
+      // Show success toast
+      toast.success("Expense added successfully!");
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+
+    // Close modal
     setIsAddExpenseModalOpen(false);
-    setExpenseTitle("");
-    setExpenseAmount("");
-    setExpenseDate("");
+  };
+
+  // Update category amount after adding an expense
+  const updateCategoryAmount = (categoryId, amount) => {
+    amount = parseFloat(amount) || 0; // Ensure amount is a number
+
+    setCategories((prevCategories) =>
+      prevCategories.map((category) => {
+        if (category.categoryID === categoryId) {
+          const currentAmount = parseFloat(category.categoryAmount) || 0;
+          return {
+            ...category,
+            categoryAmount: currentAmount + amount,
+          };
+        }
+        return category;
+      })
+    );
   };
 
   // Delete expense
@@ -205,6 +247,7 @@ export default function Expense({ user }) {
         }
       );
       if (response.ok) {
+        // Remove expense from local state
         setExpenses((prevExpenses) => {
           const updated = {};
           Object.keys(prevExpenses).forEach((categoryId) => {
@@ -214,14 +257,22 @@ export default function Expense({ user }) {
           });
           return updated;
         });
+        
+        // Re-fetch categories to update the categoryAmount
+        await fetchCategories();
+        
         setIsDeleteExpenseModalOpen(false);
         setSelectedExpenseId(null);
+        
+        toast.success("Expense deleted successfully!");
       } else {
         const error = await response.json();
         console.error("Failed to delete expense:", error.message);
+        toast.error("Failed to delete expense");
       }
     } catch (error) {
       console.error("Error deleting expense:", error);
+      toast.error("Error deleting expense");
     }
   };
 
@@ -409,6 +460,7 @@ export default function Expense({ user }) {
             categoryId={selectedCategoryId}
             onClose={() => setIsAddExpenseModalOpen(false)}
             onAdd={handleAddExpenseSuccess}
+            updateCategoryAmount={updateCategoryAmount}
           />
         )}
       </main>

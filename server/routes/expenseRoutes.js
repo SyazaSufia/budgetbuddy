@@ -7,6 +7,7 @@ const isAuthenticated = require('../middleware/isAuthenticated'); // Adjust the 
 router.post('/category', isAuthenticated, expenseController.addCategory); // Add new category
 router.get('/categories', isAuthenticated, expenseController.getCategories); // Get all categories for logged-in user
 router.delete('/category/:id', isAuthenticated, expenseController.deleteCategory); // Delete a category
+router.get('/category/:id', isAuthenticated, expenseController.getCategory); // Get specific category
 
 // Expense Routes
 router.post('/expense', isAuthenticated, expenseController.addExpense); // Add new expense

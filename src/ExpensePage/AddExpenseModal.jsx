@@ -1,27 +1,27 @@
 import React, { useState } from "react";
 import styles from "./AddModal.module.css";
 
-export const AddExpenseModal = ({ onClose, onAdd, categoryId }) => {
+export const AddExpenseModal = ({ onClose, onAdd, categoryId, updateCategoryAmount }) => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const trimmedTitle = title.trim();
     if (!trimmedTitle || !amount) {
       alert("Please fill in all fields.");
       return;
     }
-  
+
     if (!categoryId) {
       alert("No category selected!");
       console.error("Missing categoryId for expense");
       return;
     }
-  
+
     const date = new Date().toISOString().split("T")[0];
-  
+
     try {
       console.log("Submitting expense with categoryId:", categoryId);
       const payload = {
@@ -31,7 +31,7 @@ export const AddExpenseModal = ({ onClose, onAdd, categoryId }) => {
         date,
       };
       console.log("Payload:", payload);
-  
+
       const response = await fetch("http://localhost:8080/expense/expense", {
         method: "POST",
         headers: {
@@ -40,12 +40,12 @@ export const AddExpenseModal = ({ onClose, onAdd, categoryId }) => {
         credentials: "include",
         body: JSON.stringify(payload),
       });
-  
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         console.log("Success response:", result);
-        
+
         // Create new expense object with the data we have
         const newExpense = {
           expenseID: result.insertId || Date.now(), // Use the ID from server if available
@@ -54,10 +54,13 @@ export const AddExpenseModal = ({ onClose, onAdd, categoryId }) => {
           amount: parseFloat(amount),
           date,
         };
-        
+
+        // Update the category amount optimistically
+        updateCategoryAmount(categoryId, amount);
+
         // Call the parent component's handler with the new expense
         onAdd(newExpense);
-        
+
         // Close modal
         onClose();
       } else {

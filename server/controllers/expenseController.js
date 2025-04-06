@@ -34,9 +34,26 @@ exports.addExpense = (req, res) => {
       return res.status(500).json({ success: false, message: "Error adding expense", error });
     }
 
-    // Confirm successful insertion
-    console.log("Expense added successfully:", results);
-    res.status(201).json({ success: true, message: "Expense added successfully!" });
+    // After successfully adding the expense, update the category's total amount
+    const totalQuery = `SELECT SUM(amount) AS total FROM expenses WHERE categoryID = ?`;
+    db.query(totalQuery, [category], (error, totalResults) => {
+      if (error) {
+        console.error("Error calculating total for category:", error);
+        return res.status(500).json({ success: false, message: "Error updating category total", error });
+      }
+
+      const totalAmount = totalResults[0].total || 0.00; // Default to 0 if no expenses exist
+      const updateCategoryQuery = `UPDATE categories SET categoryAmount = ? WHERE categoryID = ?`;
+      db.query(updateCategoryQuery, [totalAmount, category], (error) => {
+        if (error) {
+          console.error("Error updating category amount:", error);
+          return res.status(500).json({ success: false, message: "Error updating category amount", error });
+        }
+
+        // Confirm success
+        res.status(201).json({ success: true, message: "Expense added and category updated!" });
+      });
+    });
   });
 };
 
@@ -86,6 +103,24 @@ exports.editExpense = (req, res) => {
   });
 };
 
+// Get a specific category by ID
+exports.getCategory = (req, res) => {
+  const { id } = req.params;
+  const userID = req.session.user.id;
+  
+  const query = `SELECT * FROM categories WHERE categoryID = ? AND userID = ?`;
+  
+  db.query(query, [id, userID], (error, results) => {
+    if (error) {
+      res.status(500).json({ success: false, message: "Error fetching category", error });
+    } else if (results.length === 0) {
+      res.status(404).json({ success: false, message: "Category not found" });
+    } else {
+      res.status(200).json({ success: true, data: results[0] });
+    }
+  });
+};
+
 // Delete a category
 exports.deleteCategory = (req, res) => {
   const { id } = req.params; // Category ID to delete
@@ -105,13 +140,48 @@ exports.deleteCategory = (req, res) => {
 exports.deleteExpense = (req, res) => {
   const { id } = req.params; // Expense ID to delete
   
-  const query = `DELETE FROM expenses WHERE expenseID = ?`;
+  // First, get the categoryID for this expense
+  const getExpenseQuery = `SELECT categoryID FROM expenses WHERE expenseID = ?`;
   
-  db.query(query, [id], (error) => {
+  db.query(getExpenseQuery, [id], (error, expenseResults) => {
     if (error) {
-      return res.status(500).json({ success: false, message: "Error deleting expense", error });
-    } else {
-      res.status(200).json({ success: true, message: "Expense deleted successfully!" });
+      return res.status(500).json({ success: false, message: "Error getting expense details", error });
     }
+    
+    if (expenseResults.length === 0) {
+      return res.status(404).json({ success: false, message: "Expense not found" });
+    }
+    
+    const categoryID = expenseResults[0].categoryID;
+    
+    // Delete the expense
+    const deleteQuery = `DELETE FROM expenses WHERE expenseID = ?`;
+    
+    db.query(deleteQuery, [id], (error) => {
+      if (error) {
+        return res.status(500).json({ success: false, message: "Error deleting expense", error });
+      }
+      
+      // After successfully deleting the expense, update the category's total amount
+      const totalQuery = `SELECT SUM(amount) AS total FROM expenses WHERE categoryID = ?`;
+      db.query(totalQuery, [categoryID], (error, totalResults) => {
+        if (error) {
+          console.error("Error calculating total for category:", error);
+          return res.status(500).json({ success: false, message: "Error updating category total", error });
+        }
+
+        const totalAmount = totalResults[0].total || 0.00; // Default to 0 if no expenses exist
+        const updateCategoryQuery = `UPDATE categories SET categoryAmount = ? WHERE categoryID = ?`;
+        db.query(updateCategoryQuery, [totalAmount, categoryID], (error) => {
+          if (error) {
+            console.error("Error updating category amount:", error);
+            return res.status(500).json({ success: false, message: "Error updating category amount", error });
+          }
+
+          // Confirm success
+          res.status(200).json({ success: true, message: "Expense deleted and category updated!" });
+        });
+      });
+    });
   });
 };
