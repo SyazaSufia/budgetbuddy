@@ -259,7 +259,7 @@ app.post('/update-profile-picture', isAuthenticated, (req, res) => {
   });
 });
 
-/// Fetch User Details Endpoint
+// Fetch User Details Endpoint
 app.get('/get-user-details', isAuthenticated, (req, res) => {
   const { id } = req.session.user;
 
@@ -270,9 +270,6 @@ app.get('/get-user-details', isAuthenticated, (req, res) => {
       userEmail AS email, 
       userDOB, 
       userPhoneNumber AS phoneNumber, 
-      userUniversity AS university, 
-      userCourse AS course, 
-      userYearOfStudy AS yearOfStudy, 
       profileImage 
     FROM user 
     WHERE userID = ?`;
@@ -329,9 +326,9 @@ app.get('/profile-image/:userId', (req, res) => {
 
 // Update Profile Endpoint
 app.post('/update-profile', isAuthenticated, (req, res) => {
-  const { id, name, age, email, phoneNumber, university, course, yearOfStudy, profileImage } = req.body;
+  const { id, name, age, dob, email, phoneNumber, profileImage } = req.body;
 
-  if (!id || !name || !age || !email || !phoneNumber || !university || !course || !yearOfStudy) {
+  if (!id || !name || !age || !dob || !email || !phoneNumber) {
     return res.status(400).json({ success: false, message: 'All fields are required.' });
   }
 
@@ -339,15 +336,13 @@ app.post('/update-profile', isAuthenticated, (req, res) => {
     UPDATE user 
     SET 
       userName = ?, 
+      userDOB = ?, 
       userEmail = ?, 
       userPhoneNumber = ?, 
-      userUniversity = ?, 
-      userCourse = ?, 
-      userYearOfStudy = ?, 
       profileImage = ? 
     WHERE userID = ?`;
 
-  db.query(updateProfileSql, [name, email, phoneNumber, university, course, yearOfStudy, profileImage, id], (err, result) => {
+  db.query(updateProfileSql, [name, dob, email, phoneNumber, profileImage, id], (err, result) => {
     if (err) {
       console.error('Error updating profile:', err);
       return res.status(500).json({ success: false, message: 'Error updating profile.' });
