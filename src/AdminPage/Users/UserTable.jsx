@@ -1,14 +1,75 @@
-import React from "react";
+import React, { useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import styles from "./InputDesign.module.css";
+import { DeleteModal } from "./DeleteModal";
 
-const UserTable = ({ users }) => {
-  const handleDelete = (userId) => {
-    // Placeholder for delete logic
-    console.log(`Delete user with ID: ${userId}`);
+const UserTable = ({ users, setUsers }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const openModal = (userId) => {
+    setSelectedUser(userId);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (!selectedUser) {
+      toast.error("No user selected for deletion");
+      return;
+    }
+  
+    const userToDelete = users.find((user) => user.userID === selectedUser);
+    const userName = userToDelete?.userName || `ID: ${selectedUser}`;
+    
+    fetch(`http://localhost:8080/admin/users/${selectedUser}`, {
+      method: "DELETE",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then(data => {
+            throw new Error(data.message || "Failed to delete user");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log(`User with ID ${selectedUser} deleted successfully`);
+        // Update the users state to remove the deleted user
+        setUsers(users.filter((user) => user.userID !== selectedUser));
+        setIsModalOpen(false);
+        
+        // Show success toast notification
+        toast.success(`User ${userName} was successfully deleted!`);
+      })
+      .catch((err) => {
+        console.error("Error deleting user:", err);
+        // Show error toast notification
+        toast.error(`Error deleting user: ${err.message || "Unknown error"}`);
+      });
+  };
+
+  const cancelDelete = () => {
+    setIsModalOpen(false);
   };
 
   return (
     <div className={styles.div16}>
+      {/* Add ToastContainer component */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
       <table className={styles.table}>
         <thead>
           <tr className={styles.tr}>
@@ -67,7 +128,7 @@ const UserTable = ({ users }) => {
                 <td className={actionCellStyle}>
                   <div className={actionContainerStyle}>
                     <button
-                      onClick={() => handleDelete(user.userID)}
+                      onClick={() => openModal(user.userID)}
                       aria-label={`Delete user ${user.userName}`}
                     >
                       <img
@@ -84,6 +145,13 @@ const UserTable = ({ users }) => {
           })}
         </tbody>
       </table>
+      {/* Include DeleteModal */}
+      {isModalOpen && (
+        <DeleteModal 
+        onCancel={cancelDelete} 
+        onConfirm={handleDelete} 
+        userName={users.find((user) => user.userID === selectedUser)?.userName}/>
+      )}
     </div>
   );
 };

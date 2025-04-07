@@ -13,7 +13,8 @@ const isAuthenticated = require("./middleware/isAuthenticated"); // Import isAut
 const passwordRoutes = require('./routes/passwordRoutes'); // Import password routes
 const incomeRoutes = require("./routes/incomeRoutes"); // Import income routes
 const expenseRoutes = require('./routes/expenseRoutes'); // Import expense routes
-const budgetRoutes = require("./routes/budgetRoutes"); // Import budget routes
+const budgetRoutes = require('./routes/budgetRoutes'); // Import budget routes
+const adminRoutes = require("./routes/adminRoutes"); // Import admin routes
 
 // Serve frontend static files
 //app.use(express.static(path.join(__dirname, '../dist')));
@@ -72,6 +73,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 // Password reset routes
 app.use('/api', passwordRoutes);
 // Income routes
@@ -79,7 +85,9 @@ app.use("/income", incomeRoutes);
 // Expense routes
 app.use('/expense', expenseRoutes);
 // Budget routes
-app.use("/budget", budgetRoutes);
+app.use('/budget', budgetRoutes);
+// Admin routes
+app.use('/admin', adminRoutes);
 
 // Sign-up endpoint
 app.post('/sign-up', (req, res) => {

@@ -1,16 +1,11 @@
-// controllers/adminController.js
-const db = require('../db');
+const express = require("express");
+const router = express.Router();
+const adminController = require("../controllers/adminController");
+const isAuthenticated = require("../middleware/isAuthenticated");
 
-const getAllUsers = (req, res) => {
-  db.query("SELECT * FROM user", (err, results) => {
-    if (err) {
-      console.error("Error fetching users:", err);
-      return res.status(500).json({ success: false, message: "Server error" });
-    }
-    res.json({ success: true, data: results });
-  });
-};
+// Get all users (protected route)
+router.get("/users", isAuthenticated, adminController.getAllUsers);
+// Delete a user
+router.delete("/users/:id", isAuthenticated, adminController.deleteUser);
 
-module.exports = {
-  getAllUsers,
-};
+module.exports = router;

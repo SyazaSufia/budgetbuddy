@@ -46,7 +46,7 @@ const UserManagement = () => {
         ) : error ? (
           <div className={styles.error}>{error}</div>
         ) : (
-          <UserTable users={users} />
+          <UserTable users={users} setUsers={setUsers} />
         )}
       </article>
     </section>
