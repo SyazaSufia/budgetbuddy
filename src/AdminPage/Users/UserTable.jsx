@@ -3,7 +3,7 @@ import styles from "./InputDesign.module.css";
 
 const UserTable = ({ users }) => {
   const handleDelete = (userId) => {
-    // Delete functionality would be implemented here
+    // Placeholder for delete logic
     console.log(`Delete user with ID: ${userId}`);
   };
 
@@ -12,18 +12,17 @@ const UserTable = ({ users }) => {
       <table className={styles.table}>
         <thead>
           <tr className={styles.tr}>
-            <th className={styles.th}>User ID</th>
-            <th className={styles.th2}>Username</th>
-            <th className={styles.th3}>Email</th>
+            <th className={styles.th}>Name</th>
+            <th className={styles.th2}>Email</th>
+            <th className={styles.th3}>Date of Birth</th>
             <th className={styles.th4}>Role</th>
-            <th className={styles.th5}>Status</th>
-            <th className={styles.th6}>Date Registered</th>
-            <th className={styles.th7}>Action</th>
+            <th className={styles.th5}>Phone Number</th>
+            <th className={styles.th6}>Action</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user, index) => {
-            // Determine which row style to use based on index
+            // Style variations for zebra-striping and unique rows
             const rowStyle = [
               styles.tr2,
               styles.tr3,
@@ -31,25 +30,6 @@ const UserTable = ({ users }) => {
               styles.tr5,
               styles.tr6,
               styles.tr7,
-            ][index % 6];
-
-            // Determine which cell styles to use based on index
-            const roleCellStyle = [
-              styles.td2,
-              styles.td5,
-              styles.td8,
-              styles.td11,
-              styles.td14,
-              styles.td17,
-            ][index % 6];
-
-            const statusCellStyle = [
-              styles.td3,
-              styles.td6,
-              styles.td9,
-              styles.td12,
-              styles.td15,
-              styles.td18,
             ][index % 6];
 
             const actionCellStyle = [
@@ -61,24 +41,6 @@ const UserTable = ({ users }) => {
               styles.td19,
             ][index % 6];
 
-            const roleTextStyle = [
-              styles.div17,
-              styles.div20,
-              styles.div23,
-              styles.div26,
-              styles.div29,
-              styles.div32,
-            ][index % 6];
-
-            const statusTextStyle = [
-              styles.div18,
-              styles.div21,
-              styles.div24,
-              styles.div27,
-              styles.div30,
-              styles.div33,
-            ][index % 6];
-
             const actionContainerStyle = [
               styles.div19,
               styles.div22,
@@ -88,23 +50,25 @@ const UserTable = ({ users }) => {
               styles.div34,
             ][index % 6];
 
+            // Format date if it exists
+            const formatDate = (dateString) => {
+              if (!dateString) return "";
+              const date = new Date(dateString);
+              return date.toLocaleDateString();
+            };
+
             return (
-              <tr key={user.id} className={rowStyle}>
-                <td className={styles.td}>{user.id}</td>
-                <td className={styles.td}>{user.username}</td>
-                <td className={styles.td}>{user.email}</td>
-                <td className={roleCellStyle}>
-                  <div className={roleTextStyle}>{user.role}</div>
-                </td>
-                <td className={statusCellStyle}>
-                  <div className={statusTextStyle}>{user.status}</div>
-                </td>
-                <td className={styles.td}>{user.dateRegistered}</td>
+              <tr key={user.userID} className={rowStyle}>
+                <td className={styles.td}>{user.userName}</td>
+                <td className={styles.td}>{user.userEmail}</td>
+                <td className={styles.td}>{formatDate(user.userDOB)}</td>
+                <td className={styles.td}>{user.userRole}</td>
+                <td className={styles.td}>{user.userPhoneNumber}</td>
                 <td className={actionCellStyle}>
                   <div className={actionContainerStyle}>
                     <button
-                      onClick={() => handleDelete(user.id)}
-                      aria-label={`Delete user ${user.id}`}
+                      onClick={() => handleDelete(user.userID)}
+                      aria-label={`Delete user ${user.userName}`}
                     >
                       <img
                         src="/delete-icon.svg"

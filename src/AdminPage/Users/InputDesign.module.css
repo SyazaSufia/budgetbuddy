@@ -372,4 +372,20 @@
     justify-content: flex-start; /* Align content to the top */
     align-items: flex-start; /* Align to the left */
   }
+
+  /* Add this to ensure table text is black */
+.td {
+  color: black;  /* This ensures text color is black */
+}
+
+/* You can also explicitly set the color for specific parts, e.g., for header or cells */
+.th, .td {
+  color: black;
+}
+
+/* If any specific row or cell has a different color, you can override it here */
+.tr2, .tr3, .tr4, .tr5, .tr6, .tr7 {
+  color: black;  /* Make sure the rows' text is black */
+}
+
   

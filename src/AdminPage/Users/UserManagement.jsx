@@ -1,59 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./InputDesign.module.css";
 import SearchInput from "./SearchInput";
 import UserTable from "./UserTable";
 
 const UserManagement = () => {
-  const users = [
-    {
-      id: "user0001",
-      username: "John Doe",
-      email: "john@email.com",
-      role: "User",
-      status: "Active",
-      dateRegistered: "11-07-2023",
-    },
-    {
-      id: "user0002",
-      username: "Bob Doe",
-      email: "bob@email.com",
-      role: "User",
-      status: "Suspended",
-      dateRegistered: "11-07-2023",
-    },
-    {
-      id: "user0003",
-      username: "Mike Doe",
-      email: "mike@email.com",
-      role: "User",
-      status: "Active",
-      dateRegistered: "11-07-2023",
-    },
-    {
-      id: "user0004",
-      username: "Jake Doe",
-      email: "Jake@email.com",
-      role: "User",
-      status: "Active",
-      dateRegistered: "11-07-2023",
-    },
-    {
-      id: "user0005",
-      username: "Billy Doe",
-      email: "Billy@email.com",
-      role: "User",
-      status: "Active",
-      dateRegistered: "11-07-2023",
-    },
-    {
-      id: "adm0001",
-      username: "Mark Doe",
-      email: "admin@email.com",
-      role: "Admin",
-      status: "Active",
-      dateRegistered: "11-07-2023",
-    },
-  ];
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("http://localhost:8080/admin/users", {
+      credentials: "include", // for session auth if needed
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data.success && data.data) {
+          console.log("Users loaded:", data.data); // Log the user data
+          setUsers(data.data); // Assuming the users are under the 'data' key
+        } else {
+          setError("Failed to load users");
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading users:", err);
+        setError("Error loading users");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <section className={styles.div}>
@@ -63,7 +41,13 @@ const UserManagement = () => {
           <h2 className={styles.div5}>User Accounts</h2>
           <SearchInput />
         </header>
-        <UserTable users={users} />
+        {loading ? (
+          <div className={styles.loading}>Loading users...</div>
+        ) : error ? (
+          <div className={styles.error}>{error}</div>
+        ) : (
+          <UserTable users={users} />
+        )}
       </article>
     </section>
   );
