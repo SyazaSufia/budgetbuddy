@@ -31,26 +31,14 @@ import './App.css';
 const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, login, logout } = useAuth();
+  const { user, login, logout, checkAuthStatus } = useAuth();
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/check-auth", {
-          method: "GET",
-          credentials: "include",
-        });
-        const data = await response.json();
-        if (data.isAuthenticated) {
-          login(data.user);
-        }
-      } catch (error) {
-        console.error("Error checking authentication status:", error);
-      }
-    };
-
-    checkAuthStatus();
-  }, [login]);
+    // Only check auth status once when the component mounts
+    if (!user) {
+      checkAuthStatus();
+    }
+  }, []); // Empty dependency array means this runs only once on mount
 
   const handleSignIn = (userData) => {
     login(userData);
@@ -87,7 +75,7 @@ const AppContent = () => {
             <Route path="/income" element={<IncomePage user={user} />} />
             <Route path="/dashboard" element={<DashboardPage user={user} />} />
             <Route path="/budget" element={<BudgetPage user={user} />} />
-            <Route path="/budgetdetails" element={<BudgetDetails user={user} />} />
+            <Route path="/budgetdetails/:budgetID" element={<BudgetDetails user={user} />} />
             <Route path="/expense" element={<ExpensePage user={user} />} />
             <Route path="/community" element={<CommunityPage user={user} />} />
             <Route path="/addpost" element={<AddPostPage user={user} />} />
@@ -110,7 +98,7 @@ const AppContent = () => {
       </main>
 
       {/* Toast Container (Global) */}
-    <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </div>
   );
 };
