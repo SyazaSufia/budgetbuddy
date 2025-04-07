@@ -17,13 +17,11 @@ export function FormField({ label, type = 'text', placeholder, options, value, o
           onChange={(e) => onChange(e.target.value)}
         >
           <option value="">{placeholder}</option>
-          {options
-            ?.filter(option => option !== "Select your university" && option !== "Select your year of study")
-            .map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
+          {options?.map(option => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
         </select>
       ) : (
         <input

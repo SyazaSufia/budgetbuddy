@@ -6,32 +6,14 @@ import InfoSection from "./InfoSection";
 import FormField from "./FormField";
 import styles from "./ProfilePage.module.css";
 
-const universities = [
-  "Universiti Malaya (UM)",
-  "Universiti Kebangsaan Malaysia (UKM)",
-  "Universiti Putra Malaysia (UPM)",
-  "Universiti Sains Malaysia (USM)",
-  "Universiti Teknologi Malaysia (UTM)",
-];
-
-const yearsOfStudy = [
-  "1st Year",
-  "2nd Year",
-  "3rd Year",
-  "4th Year",
-  "Postgraduate",
-];
-
 const ProfilePage = () => {
   const [formData, setFormData] = useState({
     id: "",
     name: "",
     age: "",
+    dob: "",
     email: "",
     phoneNumber: "",
-    university: "",
-    course: "",
-    yearOfStudy: "",
     profileImage: "",
   });
 
@@ -44,7 +26,6 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    // Fetch user data from the backend
     const fetchUserData = async () => {
       try {
         const response = await fetch("http://localhost:8080/get-user-details", {
@@ -56,30 +37,28 @@ const ProfilePage = () => {
         if (data.user) {
           const userData = data.user;
           const age = calculateAge(userData.userDOB);
-          let profileImageUrl = '';
+          const dob = userData.userDOB?.split("T")[0] || ""; // format YYYY-MM-DD
+          let profileImageUrl = "";
 
-          // Fetch the profile image blob if it exists
           if (userData.profileImage) {
-            const imageResponse = await fetch(`http://localhost:8080/profile-image/${userData.id}`);
+            const imageResponse = await fetch(
+              `http://localhost:8080/profile-image/${userData.id}`
+            );
             if (imageResponse.ok) {
               const imageBlob = await imageResponse.blob();
               profileImageUrl = URL.createObjectURL(imageBlob);
             }
           }
 
-          const updatedFormData = {
+          setFormData({
             id: userData.id,
-            name: userData.name,
+            name: userData.name || "",
             age: age.toString(),
-            email: userData.email,
+            dob,
+            email: userData.email || "",
             phoneNumber: userData.phoneNumber || "",
-            university: userData.university || "",
-            course: userData.course || "",
-            yearOfStudy: userData.yearOfStudy || "",
             profileImage: profileImageUrl,
-          };
-
-          setFormData(updatedFormData);
+          });
         } else {
           console.error("No user data found");
         }
@@ -91,7 +70,6 @@ const ProfilePage = () => {
     fetchUserData();
   }, []);
 
-  // Check form completion whenever formData or errors change
   useEffect(() => {
     checkFormCompletion();
   }, [formData, errors]);
@@ -100,16 +78,18 @@ const ProfilePage = () => {
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDifference = today.getMonth() - birthDate.getMonth();
-
-    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
     return age;
   };
 
   const handleInputChange = (field, value) => {
-    let updatedErrors = { ...errors };
+    const updatedErrors = { ...errors };
 
     if (field === "age") {
       updatedErrors.age = !/^\d+$/.test(value) ? "Age must be a number" : "";
@@ -117,11 +97,15 @@ const ProfilePage = () => {
 
     if (field === "email") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      updatedErrors.email = emailRegex.test(value) ? "" : "Please enter a valid email address";
+      updatedErrors.email = emailRegex.test(value)
+        ? ""
+        : "Please enter a valid email address";
     }
 
     if (field === "phoneNumber") {
-      updatedErrors.phoneNumber = !/^\d*$/.test(value) ? "Phone number must contain only numbers" : "";
+      updatedErrors.phoneNumber = !/^\d*$/.test(value)
+        ? "Phone number must contain only numbers"
+        : "";
     }
 
     setErrors(updatedErrors);
@@ -129,10 +113,19 @@ const ProfilePage = () => {
   };
 
   const checkFormCompletion = () => {
-    const requiredFields = ["name", "age", "email", "phoneNumber", "university", "course", "yearOfStudy", "profileImage"];
-    const isComplete = requiredFields.every((field) => formData[field] && formData[field].trim() !== "");
+    const requiredFields = [
+      "name",
+      "age",
+      "dob",
+      "email",
+      "phoneNumber",
+      "profileImage",
+    ];
+    const isComplete = requiredFields.every(
+      (field) => formData[field] && formData[field].trim() !== ""
+    );
     const hasErrors = Object.values(errors).some((err) => err !== "");
-    
+
     setIsFormComplete(isComplete && !hasErrors);
   };
 
@@ -140,8 +133,6 @@ const ProfilePage = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedImage(file);
-      
-      // Create a URL for the image preview
       const imageUrl = URL.createObjectURL(file);
       handleInputChange("profileImage", imageUrl);
     }
@@ -150,11 +141,11 @@ const ProfilePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let imageUrl = formData.profileImage;
-  
+
     if (selectedImage) {
       const imageData = new FormData();
       imageData.append("image", selectedImage);
-  
+
       try {
         const response = await fetch("http://localhost:8080/upload", {
           method: "POST",
@@ -164,34 +155,27 @@ const ProfilePage = () => {
         const data = await response.json();
         imageUrl = data.imageUrl;
         handleInputChange("profileImage", `http://localhost:8080${imageUrl}`);
-  
-        // Update profile picture URL in the database
+
         await fetch("http://localhost:8080/update-profile-picture", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ id: formData.id, profileImage: imageUrl }),
         });
-  
       } catch (error) {
         console.error("Error uploading image:", error);
         toast.error("Failed to upload image.");
       }
     }
-  
-    // Save other form data
+
     try {
       const response = await fetch("http://localhost:8080/update-profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(formData),
       });
-  
+
       if (response.ok) {
         toast.success("Profile updated successfully!");
       } else {
@@ -201,7 +185,7 @@ const ProfilePage = () => {
       console.error("Error saving profile:", error);
       toast.error("Error saving profile.");
     }
-  };  
+  };
 
   return (
     <main className={styles.profile}>
@@ -209,19 +193,21 @@ const ProfilePage = () => {
       <div className={styles.content}>
         <SideBar />
         <div className={styles.mainContent}>
-        <header className={styles.headerSection}>
-            <h1 className={styles.pageHeader}>Hello, {formData.name || 'Guest'}!</h1>
+          <header className={styles.headerSection}>
+            <h1 className={styles.pageHeader}>
+              Hello, {formData.name || "Guest"}!
+            </h1>
           </header>
           <div className={styles.contentWrapper}>
             <InfoSection title="Account Information">
               <div className={styles.row}>
                 <div className={styles.field}>
                   <label className={styles.label}>Profile Image:</label>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                    className={styles.profileImageInput} 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className={styles.profileImageInput}
                   />
                   {formData.profileImage && (
                     <img
@@ -252,8 +238,21 @@ const ProfilePage = () => {
                     value={formData.age}
                     onChange={(e) => handleInputChange("age", e)}
                   />
-                  {errors.age && <p className={styles.errorText}>{errors.age}</p>}
+                  {errors.age && (
+                    <p className={styles.errorText}>{errors.age}</p>
+                  )}
                 </div>
+                <div className={styles.formGroup}>
+                  <FormField
+                    label="Date of Birth"
+                    type="date"
+                    value={formData.dob}
+                    onChange={(e) => handleInputChange("dob", e)}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.row}>
                 <div className={styles.formGroup}>
                   <FormField
                     label="Email"
@@ -262,7 +261,9 @@ const ProfilePage = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e)}
                   />
-                  {errors.email && <p className={styles.errorText}>{errors.email}</p>}
+                  {errors.email && (
+                    <p className={styles.errorText}>{errors.email}</p>
+                  )}
                 </div>
                 <div className={styles.formGroup}>
                   <FormField
@@ -272,41 +273,12 @@ const ProfilePage = () => {
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e)}
                   />
-                  {errors.phoneNumber && <p className={styles.errorText}>{errors.phoneNumber}</p>}
+                  {errors.phoneNumber && (
+                    <p className={styles.errorText}>{errors.phoneNumber}</p>
+                  )}
                 </div>
-              </div>
-            </InfoSection>
-
-            <InfoSection title="Academic Information" required>
-              <div className={styles.row}>
-                <div className={styles.formGroup}>
-                  <FormField
-                    label="University Name"
-                    type="select"
-                    placeholder="Select your university"
-                    options={universities}
-                    value={formData.university}
-                    onChange={(e) => handleInputChange("university", e)}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <FormField
-                    label="Course"
-                    placeholder="Course Name"
-                    value={formData.course}
-                    onChange={(e) => handleInputChange("course", e)}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <FormField
-                    label="Year of Study"
-                    type="select"
-                    placeholder="Select your year of study"
-                    options={yearsOfStudy}
-                    value={formData.yearOfStudy}
-                    onChange={(e) => handleInputChange("yearOfStudy", e)}
-                  />
-                </div>
+                {/* Empty space to keep layout balanced */}
+                <div className={styles.formGroup}></div>
               </div>
             </InfoSection>
           </div>
