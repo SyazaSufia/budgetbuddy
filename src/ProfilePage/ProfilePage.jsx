@@ -67,7 +67,7 @@ const ProfilePage = () => {
             }
           }
 
-          setFormData({
+          const updatedFormData = {
             id: userData.id,
             name: userData.name,
             age: age.toString(),
@@ -77,20 +77,9 @@ const ProfilePage = () => {
             course: userData.course || "",
             yearOfStudy: userData.yearOfStudy || "",
             profileImage: profileImageUrl,
-          });
+          };
 
-          // Update form completion status
-          checkFormCompletion({
-            id: userData.id,
-            name: userData.name,
-            age: age.toString(),
-            email: userData.email,
-            phoneNumber: userData.phoneNumber || "",
-            university: userData.university || "",
-            course: userData.course || "",
-            yearOfStudy: userData.yearOfStudy || "",
-            profileImage: profileImageUrl,
-          });
+          setFormData(updatedFormData);
         } else {
           console.error("No user data found");
         }
@@ -101,6 +90,11 @@ const ProfilePage = () => {
 
     fetchUserData();
   }, []);
+
+  // Check form completion whenever formData or errors change
+  useEffect(() => {
+    checkFormCompletion();
+  }, [formData, errors]);
 
   const calculateAge = (dob) => {
     const birthDate = new Date(dob);
@@ -134,15 +128,23 @@ const ProfilePage = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const checkFormCompletion = (form) => {
+  const checkFormCompletion = () => {
     const requiredFields = ["name", "age", "email", "phoneNumber", "university", "course", "yearOfStudy", "profileImage"];
-    const isComplete = requiredFields.every((field) => form[field] && form[field].trim() !== "");
-    setIsFormComplete(isComplete);
+    const isComplete = requiredFields.every((field) => formData[field] && formData[field].trim() !== "");
+    const hasErrors = Object.values(errors).some((err) => err !== "");
+    
+    setIsFormComplete(isComplete && !hasErrors);
   };
 
   const handleImageChange = (e) => {
-    setSelectedImage(e.target.files[0]);
-    handleInputChange("profileImage", e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : "");
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      
+      // Create a URL for the image preview
+      const imageUrl = URL.createObjectURL(file);
+      handleInputChange("profileImage", imageUrl);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -313,7 +315,7 @@ const ProfilePage = () => {
             className={styles.saveButton}
             type="submit"
             onClick={handleSubmit}
-            disabled={!isFormComplete || Object.values(errors).some((err) => err)}
+            disabled={!isFormComplete}
           >
             Save
           </button>
