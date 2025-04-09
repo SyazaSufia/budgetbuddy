@@ -9,8 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Initial auth check is now handled only once in AppContent
+  const [authChecked, setAuthChecked] = useState(false); // Track if auth has been checked
   
   const login = (userData) => setUser(userData);
   
@@ -27,6 +26,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkAuthStatus = async () => {
+    // Only check if we haven't checked before
+    if (authChecked) return;
+    
     try {
       setLoading(true);
       const response = await fetch("http://localhost:8080/check-auth", {
@@ -39,16 +41,18 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
       }
+      setAuthChecked(true); // Mark that we've checked auth
     } catch (error) {
       console.error("Error checking authentication status:", error);
       setUser(null);
+      setAuthChecked(true); // Mark that we've checked auth even if it failed
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, checkAuthStatus }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, checkAuthStatus, authChecked }}>
       {children}
     </AuthContext.Provider>
   );

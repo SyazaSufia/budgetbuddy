@@ -53,7 +53,8 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:8080/budget/budgets", {
+      // Fixed the endpoint URL to match the backend route
+      const response = await fetch("http://localhost:8080/budget/budget", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -72,6 +73,8 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
           categoryID: selectedCategoryID,
           categoryName: selected.categoryName,
           icon: selected.icon,
+          categoryAmount: 0,
+          targetAmount: 2000,
         });
 
         onClose();

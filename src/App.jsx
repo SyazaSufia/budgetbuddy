@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AuthProvider, useAuth } from "./AuthContext";
+import { useAuth } from "./AuthContext";  // Just import useAuth, not AuthProvider
 import ProtectedRoute from "./ProtectedRoute";
 import Header from './HomePage/Header';
 import Hero from './HomePage/Hero';
@@ -28,17 +28,17 @@ import AdminUserPage from './AdminPage/Users/InputDesign';
 import AdminCommunityPage from './AdminPage/Community/CommunityManagement';
 import './App.css';
 
-const AppContent = () => {
+const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, login, logout, checkAuthStatus } = useAuth();
+  const { user, login, logout, checkAuthStatus, authChecked } = useAuth();
 
   useEffect(() => {
-    // Only check auth status once when the component mounts
-    if (!user) {
+    // Only check auth status if it hasn't been checked yet
+    if (!authChecked) {
       checkAuthStatus();
     }
-  }, []); // Empty dependency array means this runs only once on mount
+  }, [authChecked, checkAuthStatus]);
 
   const handleSignIn = (userData) => {
     login(userData);
@@ -102,11 +102,5 @@ const AppContent = () => {
     </div>
   );
 };
-
-const App = () => (
-  <AuthProvider>
-    <AppContent />
-  </AuthProvider>
-);
 
 export default App;
