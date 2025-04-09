@@ -1,10 +1,7 @@
-.main {
+.expenseLayout {
   display: flex;
-  min-width: 240px;
-  flex-direction: column;
-  flex: 1;
-  padding: 48px 24px;
-  gap: 24px;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .content {
@@ -12,8 +9,25 @@
   display: flex;
   width: 100%;
   flex: 1;
-  flex-wrap: wrap;
   height: 100%;
+}
+
+.main {
+  display: flex;
+  min-width: 240px;
+  flex-direction: column;
+  flex: 1;
+  padding: 48px 24px;
+  gap: 24px;
+  margin-left: 245px; /* Match the width of the sidebar */
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  width: calc(100% - 245px);
+}
+
+/* Apply styles when sidebar is collapsed */
+.sidebarCollapsed .main {
+  margin-left: 60px; /* Match the width of collapsed sidebar */
+  width: calc(100% - 60px);
 }
 
 .headerSection {
@@ -261,7 +275,37 @@
   object-fit: contain;
 }
 
+/* Sidebar transitions */
+.sidebar {
+  width: 245px;
+  min-width: 245px;
+  transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+.sidebarCollapsed .sidebar {
+  width: 60px;
+  min-width: 60px;
+}
+
+.noExpenses {
+  text-align: center;
+  color: #757575;
+  font-style: italic;
+  padding: 10px;
+}
+
 @media (max-width: 991px) {
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 24px 16px;
+  }
+  
+  .sidebarCollapsed .main {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
+  
   .categoryWrapper,
   .expenseCategory,
   .categoryContent {

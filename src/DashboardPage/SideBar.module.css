@@ -3,34 +3,34 @@
   display: flex;
   flex-direction: column;
   width: 245px;
-  height: 100vh;
+  height: 100vh; /* Full viewport height */
   box-sizing: border-box;
-  overflow: auto;
-  padding: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  position: sticky;
+  position: fixed; /* Fixed position instead of sticky */
   top: 0;
   bottom: 0;
+  left: 0;
+  z-index: 100; /* Ensure sidebar is above other content */
 }
   
-  .sidebarContent {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1;
-    padding: 24px 8px;
-  }
+.sidebarContent {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 8px;
+}
   
-  .brand {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-    padding: 0 4px;
-  }
+.brand {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 0 4px;
+}
   
   .logo {
     display: flex;
@@ -135,7 +135,7 @@
     margin: auto 0;
   }
 
-  /* Collapsed sidebar */
+ /* Collapsed sidebar */
 .sidebar.collapsed {
   width: 60px; /* Adjust width for collapsed state */
 }
@@ -186,4 +186,16 @@
 .sidebar.collapsed .logoImageSecondary {
   width: 20px;
   height: 20px;
+}
+
+.collapseButton {
+  background: var(--activeColor);
+  display: flex;
+  width: 100%;
+  align-items: center;
+  color: #fff;
+  padding: 8px;
+  font: 500 15px Montserrat, sans-serif;
+  cursor: pointer;
+  margin-top: auto; /* Push to bottom */
 }

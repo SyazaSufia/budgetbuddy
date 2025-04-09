@@ -5,11 +5,17 @@ import IncomeList from "./IncomeList";
 
 export default function IncomeLayout({ user }) {
   const [totalIncome, setTotalIncome] = useState(0); // State for total income
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Handle sidebar collapse state changes
+  const handleSidebarToggle = (collapsed) => {
+    setIsSidebarCollapsed(collapsed);
+  };
 
   return (
     <main className={styles.incomeDefault}>
-      <div className={styles.content}>
-        <SidebarNav />
+      <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+        <SidebarNav onToggleCollapse={handleSidebarToggle} />
         <section className={styles.main}>
           <header className={styles.headerSection}>
             <h1 className={styles.pageHeader}>

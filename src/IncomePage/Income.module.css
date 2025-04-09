@@ -1,290 +1,294 @@
 .incomeDefault {
-    background: #f5f5f5;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
   
-  .content {
-    background: #f5f5f5;
-    display: flex;
-    width: 100%;
-    flex: 1;
-    flex-wrap: wrap;
-    height: 100%;
-  }
-  
-  .content2 {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1;
-    padding: 24px 8px;
-  }
-  
-  .img, .img2 {
-    aspect-ratio: 0.45;
-    object-fit: contain;
-    object-position: center;
-    width: 9px;
-    align-self: stretch;
-    margin: auto 0;
-  }
-  
-  .img2 {
-    aspect-ratio: 0.5;
-    width: 10px;
-  }
-  
-  .accent {
-    color: #a5d6a7;
-  }
-  
-  .topMenu {
-    display: flex;
-    margin-top: 24px;
-    width: 100%;
-    flex-direction: column;
-    color: #fff;
-    flex: 1;
-    font: 500 12px Montserrat, sans-serif;
-    list-style: none;
-    padding: 0;
-  }
-  
-  .navItem {
-    border-radius: 8px;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 16px;
-    padding: 8px;
-    margin-top: 16px;
-    cursor: pointer;
-  }
-  
-  .navItem:first-child {
-    margin-top: 0;
-  }
-  
-  .navIcon {
-    aspect-ratio: 1;
-    object-fit: contain;
-    width: 20px;
-  }
+.content {
+  background: #f5f5f5;
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+}
 
-  .icons {
-    display: flex;
-    gap: 10px;
-  }  
+/* Main content transition */
+.main {
+  flex: 1;
+  padding: 48px 32px;
+  min-width: 240px;
+  margin-left: 245px; /* Match the width of the sidebar */
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  width: calc(100% - 245px);
+}
+
+/* Apply styles when sidebar is collapsed */
+.sidebarCollapsed .main {
+  margin-left: 60px; /* Match the width of collapsed sidebar */
+  width: calc(100% - 60px);
+}
   
-  .allIncomes {
-    background: #2c33ee;
-  }
+.content2 {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 8px;
+}
   
-  .collapse {
-    background: #2c33ee;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    color: #fff;
-    padding: 8px 16px;
-    border: none;
-    font: 500 15px Montserrat, sans-serif;
-    cursor: pointer;
-  }
+.img, .img2 {
+  aspect-ratio: 0.45;
+  object-fit: contain;
+  object-position: center;
+  width: 9px;
+  align-self: stretch;
+  margin: auto 0;
+}
   
-  .collapse2 {
-    flex: 1;
-  }
+.img2 {
+  aspect-ratio: 0.5;
+  width: 10px;
+}
   
-  .main {
-    display: flex;
-    min-width: 240px;
-    flex-direction: column;
-    flex: 1;
-    padding: 48px 0;
-    gap: 24px;
+.accent {
+  color: #a5d6a7;
+}
+  
+.topMenu {
+  display: flex;
+  margin-top: 24px;
+  width: 100%;
+  flex-direction: column;
+  color: #fff;
+  flex: 1;
+  font: 500 12px Montserrat, sans-serif;
+  list-style: none;
+  padding: 0;
+}
+  
+.navItem {
+  border-radius: 8px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+  margin-top: 16px;
+  cursor: pointer;
+}
+  
+.navItem:first-child {
+  margin-top: 0;
+}
+  
+.navIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  width: 20px;
+}
+
+.icons {
+  display: flex;
+  gap: 10px;
+}  
+  
+.allIncomes {
+  background: #2c33ee;
+}
+  
+.collapse {
+  background: #2c33ee;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  font: 500 15px Montserrat, sans-serif;
+  cursor: pointer;
+}
+  
+.collapse2 {
+  flex: 1;
+}
+  
+.headerSection {
+  display: flex;
+  width: 100%;
+  align-items: start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+  
+.pageHeader {
+  min-width: 240px;
+  color: #101828;
+  flex: 1;
+  font: 600 30px/1 Montserrat, sans-serif;
+  margin-bottom: 24px;
+}
+  
+.buttonGroup {
+  display: flex;
+  border-radius: 8px;
+  border: 1px solid #eceff2;
+  overflow: hidden;
+}
+  
+.buttonGroup button {
+  border: none;
+  background: #fff;
+  padding: 8px 16px;
+  font: 14px/1 Inter, sans-serif;
+  color: #516778;
+  cursor: pointer;
+  border-right: 1px solid #eceff2;
+}
+  
+.buttonGroup button:last-child {
+  border-right: none;
+}
+  
+.buttonGroup button.active {
+  background: #eff6ff;
+  color: #155eef;
+}
+  
+.content3 {
+  display: flex;
+  margin-top: 0px;
+  width: 100%;
+  flex-direction: column;
+  flex: 1;
+  gap: 24px;
+}
+  
+.totalIncome {
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex-direction: row;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--borderColor);
+}
+  
+.labelM {
+  font: 500 16px Montserrat, sans-serif;
+  color: #000;
+}
+  
+.inputC input {
+  border: none;
+  background: transparent;
+  font: 400 14px Montserrat, sans-serif;
+  color: #0a0a0a;
+  padding: 10px 0;
+}
+  
+.incomeLists {
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+  border: 1px solid var(--borderColor);
+}
+  
+.title {
+  color: #000;
+  text-align: left;
+  font: 600 16px Montserrat, sans-serif;
+  margin-bottom: 16px;
+  margin-top: 0px;
+}
+  
+.content4 article {
+  border-bottom: 1px solid var(--borderColor);
+  padding: 10px 16px;
+}
+  
+.content5 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+  
+.title2 {
+  color: black;
+  flex: 1;
+  font: 400 14px Montserrat, sans-serif;
+  margin: 0;
+}
+  
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font: 400 14px Montserrat, sans-serif;
+}
+  
+.date,
+.type {
+  color: #8d8d8d;
+  font: 400 14px Montserrat, sans-serif;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+  
+.amount {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #000;
+}
+  
+.iconButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+  
+.iconButton img {
+  width: 20px;
+  aspect-ratio: 1;
+}
+  
+.addIncomeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border-radius: 4px;
+  background: var(--secondaryColor);
+  color: var(--primaryColor);
+  font: 600 14px Montserrat, sans-serif;
+  cursor: pointer;
+}
+  
+@media (max-width: 991px) {
+  .content,
+  .main,
+  .headerSection,
+  .pageHeader,
+  .content3 {
+    max-width: 100%;
   }
   
   .headerSection {
-    display: flex;
-    width: 100%;
-    align-items: start;
-    gap: 24px;
-    padding: 0 32px;
-    flex-wrap: wrap;
-  }
-  
-  .pageHeader {
-    min-width: 240px;
-    color: #101828;
-    flex: 1;
-    font: 600 30px/1 Montserrat, sans-serif;
-    margin: 0;
-  }
-  
-  .buttonGroup {
-    display: flex;
-    border-radius: 8px;
-    border: 1px solid #eceff2;
-    overflow: hidden;
-  }
-  
-  .buttonGroup button {
-    border: none;
-    background: #fff;
-    padding: 8px 16px;
-    font: 14px/1 Inter, sans-serif;
-    color: #516778;
-    cursor: pointer;
-    border-right: 1px solid #eceff2;
-  }
-  
-  .buttonGroup button:last-child {
-    border-right: none;
-  }
-  
-  .buttonGroup button.active {
-    background: #eff6ff;
-    color: #155eef;
+    padding: 0 0px;
   }
   
   .content3 {
-    display: flex;
-    margin-top: 0px;
-    width: 100%;
-    flex-direction: column;
-    flex: 1;
-    padding: 0 24px;
-    gap: 24px;
+    padding: 0 20px;
   }
-  
-  .totalIncome {
-    border-radius: 8px;
-    background: #fff;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    flex-direction: row;
-    gap: 8px;
-    padding: 8px 16px;
-    border: 1px solid var(--borderColor);
-  }
-  
-  .labelM {
-    font: 500 16px Montserrat, sans-serif;
-    color: #000;
-  }
-  
-  .inputC input {
-    border: none;
-    background: transparent;
-    font: 400 14px Montserrat, sans-serif;
-    color: #0a0a0a;
-    padding: 10px 0;
-  }
-  
-  .incomeLists {
-    border-radius: 8px;
-    background: #fff;
-    padding: 16px;
-    border: 1px solid var(--borderColor);
-  }
-  
-  .title {
-    color: #000;
-    text-align: left;
-    font: 600 16px Montserrat, sans-serif;
-    margin-bottom: 16px;
-    margin-top: 0px;
-  }
-  
-  .content4 article {
-    border-bottom: 1px solid var(--borderColor);
-    padding: 10px 16px;
-  }
-  
-  .content5 {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  
-  .title2 {
-    color: black;
-    flex: 1;
-    font: 400 14px Montserrat, sans-serif;
-    margin: 0;
-  }
-  
-  .leftContent {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    font: 400 14px Montserrat, sans-serif;
-  }
-  
-  .date,
-  .type {
-    color: #8d8d8d;
-    font: 400 14px Montserrat, sans-serif;
-    display: flex;
-    align-items: center;
-    margin: 0;
-  }
-  
-  .amount {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    color: #000;
-  }
-  
-  .iconButton {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-  }
-  
-  .iconButton img {
-    width: 20px;
-    aspect-ratio: 1;
-  }
-  
-  .addIncomeButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    margin-top: 8px;
-    padding: 10px 16px;
-    border-radius: 4px;
-    background: var(--secondaryColor);
-    color: var(--primaryColor);
-    font: 600 14px Montserrat, sans-serif;
-    cursor: pointer;
-  }
-  
-  @media (max-width: 991px) {
-    .content,
-    .main,
-    .headerSection,
-    .pageHeader,
-    .content3 {
-      max-width: 100%;
-    }
-    
-    .headerSection {
-      padding: 0 0px;
-    }
-    
-    .content3 {
-      padding: 0 20px;
-    }
-  }
+}

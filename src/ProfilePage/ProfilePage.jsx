@@ -19,6 +19,7 @@ const ProfilePage = () => {
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [isFormComplete, setIsFormComplete] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [errors, setErrors] = useState({
     age: "",
     email: "",
@@ -136,6 +137,11 @@ const ProfilePage = () => {
     }
   };
 
+  // Handle sidebar collapse state changes
+  const handleSidebarToggle = (collapsed) => {
+    setIsSidebarCollapsed(collapsed);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -202,8 +208,8 @@ const ProfilePage = () => {
   return (
     <main className={styles.profile}>
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className={styles.content}>
-        <SideBar />
+      <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+        <SideBar onToggleCollapse={handleSidebarToggle} />
         <div className={styles.mainContent}>
           <header className={styles.headerSection}>
             <h1 className={styles.pageHeader}>

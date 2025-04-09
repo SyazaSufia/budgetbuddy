@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 
@@ -11,9 +11,16 @@ const menuItems = [
   { id: "community", label: "Community", icon: "/community-icon.svg", path: "/community" }
 ];
 
-export function SideBar({ onSignOut }) {
+export function SideBar({ onSignOut, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
+
+  // When collapse state changes, notify parent component
+  useEffect(() => {
+    if (onToggleCollapse) {
+      onToggleCollapse(isCollapsed);
+    }
+  }, [isCollapsed, onToggleCollapse]);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);

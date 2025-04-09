@@ -25,6 +25,12 @@ function BudgetDetails() {
   const [isSubmittingGoal, setIsSubmittingGoal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Handle sidebar collapse state changes
+  const handleSidebarToggle = (collapsed) => {
+    setIsSidebarCollapsed(collapsed);
+  };
 
   useEffect(() => {
     // If we don't have a budgetID, redirect to the budgets page
@@ -191,8 +197,8 @@ function BudgetDetails() {
   }
 
   return (
-    <section className={styles.container}>
-      <Sidebar className={styles.sidebar} />
+    <section className={`${styles.container} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+      <Sidebar className={styles.sidebar} onToggleCollapse={handleSidebarToggle} />
       <div className={styles.content}>
         {/* Breadcrumb Nav Only */}
         <div className={styles.topNavSection}>

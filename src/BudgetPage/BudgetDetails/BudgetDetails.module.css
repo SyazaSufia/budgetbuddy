@@ -6,14 +6,29 @@
 
 .sidebar {
   flex-shrink: 0;
+  width: 245px;
+  min-width: 245px;
+  transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+.sidebarCollapsed .sidebar {
+  width: 60px;
+  min-width: 60px;
 }
 
 .content {
   flex-grow: 1;
   padding: 24px;
-  /* Remove max-width and margin: 0 auto to allow content to fill width */
   width: 100%;
   color: black;
+  margin-left: 245px; /* Match the width of the sidebar */
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  width: calc(100% - 245px);
+}
+
+.sidebarCollapsed .content {
+  margin-left: 60px; /* Match the width of collapsed sidebar */
+  width: calc(100% - 60px);
 }
 
 .topNavSection {
@@ -279,4 +294,21 @@
 
 .red {
   background-color: #f44336; /* Red */
+}
+
+@media (max-width: 991px) {
+  .content {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+  
+  .sidebarCollapsed .content {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
+  
+  .budgetTitle {
+    font-size: 28px;
+  }
 }

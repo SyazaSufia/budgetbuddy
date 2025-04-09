@@ -16,6 +16,13 @@
     height: 100vh;
     background-color: #f4f4f4; /* Example background color */
     overflow-y: auto;
+    transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+/* Style for collapsed sidebar */
+.sidebarCollapsed .sidebar {
+    width: 60px;
+    min-width: 60px;
 }
 
 .main {
@@ -23,4 +30,26 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto; /* Enable scrolling if content overflows */
+    margin-left: 245px; /* Match the width of the sidebar */
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    width: calc(100% - 245px);
+}
+
+/* Apply styles when sidebar is collapsed */
+.sidebarCollapsed .main {
+    margin-left: 60px; /* Match the width of collapsed sidebar */
+    width: calc(100% - 60px);
+}
+
+/* Responsive styles */
+@media (max-width: 991px) {
+    .main {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .sidebarCollapsed .main {
+        margin-left: 60px;
+        width: calc(100% - 60px);
+    }
 }

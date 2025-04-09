@@ -1,19 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: "/dashboard-icon.svg" , path: "/dashboard" },
-  { id: "personal", label: "Personal", icon: "/profile-icon.svg", path: "/profile"},
-  { id: "income", label: "Income", icon: "/income-icon.svg", path: "/income", active: true },
+  { id: "personal", label: "Personal", icon: "/profile-icon.svg", path: "/profile" },
+  { id: "income", label: "Income", icon: "/income-icon.svg", path: "/income", active: true},
   { id: "expenses", label: "Expenses", icon: "/expenses-icon.svg", path: "/expense" },
-  { id: "budget", label: "Budget", icon: "/budget-icon.svg", path: "/budget" },
+  { id: "budget", label: "Budget", icon: "/budget-icon.svg", path: "/budget"},
   { id: "community", label: "Community", icon: "/community-icon.svg", path: "/community" }
 ];
 
-export function SideBar({ onSignOut }) {
+export function SideBar({ onSignOut, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
+
+  // When collapse state changes, notify parent component
+  useEffect(() => {
+    if (onToggleCollapse) {
+      onToggleCollapse(isCollapsed);
+    }
+  }, [isCollapsed, onToggleCollapse]);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);

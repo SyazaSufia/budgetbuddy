@@ -11,18 +11,27 @@
   padding: 48px 0;
   display: flex;
   gap: 24px;
+  margin-left: 245px; /* Match the width of the sidebar */
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  width: calc(100% - 245px);
 }
 
-@media (width<=991px) {
-  .content {
-    padding: 32px 0;
-  }
+/* Apply styles when sidebar is collapsed */
+.sidebarCollapsed .content {
+  margin-left: 60px; /* Match the width of collapsed sidebar */
+  width: calc(100% - 60px);
 }
 
-@media (width<=640px) {
-  .content {
-    padding: 24px 0;
-  }
+/* Sidebar transitions */
+.sidebar {
+  width: 245px;
+  min-width: 245px;
+  transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+.sidebarCollapsed .sidebar {
+  width: 60px;
+  min-width: 60px;
 }
 
 .greeting {
@@ -35,25 +44,40 @@
   margin-bottom: 0px;
 }
 
-@media (width<=640px) {
-  .greeting {
-    padding: 0 16px;
-  }
-}
-
 .budgetSection {
   flex: 1;
   padding: 0 24px;
-}
-
-@media (width<=640px) {
-  .budgetSection {
-    padding: 0 16px;
-  }
 }
 
 .budgetList {
   flex-direction: column;
   gap: 24px;
   display: flex;
+}
+
+@media (width<=991px) {
+  .content {
+    padding: 32px 0;
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .sidebarCollapsed .content {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
+}
+
+@media (width<=640px) {
+  .content {
+    padding: 24px 0;
+  }
+  
+  .greeting {
+    padding: 0 16px;
+  }
+  
+  .budgetSection {
+    padding: 0 16px;
+  }
 }

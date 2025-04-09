@@ -12,13 +12,17 @@ export default function Expense({ user }) {
   const [expenses, setExpenses] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] =
-    useState(false);
-  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] =
-    useState(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
+  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Handle sidebar collapse state changes
+  const handleSidebarToggle = (collapsed) => {
+    setIsSidebarCollapsed(collapsed);
+  };
 
   // Fetch categories from the backend
   const fetchCategories = async () => {
@@ -289,8 +293,8 @@ export default function Expense({ user }) {
   return (
     <>
       <main className={styles.expenseLayout}>
-        <div className={styles.content}>
-          <SidebarNav />
+        <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+          <SidebarNav onToggleCollapse={handleSidebarToggle} />
           <section className={styles.main}>
             <header className={styles.headerSection}>
               <h1 className={styles.pageHeader}>
