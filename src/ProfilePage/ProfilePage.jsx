@@ -25,55 +25,6 @@ const ProfilePage = () => {
     phoneNumber: "",
   });
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/get-user-details", {
-          method: "GET",
-          credentials: "include",
-        });
-        const data = await response.json();
-
-        if (data.user) {
-          const userData = data.user;
-          const age = calculateAge(userData.userDOB);
-          const dob = userData.userDOB?.split("T")[0] || ""; // format YYYY-MM-DD
-          let profileImageUrl = "";
-
-          if (userData.profileImage) {
-            const imageResponse = await fetch(
-              `http://localhost:8080/profile-image/${userData.id}`
-            );
-            if (imageResponse.ok) {
-              const imageBlob = await imageResponse.blob();
-              profileImageUrl = URL.createObjectURL(imageBlob);
-            }
-          }
-
-          setFormData({
-            id: userData.id,
-            name: userData.name || "",
-            age: age.toString(),
-            dob,
-            email: userData.email || "",
-            phoneNumber: userData.phoneNumber || "",
-            profileImage: profileImageUrl,
-          });
-        } else {
-          console.error("No user data found");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  useEffect(() => {
-    checkFormCompletion();
-  }, [formData, errors]);
-
   const calculateAge = (dob) => {
     const birthDate = new Date(dob);
     const today = new Date();
@@ -87,6 +38,53 @@ const ProfilePage = () => {
     }
     return age;
   };
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/get-user-details", {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (data.user) {
+        const userData = data.user;
+        const age = calculateAge(userData.userDOB);
+        const dob = userData.userDOB?.split("T")[0] || ""; // format YYYY-MM-DD
+        let profileImageUrl = "";
+
+        // Always use the profile-image endpoint to get the blob image
+        if (userData.id) {
+          // Add timestamp to prevent caching
+          profileImageUrl = `http://localhost:8080/profile-image/${userData.id}?t=${new Date().getTime()}`;
+        } else {
+          profileImageUrl = "/default-icon.svg"; // Use default if no user id
+        }
+
+        setFormData({
+          id: userData.id,
+          name: userData.name || "",
+          age: age.toString(),
+          dob,
+          email: userData.email || "",
+          phoneNumber: userData.phoneNumber || "",
+          profileImage: profileImageUrl,
+        });
+      } else {
+        console.error("No user data found");
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    checkFormCompletion();
+  }, [formData, errors]);
 
   const handleInputChange = (field, value) => {
     const updatedErrors = { ...errors };
@@ -140,35 +138,45 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let imageUrl = formData.profileImage;
-
-    if (selectedImage) {
-      const imageData = new FormData();
-      imageData.append("image", selectedImage);
-
-      try {
-        const response = await fetch("http://localhost:8080/upload", {
-          method: "POST",
-          credentials: "include",
-          body: imageData,
-        });
-        const data = await response.json();
-        imageUrl = data.imageUrl;
-        handleInputChange("profileImage", `http://localhost:8080${imageUrl}`);
-
-        await fetch("http://localhost:8080/update-profile-picture", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ id: formData.id, profileImage: imageUrl }),
-        });
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        toast.error("Failed to upload image.");
-      }
-    }
 
     try {
+      // First handle image upload if there's a new image
+      if (selectedImage) {
+        const imageData = new FormData();
+        imageData.append("image", selectedImage);
+
+        try {
+          const imageResponse = await fetch("http://localhost:8080/upload", {
+            method: "POST",
+            credentials: "include",
+            body: imageData,
+          });
+
+          if (!imageResponse.ok) {
+            throw new Error(`Image upload failed: ${imageResponse.status}`);
+          }
+
+          const imageResult = await imageResponse.json();
+
+          // Use the endpoint that serves blob images with cache busting
+          const imageUrl = `/profile-image/${formData.id}?t=${new Date().getTime()}`;
+
+          // Update profileImage in formData with the blob endpoint URL
+          setFormData((prev) => ({
+            ...prev,
+            profileImage: `http://localhost:8080${imageUrl}`,
+          }));
+
+          // No need to call update-profile-picture separately
+          // The /upload endpoint already updates the database
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          toast.error("Failed to upload image.");
+          return; // Stop if image upload fails
+        }
+      }
+
+      // Now update the full profile
       const response = await fetch("http://localhost:8080/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,6 +186,10 @@ const ProfilePage = () => {
 
       if (response.ok) {
         toast.success("Profile updated successfully!");
+        // Clear the selectedImage since it's been uploaded
+        setSelectedImage(null);
+        // Refresh user data
+        fetchUserData();
       } else {
         toast.error("Failed to update profile.");
       }
