@@ -44,8 +44,10 @@
   flex: 1;
   padding: 48px 32px;
   min-width: 240px;
-  margin-left: 245px; /* Match the width of the sidebar */
-  transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
+  margin-left: 245px;
+  transition: margin-left 0.3s ease;
+  display: flex; /* Make it a flex column */
+  flex-direction: column;
 }
 
 @media (max-width: 991px) {
@@ -59,11 +61,12 @@
   display: flex;
   width: 100%;
   flex-direction: column;
-  flex: 1;
+  flex-grow: 1; /* So it takes all available space */
   gap: 16px;
 }
 
 .saveButton {
+  width: 100%;
   border-radius: 4px;
   border: 1px var(--primaryColor);
   padding: 0.6em 1.2em;
