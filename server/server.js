@@ -224,19 +224,27 @@ app.get("/check-auth", (req, res) => {
 // Profile Image Upload Endpoint
 app.post('/upload', isAuthenticated, upload.single('image'), (req, res) => {
   if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    return res.status(400).json({ success: false, message: 'No file uploaded.' });
   }
-  const imageUrl = `/uploads/${req.file.filename}`;
+  
+  // Read file as binary data
+  const imageBlob = fs.readFileSync(req.file.path);
   const mimeType = req.file.mimetype;
-
+  
   const updateProfilePictureSql = 'UPDATE user SET profileImage = ?, imageMimeType = ? WHERE userID = ?';
-
-  db.query(updateProfilePictureSql, [imageUrl, mimeType, req.session.user.id], (err, result) => {
-      if (err) {
-          console.error('Error updating profile picture:', err);
-          return res.status(500).json({ success: false, message: 'Error updating profile picture.' });
-      }
-      res.json({ success: true, imageUrl });
+  
+  db.query(updateProfilePictureSql, [imageBlob, mimeType, req.session.user.id], (err, result) => {
+    if (err) {
+      console.error('Error updating profile picture:', err);
+      return res.status(500).json({ success: false, message: 'Error updating profile picture.' });
+    }
+    
+    // Return a URL to access the image through the profile-image endpoint
+    const imageUrl = `/profile-image/${req.session.user.id}`;
+    res.json({ success: true, imageUrl });
+    
+    // Clean up temp file
+    fs.unlinkSync(req.file.path);
   });
 });
 
