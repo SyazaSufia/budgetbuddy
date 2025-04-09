@@ -11,8 +11,7 @@ function BudgetCard() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Fetch budgets from the backend
+  const fetchBudgets = () => {
     setIsLoading(true);
     fetch("http://localhost:8080/budget/budgets", {
       credentials: "include", // Send cookies/session info
@@ -44,20 +43,23 @@ function BudgetCard() {
       .finally(() => {
         setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    // Fetch budgets from the backend on component mount
+    fetchBudgets();
   }, []);
 
   // Handle adding a new budget
   const handleAddBudget = (newBudget) => {
-    // Add default values for new budgets
-    const processedBudget = {
-      ...newBudget,
-      categoryAmount: newBudget.categoryAmount || 0,
-      targetAmount: newBudget.targetAmount || 2000, // Or whatever default you prefer
-    };
-    setBudgets((prev) => [...prev, processedBudget]);
-
+    // First, close the modal
+    setIsModalOpen(false);
+    
     // Show success toast when budget is added
     toast.success(`Budget "${newBudget.categoryName}" created successfully!`);
+    
+    // Refresh the budgets from the server to get the actual amounts
+    fetchBudgets();
   };
 
   // Navigate to budget details with budget ID
