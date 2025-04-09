@@ -17,7 +17,7 @@
   min-width: 240px;
   flex-direction: column;
   flex: 1;
-  padding: 48px 24px;
+  padding: 32px 24px;
   gap: 24px;
   margin-left: 245px; /* Match the width of the sidebar */
   transition: margin-left 0.3s ease, width 0.3s ease;
@@ -43,7 +43,7 @@
   color: #101828;
   flex: 1;
   font: 600 30px/1 Montserrat, sans-serif;
-  margin: 0px;
+  margin-bottom: 0px;
 }
 
 .categoryContainer {
@@ -213,7 +213,6 @@
 
 .content3 {
   display: flex;
-  margin-top: 16px;
   width: 100%;
   flex-direction: column;
 }

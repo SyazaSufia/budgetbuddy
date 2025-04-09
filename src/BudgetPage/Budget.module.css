@@ -8,9 +8,8 @@
 .content {
   flex-direction: column;
   flex: 1;
-  padding: 48px 0;
+  padding: 32px 24px;
   display: flex;
-  gap: 24px;
   margin-left: 245px; /* Match the width of the sidebar */
   transition: margin-left 0.3s ease, width 0.3s ease;
   width: calc(100% - 245px);
@@ -35,18 +34,14 @@
 }
 
 .greeting {
+  min-width: 240px;
   color: #101828;
-  padding: 0 24px;
-  font-family: Montserrat;
-  font-size: 30px;
-  font-weight: 600;
-  margin-top: 0px;
-  margin-bottom: 0px;
+  font: 600 30px/1 Montserrat, sans-serif;
 }
 
 .budgetSection {
   flex: 1;
-  padding: 0 24px;
+  padding: 0;
 }
 
 .budgetList {
@@ -71,10 +66,6 @@
 @media (width<=640px) {
   .content {
     padding: 24px 0;
-  }
-  
-  .greeting {
-    padding: 0 16px;
   }
   
   .budgetSection {

@@ -2,7 +2,6 @@
     flex-direction: column;
     flex: 1 0 0;
     align-items: flex-start;
-    gap: 32px;
     padding: 48px 0;
     display: flex;
   }
@@ -16,7 +15,6 @@
   .feedHeader {
     justify-content: center;
     align-items: flex-start;
-    gap: 24px;
     width: 100%;
     padding: 0 24px;
     display: flex;
@@ -33,7 +31,7 @@
     color: #101828;
     flex: 1;
     font: 600 30px/1 Montserrat, sans-serif;
-    margin: 0;
+    margin-top: 8px;
   }
   
   @media (width<=640px) {

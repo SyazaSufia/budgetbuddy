@@ -20,7 +20,7 @@ function Budget({ user }) {
       <main className={`${styles.container} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
         <SidebarNav onToggleCollapse={handleSidebarToggle} />
         <section className={styles.content}>
-          <h2 className={styles.greeting}>Hello, {user ? user.name : "Guest"}!</h2>
+          <h1 className={styles.greeting}>Hello, {user ? user.name : "Guest"}!</h1>
           <div className={styles.budgetSection}>
             <div className={styles.budgetList}>
               <BudgetCard />
