@@ -1,349 +1,277 @@
+/* Dashboard layout */
 .dashboard {
-    background: #f5f5f5;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  background: #f5f5f5;
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  position: relative; /* Add position relative for child positioning */
+}
+
+/* Main content area - adjusted to work with fixed SideBar component */
+.mainContent {
+  flex: 1;
+  padding: 48px 32px;
+  min-width: 240px;
+  margin-left: 245px; /* Match the width of the sidebar */
+  transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
+}
+
+/* Create a class for when sidebar is collapsed */
+.sidebarCollapsed .mainContent {
+  margin-left: 60px; /* Match the width of collapsed sidebar */
+}
+
+/* Page header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.welcomeText {
+  color: #101828;
+  font: 600 30px Montserrat, sans-serif;
+}
+
+/* Period selector */
+.periodSelector {
+  display: flex;
+  align-items: center;
+}
+
+.periodButtons {
+  display: flex;
+  border: 1px solid #eceff2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.periodButton {
+  border: none;
+  background: #fff;
+  padding: 8px 16px;
+  color: #516778;
+  font: 14px Inter, sans-serif;
+  cursor: pointer;
+  border-right: 1px solid #eceff2;
+}
+
+.periodButton:last-child {
+  border-right: none;
+}
+
+.periodButton.active {
+  background: #eff6ff;
+  color: #155eef;
+}
+
+/* Card sections */
+.cardSection {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+/* Dashboard card styling */
+.dashboardCard {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #eceff2;
+  padding: 16px;
+  flex: 1;
+}
+
+.cardContent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cardIcon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.cardDetails {
+  flex: 1;
+}
+
+.cardTitle {
+  color: #8d8d8d;
+  font: 600 12px Montserrat, sans-serif;
+  text-transform: uppercase;
+}
+
+.cardAmount {
+  display: flex;
+  gap: 4px;
+  color: #000;
+  font: 600 27px Montserrat, sans-serif;
+}
+
+/* Action section */
+.actionSection {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.actionCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eceff2;
+  padding: 20px;
+  flex: 1;
+}
+
+.actionIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.income .actionIcon {
+  background: #dcfae6;
+}
+
+.expense .actionIcon {
+  background: #fee4e2;
+}
+
+.actionImg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.actionText {
+  flex: 1;
+}
+
+.actionTitle {
+  color: #000;
+  font: 600 14px Montserrat, sans-serif;
+  margin-bottom: 4px;
+}
+
+.actionDescription {
+  color: #8d8d8d;
+  font: 400 14px Montserrat, sans-serif;
+}
+
+/* Expense section */
+.expenseSection {
+  margin-bottom: 32px;
+}
+
+.expenseChart {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eceff2;
+  padding: 34px;
+}
+
+.expenseTitle {
+  color: #000;
+  font: 600 24px Montserrat, sans-serif;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.chartContent {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+}
+
+.chartImage {
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+}
+
+.expenseList {
+  flex: 1;
+}
+
+.expenseItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #eceff2;
+}
+
+.colorDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.expenseDetails {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  margin: 0 16px;
+}
+
+.expenseCategory {
+  color: #000;
+  font: 500 16px Montserrat, sans-serif;
+}
+
+.expensePercentage {
+  color: #8d8d8d;
+  font: 400 16px Montserrat, sans-serif;
+  display: flex;
+  gap: 2px;
+}
+
+.expenseAmount {
+  color: #8d8d8d;
+  font: 400 16px Montserrat, sans-serif;
+  display: flex;
+  gap: 2px;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 991px) {
   .content {
-    background: #f5f5f5;
-    display: flex;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .sidebar {
-    background: #151aa5;
-    display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    width: 228px;
-  }
-  
-  .sidebarContent {
-    display: flex;
-    flex-direction: column;
-    padding: 24px 8px;
-  }
-  
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-    padding: 0 4px;
-  }
-  
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 1px;
-    overflow: hidden;
-  }
-  
-  .logoImg {
-    width: 10px;
-    height: auto;
-    object-fit: contain;
-  }
-  
-  .brandName {
-    color: #fff;
-    font: 700 18px Montserrat, sans-serif;
-  }
-  
-  .brandDot {
-    color: #a5d6a7;
-  }
-  
-  .sidebarMenu {
-    display: flex;
-    flex-direction: column;
-    margin-top: 24px;
-    gap: 16px;
-  }
-  
-  .sidebarItem {
-    border: none;
-    background: transparent;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 8px;
-    color: #fff;
-    font: 500 12px Montserrat, sans-serif;
-    width: 100%;
-    cursor: pointer;
-  }
-  
-  .sidebarItem.active {
-    background: #2c33ee;
-  }
-  
-  .sidebarIcon {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-  }
-  
-  .collapseButton {
-    background: #2c33ee;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    color: #fff;
-    font: 500 15px Montserrat, sans-serif;
-    width: 100%;
-    cursor: pointer;
-  }
-  
-  .collapseIcon {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
   }
   
   .mainContent {
-    flex: 1;
-    padding: 48px 32px;
-    min-width: 240px;
+    margin-left: 0;
+    padding: 80px 24px 48px; /* Add top padding to account for mobile sidebar */
   }
   
-  .pageHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-  }
-  
-  .welcomeText {
-    color: #101828;
-    font: 600 30px Montserrat, sans-serif;
-  }
-  
-  .periodSelector {
-    display: flex;
-    align-items: center;
-  }
-  
-  .periodButtons {
-    display: flex;
-    border: 1px solid #eceff2;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .periodButton {
-    border: none;
-    background: #fff;
-    padding: 8px 16px;
-    color: #516778;
-    font: 14px Inter, sans-serif;
-    cursor: pointer;
-    border-right: 1px solid #eceff2;
-  }
-  
-  .periodButton:last-child {
-    border-right: none;
-  }
-  
-  .periodButton.active {
-    background: #eff6ff;
-    color: #155eef;
-  }
-  
-  .cardSection {
-    display: flex;
-    gap: 32px;
-    margin-bottom: 32px;
-  }
-  
-  .dashboardCard {
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid #000;
-    padding: 16px;
-    flex: 1;
-  }
-  
-  .cardContent {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  
-  .cardIcon {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-  }
-  
-  .cardDetails {
-    flex: 1;
-  }
-  
-  .cardTitle {
-    color: #8d8d8d;
-    font: 600 12px Montserrat, sans-serif;
-    text-transform: uppercase;
-  }
-  
-  .cardAmount {
-    display: flex;
-    gap: 4px;
-    color: #000;
-    font: 600 27px Montserrat, sans-serif;
-  }
-  
+  .cardSection,
   .actionSection {
-    display: flex;
-    gap: 32px;
-    margin-bottom: 32px;
-  }
-  
-  .actionCard {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #eceff2;
-    padding: 20px;
-    flex: 1;
-  }
-  
-  .actionIcon {
-    width: 46px;
-    height: 46px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .income .actionIcon {
-    background: #dcfae6;
-  }
-  
-  .expense .actionIcon {
-    background: #fee4e2;
-  }
-  
-  .actionImg {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-  }
-  
-  .actionText {
-    flex: 1;
-  }
-  
-  .actionTitle {
-    color: #000;
-    font: 600 14px Montserrat, sans-serif;
-    margin-bottom: 4px;
-  }
-  
-  .actionDescription {
-    color: #8d8d8d;
-    font: 400 14px Montserrat, sans-serif;
-  }
-  
-  .expenseChart {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #eceff2;
-    padding: 34px;
-  }
-  
-  .expenseTitle {
-    color: #000;
-    font: 600 24px Montserrat, sans-serif;
-    text-align: center;
-    margin-bottom: 16px;
+    flex-direction: column;
   }
   
   .chartContent {
-    display: flex;
-    gap: 32px;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
   }
   
   .chartImage {
-    width: 300px;
-    height: 300px;
-    object-fit: contain;
+    width: 100%;
+    max-width: 300px;
   }
-  
-  .expenseList {
-    flex: 1;
-  }
-  
-  .expenseItem {
-    display: flex;
-    align-items: center;
-    padding: 12px 8px;
-    border-bottom: 1px solid #eceff2;
-  }
-  
-  .colorDot {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-  }
-  
-  .expenseDetails {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    margin: 0 16px;
-  }
-  
-  .expenseCategory {
-    color: #000;
-    font: 500 16px Montserrat, sans-serif;
-  }
-  
-  .expensePercentage {
-    color: #8d8d8d;
-    font: 400 16px Montserrat, sans-serif;
-    display: flex;
-    gap: 2px;
-  }
-  
-  .expenseAmount {
-    color: #8d8d8d;
-    font: 400 16px Montserrat, sans-serif;
-    display: flex;
-    gap: 2px;
-  }
-  
-  @media (max-width: 991px) {
-    .content,
-    .mainContent,
-    .cardSection,
-    .actionSection,
-    .expenseChart {
-      max-width: 100%;
-    }
-    
-    .mainContent {
-      padding: 48px 20px;
-    }
-    
-    .chartContent {
-      flex-direction: column;
-    }
-    
-    .chartImage {
-      width: 100%;
-      max-width: 300px;
-    }
-  }
+}
