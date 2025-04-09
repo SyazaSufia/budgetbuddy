@@ -9,3 +9,11 @@
 * {
   box-sizing: border-box;
 }
+
+.montserrat-toast {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.montserrat-toast .Toastify__toast-body {
+  font-family: 'Montserrat', sans-serif !important;
+}

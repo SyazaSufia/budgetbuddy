@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAuth } from "./AuthContext";  // Just import useAuth, not AuthProvider
+import { useAuth } from "./AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 import Header from './HomePage/Header';
 import Hero from './HomePage/Hero';
@@ -102,5 +102,12 @@ const App = () => {
     </div>
   );
 };
+
+<ToastContainer 
+  position="top-right" 
+  autoClose={3000} 
+  hideProgressBar 
+  toastClassName="montserrat-toast"
+/>
 
 export default App;
