@@ -51,7 +51,7 @@
   
   .authBox {
     border-radius: 20px;
-    background-color: var(--backgroundColor);
+    background-color: #fff;
     display: flex;
     min-width: 240px;
     width: 517px;
