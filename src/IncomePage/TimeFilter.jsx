@@ -2,13 +2,13 @@ import React from 'react';
 import styles from './Income.module.css';
 
 const timeFilters = [
-  { id: 'thisMonth', label: 'This month', active: true },
+  { id: 'thisMonth', label: 'This month' },
   { id: 'lastMonth', label: 'Last month' },
   { id: 'thisYear', label: 'This year' },
   { id: 'last12Months', label: 'Last 12 months' }
 ];
 
-export default function TimeFilter() {
+export default function TimeFilter({ activeFilter, onFilterChange }) {
   return (
     <div className={styles.buttons}>
       <div className={styles.buttonGroup} role="tablist">
@@ -16,8 +16,9 @@ export default function TimeFilter() {
           <button
             key={filter.id}
             role="tab"
-            aria-selected={filter.active}
-            className={`${styles[filter.id]} ${filter.active ? styles.active : ''}`}
+            aria-selected={filter.id === activeFilter}
+            className={`${styles.filterButton} ${filter.id === activeFilter ? styles.active : ''}`}
+            onClick={() => onFilterChange(filter.id)}
           >
             {filter.label}
           </button>
