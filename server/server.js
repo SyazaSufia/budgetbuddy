@@ -100,6 +100,10 @@ app.post('/sign-up', (req, res) => {
     return res.status(400).json({ success: false, message: 'All fields are required.' });
   }
 
+  // Parse and standardize the date format
+  const parsedDate = new Date(userDOB);
+  const formattedDate = parsedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
   const checkEmailSql = 'SELECT * FROM user WHERE userEmail = ?';
   db.query(checkEmailSql, [userEmail], (err, data) => {
     if (err) {
@@ -117,7 +121,7 @@ app.post('/sign-up', (req, res) => {
       }
 
       const insertUserSql = 'INSERT INTO user (userName, userEmail, userPassword, userDOB) VALUES (?, ?, ?, ?)';
-      db.query(insertUserSql, [userName, userEmail, hash, userDOB], (err, result) => {
+      db.query(insertUserSql, [userName, userEmail, hash, formattedDate], (err, result) => {
         if (err) {
           console.error('Error inserting user into database:', err);
           return res.status(500).json({ success: false, message: 'Error saving user to database.' });
