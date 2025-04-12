@@ -134,20 +134,6 @@ const getDashboardSummary = (req, res) => {
                 totalExpenseAmount += parseFloat(category.amount);
               });
 
-              // Add default colors to categories
-              const categoryColors = {
-                1: "#FF6B6B", // Red
-                2: "#4ECDC4", // Teal
-                3: "#FFD166", // Yellow
-                4: "#6A0572", // Purple
-                5: "#1A535C", // Dark Teal
-                6: "#F25F5C", // Coral
-                7: "#247BA0", // Blue
-                8: "#70C1B3", // Mint
-                9: "#B2DBBF", // Sage
-                10: "#F3FFBD", // Light Yellow
-              };
-
               const expenseCategoriesWithPercentage = expensesByCategory.map(
                 (category) => {
                   const percentage =
