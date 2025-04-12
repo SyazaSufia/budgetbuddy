@@ -5,11 +5,13 @@ import { AddModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";
 import { DeleteExpenseModal } from "./DeleteExpenseModal";
 import { AddExpenseModal } from "./AddExpenseModal";
+import TimeFilter from "./TimeFilter"; // Import TimeFilter component
 import { toast } from "react-toastify";
 
 export default function Expense({ user }) {
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState({});
+  const [filteredExpenses, setFilteredExpenses] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
@@ -18,10 +20,16 @@ export default function Expense({ user }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('thisMonth'); // Default filter
 
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
+  };
+
+  // Handle filter change
+  const handleFilterChange = (filterId) => {
+    setActiveFilter(filterId);
   };
 
   // Fetch categories from the backend
@@ -137,14 +145,62 @@ export default function Expense({ user }) {
     fetchCategories(); // Fetch categories on component mount
   }, []);
 
-  // Calculate total expense across all categories
-  const totalExpense = Object.values(expenses)
+  // Apply time filter whenever activeFilter or expenses change
+  useEffect(() => {
+    if (Object.keys(expenses).length === 0) return;
+    
+    const currentDate = new Date();
+    const filtered = {};
+    
+    // Process each category's expenses
+    Object.keys(expenses).forEach(categoryId => {
+      filtered[categoryId] = expenses[categoryId].filter(expense => {
+        if (!expense.date || expense.date === "N/A") return false;
+        
+        const expenseDate = new Date(expense.date);
+        
+        switch (activeFilter) {
+          case 'thisMonth': {
+            // Current month
+            return expenseDate.getMonth() === currentDate.getMonth() && 
+                   expenseDate.getFullYear() === currentDate.getFullYear();
+          }
+          case 'lastMonth': {
+            // Last month
+            const lastMonth = currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
+            const lastMonthYear = currentDate.getMonth() === 0 ? 
+                                 currentDate.getFullYear() - 1 : 
+                                 currentDate.getFullYear();
+            return expenseDate.getMonth() === lastMonth && 
+                   expenseDate.getFullYear() === lastMonthYear;
+          }
+          case 'thisYear': {
+            // Current year
+            return expenseDate.getFullYear() === currentDate.getFullYear();
+          }
+          case 'last12Months': {
+            // Last 12 months
+            const twelveMonthsAgo = new Date();
+            twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
+            return expenseDate >= twelveMonthsAgo;
+          }
+          default:
+            return true;
+        }
+      });
+    });
+    
+    setFilteredExpenses(filtered);
+  }, [activeFilter, expenses]);
+
+  // Calculate total expense across all filtered categories
+  const totalExpense = Object.values(filteredExpenses)
     .flat()
     .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
 
-  // Calculate total for each category
+  // Calculate total for each category based on filtered expenses
   const getCategoryTotal = (categoryId) => {
-    return (expenses[categoryId] || []).reduce(
+    return (filteredExpenses[categoryId] || []).reduce(
       (sum, expense) => sum + parseFloat(expense.amount || 0),
       0
     );
@@ -178,6 +234,12 @@ export default function Expense({ user }) {
         );
 
         setExpenses((prevExpenses) => {
+          const updatedExpenses = { ...prevExpenses };
+          delete updatedExpenses[selectedCategoryId];
+          return updatedExpenses;
+        });
+
+        setFilteredExpenses((prevExpenses) => {
           const updatedExpenses = { ...prevExpenses };
           delete updatedExpenses[selectedCategoryId];
           return updatedExpenses;
@@ -262,6 +324,17 @@ export default function Expense({ user }) {
           return updated;
         });
         
+        // Also update filtered expenses
+        setFilteredExpenses((prevExpenses) => {
+          const updated = {};
+          Object.keys(prevExpenses).forEach((categoryId) => {
+            updated[categoryId] = prevExpenses[categoryId].filter(
+              (expense) => expense.expenseID !== selectedExpenseId
+            );
+          });
+          return updated;
+        });
+        
         // Re-fetch categories to update the categoryAmount
         await fetchCategories();
         
@@ -285,9 +358,8 @@ export default function Expense({ user }) {
   };
 
   const handleAddExpenseClick = (categoryId) => {
-    console.log("Category selected:", categoryId); // Debugging
     setSelectedCategoryId(categoryId); // Set category to add expense for
-    setIsAddModalOpen(true);
+    setIsAddExpenseModalOpen(true);
   };
 
   return (
@@ -300,6 +372,10 @@ export default function Expense({ user }) {
               <h1 className={styles.pageHeader}>
                 Hello, {user ? user.name : "Guest"}!
               </h1>
+              <div className={styles.filterContainer}>
+                {/* Add TimeFilter component at the top right */}
+                <TimeFilter activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+              </div>
             </header>
 
             {/* Total Expense Section */}
@@ -379,45 +455,50 @@ export default function Expense({ user }) {
 
                   {expandedCategories[category.categoryID] && (
                     <div className={styles.expenseList}>
-                      {(expenses[category.categoryID] || []).map((expense) => (
-                        <article
-                          key={expense.expenseID}
-                          className={styles.expenseItem}
-                        >
-                          <div className={styles.expenseDetails}>
-                            {/* Title on the left */}
-                            <div className={styles.titleSection}>
-                              <span className={styles.expenseTitle}>
-                                {expense.title}
-                              </span>
-                            </div>
-                            {/* Amount, Date, and Action Buttons on the right */}
-                            <div className={styles.rightSection}>
-                              <span className={styles.expenseAmount}>
-                                RM {expense.amount}
-                              </span>
-                              <span className={styles.expenseDate}>
-                                {expense.date}
-                              </span>
-                              <div className={styles.actionButtons}>
-                                <button className={styles.iconButton}>
-                                  <img src="/edit-icon.svg" alt="Edit" />
-                                </button>
-                                <button
-                                  className={styles.iconButton}
-                                  onClick={() =>
-                                    handleDeleteExpenseClick(expense.expenseID)
-                                  }
-                                >
-                                  <img src="/delete-icon.svg" alt="Delete" />
-                                </button>
+                      {(filteredExpenses[category.categoryID] || []).length > 0 ? (
+                        (filteredExpenses[category.categoryID] || []).map((expense) => (
+                          <article
+                            key={expense.expenseID}
+                            className={styles.expenseItem}
+                          >
+                            <div className={styles.expenseDetails}>
+                              {/* Title on the left */}
+                              <div className={styles.titleSection}>
+                                <span className={styles.expenseTitle}>
+                                  {expense.title}
+                                </span>
+                              </div>
+                              {/* Amount, Date, and Action Buttons on the right */}
+                              <div className={styles.rightSection}>
+                                <span className={styles.expenseAmount}>
+                                  RM {expense.amount}
+                                </span>
+                                <span className={styles.expenseDate}>
+                                  {expense.date}
+                                </span>
+                                <div className={styles.actionButtons}>
+                                  <button className={styles.iconButton}>
+                                    <img src="/edit-icon.svg" alt="Edit" />
+                                  </button>
+                                  <button
+                                    className={styles.iconButton}
+                                    onClick={() =>
+                                      handleDeleteExpenseClick(expense.expenseID)
+                                    }
+                                  >
+                                    <img src="/delete-icon.svg" alt="Delete" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </article>
-                      ))}
-                      {(expenses[category.categoryID] || []).length === 0 && (
-                        <p className={styles.noExpenses}>No expenses yet</p>
+                          </article>
+                        ))
+                      ) : (
+                        <p className={styles.noExpenses}>
+                          No expenses for this {activeFilter === 'thisMonth' ? 'month' : 
+                            activeFilter === 'lastMonth' ? 'last month' :
+                            activeFilter === 'thisYear' ? 'year' : 'period'}
+                        </p>
                       )}
                     </div>
                   )}
