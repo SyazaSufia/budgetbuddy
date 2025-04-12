@@ -135,13 +135,13 @@ export const Dashboard = ({ user }) => {
     {
       icon: '/add-income-icon.svg',
       title: 'Add income',
-      description: 'Create an income manually',
+      description: 'Add an income manually',
       variant: 'income'
     },
     {
       icon: '/add-expense-icon.svg',
       title: 'Add expenses',
-      description: 'Create an expense manually',
+      description: 'Add an expense manually',
       variant: 'expense'
     }
   ];

@@ -241,7 +241,7 @@
   background: #fff;
   border-radius: 12px;
   border: 1px solid #eceff2;
-  padding: 34px;
+  padding: 28px;
 }
 
 .expenseTitle {
@@ -249,6 +249,7 @@
   font: 600 24px Montserrat, sans-serif;
   text-align: center;
   margin-bottom: 16px;
+  margin-top: 0px;
 }
 
 .chartContent {
