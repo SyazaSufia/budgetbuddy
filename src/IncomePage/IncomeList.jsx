@@ -22,11 +22,23 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
       const incomes = await response.json();
 
       if (response.ok) {
-        // Format date to 'YYYY-MM-DD' and update income items
-        const formattedIncomes = incomes.map((item) => ({
-          ...item,
-          date: item.date.split("T")[0], // Remove timestamp
-        }));
+        // Format dates properly to avoid timezone issues
+        const formattedIncomes = incomes.map((item) => {
+          // Parse the date into year, month, day components
+          const dateParts = item.date.split('T')[0].split('-');
+          const year = parseInt(dateParts[0]);
+          const month = parseInt(dateParts[1]) - 1; // JS months are 0-indexed
+          const day = parseInt(dateParts[2]);
+          
+          // Create a date object that preserves the exact date regardless of timezone
+          const fixedDate = new Date(year, month, day);
+          
+          return {
+            ...item,
+            date: item.date.split('T')[0], // Keep formatted date string for display
+            dateObj: fixedDate // Add proper date object for filtering
+          };
+        });
         setIncomeItems(formattedIncomes); // Populate the income list
       } else {
         console.error("Failed to fetch incomes:", incomes.error);
@@ -46,7 +58,8 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
     
     const currentDate = new Date();
     const filteredItems = incomeItems.filter(item => {
-      const itemDate = new Date(item.date);
+      // Use the dateObj property which has the correct date
+      const itemDate = item.dateObj;
       
       switch (activeFilter) {
         case 'thisMonth': {
