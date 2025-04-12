@@ -126,6 +126,7 @@
   margin-bottom: 32px;
 }
 
+/* Action card section */
 .actionCard {
   display: flex;
   align-items: center;
@@ -135,6 +136,60 @@
   border: 1px solid #eceff2;
   padding: 20px;
   flex: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scale up effect on hover */
+.actionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Different glow effects based on card variant */
+.income:hover {
+  border-color: rgba(23, 178, 106, 0.3);
+  box-shadow: 0 5px 5px rgba(23, 178, 106, 0.1);
+}
+
+.expense:hover {
+  border-color: rgba(240, 68, 56, 0.3);
+  box-shadow: 0 5px 5px rgba(240, 68, 56, 0.1);
+}
+
+/* Action icon animation */
+.actionIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.actionCard:hover .actionIcon {
+  transform: scale(1.1);
+}
+
+/* Subtle background interaction */
+.actionCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.actionCard:hover::after {
+  opacity: 0.5;
 }
 
 .actionIcon {

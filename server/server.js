@@ -15,6 +15,7 @@ const incomeRoutes = require("./routes/incomeRoutes"); // Import income routes
 const expenseRoutes = require('./routes/expenseRoutes'); // Import expense routes
 const budgetRoutes = require('./routes/budgetRoutes'); // Import budget routes
 const adminRoutes = require("./routes/adminRoutes"); // Import admin routes
+const dashboardRoutes = require("./routes/dashboardRoutes"); // Import dashboard routes
 
 // Serve frontend static files
 //app.use(express.static(path.join(__dirname, '../dist')));
@@ -88,6 +89,8 @@ app.use('/expense', expenseRoutes);
 app.use('/budget', budgetRoutes);
 // Admin routes
 app.use('/admin', adminRoutes);
+// Dashboard routes
+app.use('/dashboard', dashboardRoutes);
 
 // Sign-up endpoint
 app.post('/sign-up', (req, res) => {

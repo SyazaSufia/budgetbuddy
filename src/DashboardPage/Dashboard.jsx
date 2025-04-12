@@ -1,96 +1,230 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { ActionCard } from './ActionCard';
 import { ExpenseCategory } from './ExpenseCategory';
 import { SideBar } from './SideBar';
+import ExpensePieChart from './ExpensePieChart'; // Your pie chart component
 import styles from './Dashboard.module.css';
 
-const dashboardCards = [
-  { icon: '/balance-icon.svg', title: 'Balance', amount: '350.00' },
-  { icon: '/income-icon.svg', title: 'Income', amount: '1,000.00' },
-  { icon: '/expense-icon.svg', title: 'Expense', amount: '650.00' }
-];
-
-const actionCards = [
-  {
-    icon: '/add-income-icon.svg',
-    title: 'Add income',
-    description: 'Create an income manually',
-    variant: 'income'
-  },
-  {
-    icon: '/add-expense-icon.svg',
-    title: 'Add expenses',
-    description: 'Create an expense manually',
-    variant: 'expense'
-  }
-];
-
-const expenseCategories = [
-  { color: '#9E77ED', category: 'Food', percentage: '41.35', amount: '236.00' },
-  { color: '#F04438', category: 'Shopping', percentage: '21.51', amount: '236.00' },
-  { color: '#0BA5EC', category: 'Transportation', percentage: '13.47', amount: '236.00' },
-  { color: '#17B26A', category: 'School', percentage: '3.35', amount: '236.00' },
-  { color: '#4E5BA6', category: 'Entertainment', percentage: '9.97', amount: '236.00' }
-];
-
-export const Dashboard = () => {
+export const Dashboard = ({ user }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    balance: '0.00',
+    income: '0.00',
+    expense: '0.00',
+    expensesByCategory: [],
+    period: 'month'
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activePeriod, setActivePeriod] = useState('month');
+
+  const periods = [
+    { id: 'month', label: 'This month' },
+    { id: 'lastMonth', label: 'Last month' },
+    { id: 'year', label: 'This year' },
+    { id: 'last12Months', label: 'Last 12 months' }
+  ];
+
+  // Define a color map based on category names
+  const categoryColorMap = {
+    "Housing": "#FF6B6B",
+    "Food & Groceries": "#4ECDC4",
+    "Shopping": "#FFD166",
+    "Transportation": "#6A0572",
+    "Entertainment": "#1A535C",
+    "Healthcare": "#F25F5C",
+    "Education": "#247BA0", 
+    "Utilities": "#70C1B3",
+    "Travel": "#B2DBBF",
+    "Other": "#F3FFBD"
+  };
+
+  // Default colors for categories that don't match the map
+  const defaultColors = [
+    "#FF6B6B", "#4ECDC4", "#FFD166", "#6A0572", 
+    "#1A535C", "#F25F5C", "#247BA0", "#70C1B3", 
+    "#B2DBBF", "#F3FFBD"
+  ];
 
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
   };
 
+  // Fetch dashboard data using fetch API
+  const fetchDashboardData = async (period) => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(`http://localhost:8080/dashboard/summary?period=${period}`, {
+        credentials: 'include', // Send session cookies
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Assign colors to categories since the backend isn't doing it
+        if (data.data && data.data.expensesByCategory) {
+          
+          // Add colors to categories
+          data.data.expensesByCategory = data.data.expensesByCategory.map((category, index) => {
+            // Try to match by category name first
+            let color = categoryColorMap[category.category];
+            
+            // If no match, use a color from the default array
+            if (!color) {
+              color = defaultColors[index % defaultColors.length];
+            }
+            
+            return {
+              ...category,
+              color: color
+            };
+          });
+        }
+        
+        setDashboardData(data.data);
+        setActivePeriod(period);
+      } else {
+        setError(data.error || 'Failed to load dashboard data');
+        console.error("Failed to fetch dashboard data:", data.error);
+      }
+    } catch (err) {
+      setError(`Error connecting to server: ${err.message}`);
+      console.error('Dashboard data fetch error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchDashboardData(activePeriod);
+  }, []);
+
+  // Debug: log when dashboard data changes
+  useEffect(() => {
+  }, [dashboardData]);
+
+  // Dashboard card data
+  const dashboardCards = [
+    { 
+      icon: '/balance-icon.svg', 
+      title: 'Balance', 
+      amount: dashboardData.balance
+    },
+    { 
+      icon: '/income-icon.svg', 
+      title: 'Total Income', 
+      amount: dashboardData.income
+    },
+    { 
+      icon: '/expense-icon.svg', 
+      title: 'Total Expense', 
+      amount: dashboardData.expense
+    }
+  ];
+
+  // Action card data
+  const actionCards = [
+    {
+      icon: '/add-income-icon.svg',
+      title: 'Add income',
+      description: 'Create an income manually',
+      variant: 'income'
+    },
+    {
+      icon: '/add-expense-icon.svg',
+      title: 'Add expenses',
+      description: 'Create an expense manually',
+      variant: 'expense'
+    }
+  ];
+
+  // Handle period change
+  const handlePeriodChange = (period) => {
+    fetchDashboardData(period);
+  };
+
   return (
     <div className={styles.dashboard}>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
       <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
         {/* Pass the toggle handler to the SideBar */}
         <SideBar onToggleCollapse={handleSidebarToggle} />
 
         <main className={styles.mainContent}>
           <header className={styles.pageHeader}>
-            <h2 className={styles.welcomeText}>Hello, Syaza!</h2>
+            <h2 className={styles.welcomeText}>Hello, {user ? user.name : "Guest"}!</h2>
             <div className={styles.periodSelector}>
               <div className={styles.periodButtons}>
-                <button className={`${styles.periodButton} ${styles.active}`}>This month</button>
-                <button className={styles.periodButton}>Last month</button>
-                <button className={styles.periodButton}>This year</button>
-                <button className={styles.periodButton}>Last 12 months</button>
+                {periods.map(period => (
+                  <button 
+                    key={period.id}
+                    className={`${styles.periodButton} ${activePeriod === period.id ? styles.active : ''}`}
+                    onClick={() => handlePeriodChange(period.id)}
+                  >
+                    {period.label}
+                  </button>
+                ))}
               </div>
             </div>
           </header>
 
-          <section className={styles.cardSection}>
-            {dashboardCards.map((card, index) => (
-              <DashboardCard key={index} {...card} />
-            ))}
-          </section>
+          {isLoading ? (
+            <div className={styles.loadingIndicator}>Loading dashboard data...</div>
+          ) : error ? (
+            <div className={styles.errorMessage}>{error}</div>
+          ) : (
+            <>
+              <section className={styles.cardSection}>
+                {dashboardCards.map((card, index) => (
+                  <DashboardCard key={index} {...card} />
+                ))}
+              </section>
 
-          <section className={styles.actionSection}>
-            {actionCards.map((card, index) => (
-              <ActionCard key={index} {...card} />
-            ))}
-          </section>
+              <section className={styles.actionSection}>
+                {actionCards.map((card, index) => (
+                  <ActionCard key={index} {...card} />
+                ))}
+              </section>
 
-          <section className={styles.expenseSection}>
-            <div className={styles.expenseChart}>
-              <h3 className={styles.expenseTitle}>Expenses by category</h3>
-              <div className={styles.chartContent}>
-                <img
-                  loading="lazy"
-                  src="/expense-pie-chart.svg"
-                  alt="Expense distribution pie chart"
-                  className={styles.chartImage}
-                />
-                <div className={styles.expenseList}>
-                  {expenseCategories.map((category, index) => (
-                    <ExpenseCategory key={index} {...category} />
-                  ))}
+              <section className={styles.expenseSection}>
+                <div className={styles.expenseChart}>
+                  <h3 className={styles.expenseTitle}>Expenses by category</h3>
+                  <div className={styles.chartContent}>
+                    {/* Pie chart with validated colors */}
+                    <div className={styles.chartImage}>
+                      <ExpensePieChart categories={dashboardData.expensesByCategory || []} />
+                    </div>
+                    <div className={styles.expenseList}>
+                      {dashboardData.expensesByCategory && dashboardData.expensesByCategory.length > 0 ? (
+                        dashboardData.expensesByCategory.map((category, index) => (
+                          <ExpenseCategory 
+                            key={index} 
+                            color={category.color} // We've ensured this is set in fetchDashboardData
+                            category={category.category}
+                            percentage={category.percentage}
+                            amount={category.amount}
+                          />
+                        ))
+                      ) : (
+                        <p>No expense data for this period</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </section>
+              </section>
+            </>
+          )}
         </main>
       </div>
     </div>
