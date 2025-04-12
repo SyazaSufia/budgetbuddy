@@ -141,12 +141,8 @@ const getDashboardSummary = (req, res) => {
                       ? ((category.amount / totalExpenseAmount) * 100).toFixed(2)
                       : "0.00";
 
-                  // Assign default color based on categoryID or use a fallback
-                  const color = categoryColors[category.categoryID] || "#CCCCCC";
-
                   return {
                     ...category,
-                    color,
                     percentage,
                   };
                 }
