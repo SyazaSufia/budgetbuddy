@@ -1,7 +1,7 @@
 .expenseLayout {
   display: flex;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .content {
