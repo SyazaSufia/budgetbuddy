@@ -54,10 +54,10 @@ function BudgetCard() {
   const handleAddBudget = (newBudget) => {
     // First, close the modal
     setIsModalOpen(false);
-    
+
     // Show success toast when budget is added
     toast.success(`Budget "${newBudget.categoryName}" created successfully!`);
-    
+
     // Refresh the budgets from the server to get the actual amounts
     fetchBudgets();
   };
@@ -70,7 +70,7 @@ function BudgetCard() {
   // Calculate progress color based on percentage - updated to match BudgetDetails logic
   const getProgressColor = (current, target) => {
     const percentage = (current / target) * 100;
-    
+
     if (percentage <= 50) return styles.progressGreen;
     if (percentage <= 80) return styles.progressYellow;
     return styles.progressRed;
@@ -89,7 +89,12 @@ function BudgetCard() {
       {/* Render each budget as a card */}
       {budgets.length === 0 ? (
         <div className={styles.noBudgets}>
-          No budgets found. Create your first budget!
+          <img
+            src="/empty-illustration.svg"
+            alt="No budgets"
+            className={styles.emptyIllustration}
+          />
+          <p>No budgets found. Create your first budget!</p>
         </div>
       ) : (
         budgets.map((budget) => (

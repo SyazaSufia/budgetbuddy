@@ -285,11 +285,30 @@
   min-width: 60px;
 }
 
-.noExpenses {
+/* Empty state styles */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.emptyIllustration {
+  width: 200px;
+  max-width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.noExpenses,
+.noCategories {
   text-align: center;
-  color: #757575;
-  font-style: italic;
-  padding: 10px;
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
 }
 
 .filterContainer {
@@ -351,57 +370,4 @@
 .filterButton.active {
   background-color: #4a6cfa;
   color: white;
-}
-
-/* No expenses message styling */
-.noExpenses {
-  text-align: center;
-  color: #666;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  width: 100%;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .headerSection {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .filterContainer {
-    margin-left: 0;
-    width: 100%;
-  }
-  
-  .buttons {
-    justify-content: flex-start;
-    width: 100%;
-  }
-  
-  .buttonGroup {
-    width: 100%;
-    overflow-x: auto;
-  }
-}
-
-@media (max-width: 991px) {
-  .main {
-    margin-left: 0;
-    width: 100%;
-    padding: 24px 16px;
-  }
-  
-  .sidebarCollapsed .main {
-    margin-left: 60px;
-    width: calc(100% - 60px);
-  }
-  
-  .categoryWrapper,
-  .expenseCategory,
-  .categoryContent {
-    max-width: 100%;
-  }
 }

@@ -334,14 +334,31 @@
   color: white;
 }
 
+/* Empty state container */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+/* Empty state illustration */
+.emptyIllustration {
+  width: 200px;
+  max-width: 100%;
+  margin-bottom: 1.5rem;
+}
+
 /* No income message styling */
 .noIncome {
   text-align: center;
   color: #666;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  width: 100%;
+  font-size: 1rem;
+  margin: 0;
 }
   
 @media (max-width: 991px) {

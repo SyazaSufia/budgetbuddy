@@ -235,9 +235,16 @@ export default function IncomeList({
             </article>
           ))
         ) : (
-          <p className={styles.noIncome}>
-            No income entries found for this period.
-          </p>
+          <div className={styles.emptyState}>
+            <img 
+              src="/empty-illustration.svg" 
+              alt="No income" 
+              className={styles.emptyIllustration} 
+            />
+            <p className={styles.noIncome}>
+              No income entries found for this period.
+            </p>
+          </div>
         )}
       </div>
 

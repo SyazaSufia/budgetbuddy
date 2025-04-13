@@ -443,112 +443,132 @@ export default function Expense({ user }) {
 
             {/* Expense Categories */}
             <section className={styles.expenseListContainer}>
-              {categories.map((category) => (
-                <div
-                  key={category.categoryID}
-                  className={styles.categoryContainer}
-                >
-                  <div className={styles.categoryHeader}>
-                    <div className={styles.categoryInfo}>
-                      <div className={styles.categoryTitleWithIcon}>
-                        <img
-                          src={category.icon}
-                          alt={`${category.categoryName} icon`}
-                          className={styles.categoryIcon}
-                        />
-                        <h3 className={styles.categoryTitle}>
-                          {category.categoryName}
-                        </h3>
+              {categories.length > 0 ? (
+                categories.map((category) => (
+                  <div
+                    key={category.categoryID}
+                    className={styles.categoryContainer}
+                  >
+                    <div className={styles.categoryHeader}>
+                      <div className={styles.categoryInfo}>
+                        <div className={styles.categoryTitleWithIcon}>
+                          <img
+                            src={category.icon}
+                            alt={`${category.categoryName} icon`}
+                            className={styles.categoryIcon}
+                          />
+                          <h3 className={styles.categoryTitle}>
+                            {category.categoryName}
+                          </h3>
+                        </div>
+                        <span className={styles.categoryTotal}>
+                          RM {getCategoryTotal(category.categoryID).toFixed(2)}
+                        </span>
+                        <button
+                          className={styles.expandButton}
+                          onClick={() => toggleCategory(category.categoryID)}
+                        >
+                          <img
+                            src="/chevron-right.svg"
+                            alt="Expand"
+                            className={`${styles.chevronIcon} ${expandedCategories[category.categoryID] ? styles.expanded : ""}`}
+                          />
+                        </button>
                       </div>
-                      <span className={styles.categoryTotal}>
-                        RM {getCategoryTotal(category.categoryID).toFixed(2)}
-                      </span>
-                      <button
-                        className={styles.expandButton}
-                        onClick={() => toggleCategory(category.categoryID)}
-                      >
-                        <img
-                          src="/chevron-right.svg"
-                          alt="Expand"
-                          className={`${styles.chevronIcon} ${expandedCategories[category.categoryID] ? styles.expanded : ""}`}
-                        />
-                      </button>
+                      <div className={styles.actionButtons}>
+                        <button
+                          className={styles.iconButton}
+                          onClick={() => {
+                            setSelectedCategoryId(category.categoryID);
+                            setIsAddExpenseModalOpen(true);
+                          }}
+                        >
+                          <img src="/add-icon.svg" alt="Add" />
+                        </button>
+                        <button
+                          className={styles.iconButton}
+                          onClick={() =>
+                            handleDeleteCategoryClick(category.categoryID)
+                          }
+                        >
+                          <img src="/delete-icon.svg" alt="Delete" />
+                        </button>
+                      </div>
                     </div>
-                    <div className={styles.actionButtons}>
-                      <button
-                        className={styles.iconButton}
-                        onClick={() => {
-                          setSelectedCategoryId(category.categoryID);
-                          setIsAddExpenseModalOpen(true);
-                        }}
-                      >
-                        <img src="/add-icon.svg" alt="Add" />
-                      </button>
-                      <button
-                        className={styles.iconButton}
-                        onClick={() =>
-                          handleDeleteCategoryClick(category.categoryID)
-                        }
-                      >
-                        <img src="/delete-icon.svg" alt="Delete" />
-                      </button>
-                    </div>
-                  </div>
 
-                  {expandedCategories[category.categoryID] && (
-                    <div className={styles.expenseList}>
-                      {(filteredExpenses[category.categoryID] || []).length > 0 ? (
-                        (filteredExpenses[category.categoryID] || []).map((expense) => (
-                          <article
-                            key={expense.expenseID}
-                            className={styles.expenseItem}
-                          >
-                            <div className={styles.expenseDetails}>
-                              {/* Title on the left */}
-                              <div className={styles.titleSection}>
-                                <span className={styles.expenseTitle}>
-                                  {expense.title}
-                                </span>
-                              </div>
-                              {/* Amount, Date, and Action Buttons on the right */}
-                              <div className={styles.rightSection}>
-                                <span className={styles.expenseAmount}>
-                                  RM {expense.amount}
-                                </span>
-                                <span className={styles.expenseDate}>
-                                  {expense.date}
-                                </span>
-                                <div className={styles.actionButtons}>
-                                  <button 
-                                    className={styles.iconButton}
-                                    onClick={() => handleEditExpenseClick(expense)}
-                                  >
-                                    <img src="/edit-icon.svg" alt="Edit" />
-                                  </button>
-                                  <button
-                                    className={styles.iconButton}
-                                    onClick={() =>
-                                      handleDeleteExpenseClick(expense.expenseID)
-                                    }
-                                  >
-                                    <img src="/delete-icon.svg" alt="Delete" />
-                                  </button>
+                    {expandedCategories[category.categoryID] && (
+                      <div className={styles.expenseList}>
+                        {(filteredExpenses[category.categoryID] || []).length > 0 ? (
+                          (filteredExpenses[category.categoryID] || []).map((expense) => (
+                            <article
+                              key={expense.expenseID}
+                              className={styles.expenseItem}
+                            >
+                              <div className={styles.expenseDetails}>
+                                {/* Title on the left */}
+                                <div className={styles.titleSection}>
+                                  <span className={styles.expenseTitle}>
+                                    {expense.title}
+                                  </span>
+                                </div>
+                                {/* Amount, Date, and Action Buttons on the right */}
+                                <div className={styles.rightSection}>
+                                  <span className={styles.expenseAmount}>
+                                    RM {expense.amount}
+                                  </span>
+                                  <span className={styles.expenseDate}>
+                                    {expense.date}
+                                  </span>
+                                  <div className={styles.actionButtons}>
+                                    <button 
+                                      className={styles.iconButton}
+                                      onClick={() => handleEditExpenseClick(expense)}
+                                    >
+                                      <img src="/edit-icon.svg" alt="Edit" />
+                                    </button>
+                                    <button
+                                      className={styles.iconButton}
+                                      onClick={() =>
+                                        handleDeleteExpenseClick(expense.expenseID)
+                                      }
+                                    >
+                                      <img src="/delete-icon.svg" alt="Delete" />
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </article>
-                        ))
-                      ) : (
-                        <p className={styles.noExpenses}>
-                          No expenses for this {activeFilter === 'thisMonth' ? 'month' : 
-                            activeFilter === 'lastMonth' ? 'last month' :
-                            activeFilter === 'thisYear' ? 'year' : 'period'}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                            </article>
+                          ))
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <img 
+                              src="/empty-illustration.svg" 
+                              alt="No expenses" 
+                              className={styles.emptyIllustration} 
+                            />
+                            <p className={styles.noExpenses}>
+                              No expenses for this {activeFilter === 'thisMonth' ? 'month' : 
+                                activeFilter === 'lastMonth' ? 'last month' :
+                                activeFilter === 'thisYear' ? 'year' : 'period'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyState}>
+                  <img 
+                    src="/empty-illustration.svg" 
+                    alt="No categories" 
+                    className={styles.emptyIllustration} 
+                  />
+                  <p className={styles.noCategories}>
+                    No expense categories found. Create a category to get started.
+                  </p>
                 </div>
-              ))}
+              )}
 
               {/* Add Category Button */}
               <div className={styles.addCategoryContainer}>
