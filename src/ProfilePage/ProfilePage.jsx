@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import SideBar from "./SideBar";
 import InfoSection from "./InfoSection";
 import FormField from "./FormField";
+import AvatarSelectionModal from "./AvatarSelectionModal";
 import styles from "./ProfilePage.module.css";
 
 const ProfilePage = () => {
@@ -17,14 +18,21 @@ const ProfilePage = () => {
     profileImage: "",
   });
 
-  const [selectedImage, setSelectedImage] = useState(null);
   const [isFormComplete, setIsFormComplete] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [errors, setErrors] = useState({
     age: "",
     email: "",
     phoneNumber: "",
   });
+
+  // Get avatar name from path
+  const getAvatarName = (path) => {
+    if (!path) return "";
+    const filename = path.split('/').pop();
+    return filename.split('.')[0];
+  };
 
   const calculateAge = (dob) => {
     if (!dob) return "";
@@ -63,14 +71,9 @@ const ProfilePage = () => {
         // Calculate age based on the DOB
         const age = calculateAge(dob);
 
-        // Rest of your profile image logic
-        let profileImageUrl = "";
-        if (userData.id) {
-          profileImageUrl = `http://localhost:8080/profile-image/${userData.id}?t=${new Date().getTime()}`;
-        } else {
-          profileImageUrl = "/default-icon.svg";
-        }
-
+        // Set default avatar if none is set
+        let profileImage = userData.profileImage || "/avatars/Default.svg";
+        
         // Set form data with all user details
         setFormData({
           id: userData.id,
@@ -79,7 +82,7 @@ const ProfilePage = () => {
           dob, // Now just the YYYY-MM-DD part
           email: userData.email || "",
           phoneNumber: userData.phoneNumber || "",
-          profileImage: profileImageUrl,
+          profileImage: profileImage,
         });
       } else {
         console.error("No user data found");
@@ -153,13 +156,9 @@ const ProfilePage = () => {
     setIsFormComplete(isComplete && !hasErrors);
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedImage(file);
-      const imageUrl = URL.createObjectURL(file);
-      handleInputChange("profileImage", imageUrl);
-    }
+  // Handle avatar selection
+  const handleAvatarSelect = (avatarPath) => {
+    handleInputChange("profileImage", avatarPath);
   };
 
   // Handle sidebar collapse state changes
@@ -174,33 +173,7 @@ const ProfilePage = () => {
       // Create a copy of form data for submission
       const formDataToSubmit = { ...formData };
 
-      // Rest of your image upload code
-      if (selectedImage) {
-        const imageData = new FormData();
-        imageData.append("image", selectedImage);
-
-        try {
-          const imageResponse = await fetch("http://localhost:8080/upload", {
-            method: "POST",
-            credentials: "include",
-            body: imageData,
-          });
-
-          if (!imageResponse.ok) {
-            throw new Error(`Image upload failed: ${imageResponse.status}`);
-          }
-
-          const imageResult = await imageResponse.json();
-          const imageUrl = `/profile-image/${formData.id}?t=${new Date().getTime()}`;
-          formDataToSubmit.profileImage = `http://localhost:8080${imageUrl}`;
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          toast.error("Failed to upload image.");
-          return;
-        }
-      }
-
-      // Now update the profile with the unmodified date
+      // Now update the profile with the selected avatar path
       const response = await fetch("http://localhost:8080/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -210,7 +183,6 @@ const ProfilePage = () => {
 
       if (response.ok) {
         toast.success("Profile updated successfully!");
-        setSelectedImage(null);
         fetchUserData();
       } else {
         const errorData = await response.json();
@@ -238,21 +210,26 @@ const ProfilePage = () => {
           <div className={styles.contentWrapper}>
             <InfoSection title="Account Information">
               <div className={styles.row}>
-                <div className={styles.field}>
-                  <label className={styles.label}>Profile Image:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className={styles.profileImageInput}
-                  />
-                  {formData.profileImage && (
-                    <img
-                      src={formData.profileImage}
-                      alt="User profile"
-                      className={styles.profileImage}
-                    />
-                  )}
+                <div className={styles.avatarField}>
+                  <label className={styles.label}>Profile Avatar:</label>
+                  <div className={styles.avatarContainer}>
+                    {formData.profileImage && (
+                      <div className={styles.avatarWrapper}>
+                        <img
+                          src={formData.profileImage}
+                          alt="User profile"
+                          className={styles.profileImage}
+                        />
+                      </div>
+                    )}
+                    <button 
+                      type="button"
+                      className={styles.chooseAvatarButton}
+                      onClick={() => setIsAvatarModalOpen(true)}
+                    >
+                      Choose Your Avatar
+                    </button>
+                  </div>
                 </div>
               </div>
             </InfoSection>
@@ -331,6 +308,14 @@ const ProfilePage = () => {
           </button>
         </div>
       </div>
+      
+      {/* Avatar Selection Modal */}
+      <AvatarSelectionModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        onSelect={handleAvatarSelect}
+        currentAvatar={formData.profileImage}
+      />
     </main>
   );
 };

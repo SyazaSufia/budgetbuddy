@@ -60,23 +60,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// File storage configuration for multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "uploads";
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}_${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
-
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
@@ -290,41 +273,10 @@ app.post("/upload", isAuthenticated, upload.single("image"), (req, res) => {
   );
 });
 
-// Update Profile Picture Endpoint
-app.post("/update-profile-picture", isAuthenticated, (req, res) => {
-  const { id, profileImage } = req.body;
-
-  if (!id || !profileImage) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "User ID and profile image URL are required.",
-      });
-  }
-
-  const updateProfilePictureSql =
-    "UPDATE user SET profileImage = ? WHERE userID = ?";
-
-  db.query(updateProfilePictureSql, [profileImage, id], (err, result) => {
-    if (err) {
-      console.error("Error updating profile picture:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: "Error updating profile picture." });
-    }
-    return res.json({
-      success: true,
-      message: "Profile picture updated successfully.",
-    });
-  });
-});
-
 // Fetch User Details Endpoint
 app.get("/get-user-details", isAuthenticated, (req, res) => {
   const { id } = req.session.user;
 
-  // Use DATE_FORMAT to explicitly format the date in the SQL query
   const getUserDetailsSql = `
     SELECT 
       userID AS id, 
@@ -353,47 +305,6 @@ app.get("/get-user-details", isAuthenticated, (req, res) => {
 
     const user = data[0];
     return res.json({ success: true, user });
-  });
-});
-
-// Endpoint to get profile image blob
-app.get("/profile-image/:userId", (req, res) => {
-  const { userId } = req.params;
-
-  const getImageBlobSql =
-    "SELECT profileImage, imageMimeType FROM user WHERE userID = ?";
-  db.query(getImageBlobSql, [userId], (err, data) => {
-    if (err) {
-      console.error("Error fetching image blob:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: "Error fetching image blob." });
-    }
-
-    if (data.length === 0 || !data[0].profileImage) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Image not found." });
-    }
-
-    const imageBlob = data[0].profileImage;
-    const mimeType = data[0].imageMimeType;
-
-    if (!mimeType) {
-      console.error("MIME type not found for image");
-      return res
-        .status(500)
-        .json({ success: false, message: "MIME type not found." });
-    }
-
-    res.writeHead(200, {
-      "Content-Type": mimeType,
-      "Content-Length": imageBlob.length,
-      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-    });
-    res.end(imageBlob);
   });
 });
 
