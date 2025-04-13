@@ -100,8 +100,8 @@ const SignUp = ({ onSignUp }) => {
 
         <form className={styles.form} onSubmit={handleSignUp}>
           <Input
-            label="Enter your full name"
-            placeholder="Full name"
+            label="Enter name"
+            placeholder="Name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
