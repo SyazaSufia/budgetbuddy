@@ -67,11 +67,12 @@ function BudgetCard() {
     navigate(`/budgetdetails/${budget.budgetID}`, { state: { budget } });
   };
 
-  // Calculate progress color based on percentage
+  // Calculate progress color based on percentage - updated to match BudgetDetails logic
   const getProgressColor = (current, target) => {
     const percentage = (current / target) * 100;
+    
     if (percentage <= 50) return styles.progressGreen;
-    if (percentage <= 85) return styles.progressYellow;
+    if (percentage <= 80) return styles.progressYellow;
     return styles.progressRed;
   };
 
