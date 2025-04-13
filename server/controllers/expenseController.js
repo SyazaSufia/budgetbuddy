@@ -185,3 +185,74 @@ exports.deleteExpense = (req, res) => {
     });
   });
 };
+
+// Edit Expense
+exports.editExpense = (req, res) => {
+  const { id } = req.params; // Expense ID to update
+  const { title, amount } = req.body; // Updated title and amount
+  const userID = req.session.user.id;
+  
+  if (!title || amount === undefined) {
+    return res.status(400).json({ success: false, message: "Title and amount are required" });
+  }
+  
+  // First, get the expense details to ensure it belongs to the user and to get its category
+  const getExpenseQuery = `SELECT * FROM expenses WHERE expenseID = ? AND userID = ?`;
+  
+  db.query(getExpenseQuery, [id, userID], (error, expenseResults) => {
+    if (error) {
+      console.error("Error fetching expense:", error);
+      return res.status(500).json({ success: false, message: "Error getting expense details", error });
+    }
+    
+    if (expenseResults.length === 0) {
+      return res.status(404).json({ success: false, message: "Expense not found or you don't have permission to edit it" });
+    }
+    
+    const oldAmount = parseFloat(expenseResults[0].amount);
+    const newAmount = parseFloat(amount);
+    const categoryID = expenseResults[0].categoryID;
+    
+    // Update the expense
+    const updateQuery = `UPDATE expenses SET title = ?, amount = ? WHERE expenseID = ? AND userID = ?`;
+    
+    db.query(updateQuery, [title, newAmount, id, userID], (error) => {
+      if (error) {
+        console.error("Error updating expense:", error);
+        return res.status(500).json({ success: false, message: "Error updating expense", error });
+      }
+      
+      // Recalculate the category total after the update
+      const totalQuery = `SELECT SUM(amount) AS total FROM expenses WHERE categoryID = ? AND userID = ?`;
+      db.query(totalQuery, [categoryID, userID], (error, totalResults) => {
+        if (error) {
+          console.error("Error calculating total for category:", error);
+          return res.status(500).json({ success: false, message: "Error updating category total", error });
+        }
+
+        const totalAmount = totalResults[0].total || 0.00;
+        console.log(`Updating category ${categoryID} amount to ${totalAmount}`);
+        
+        // Update the category amount
+        const updateCategoryQuery = `UPDATE categories SET categoryAmount = ? WHERE categoryID = ? AND userID = ?`;
+        db.query(updateCategoryQuery, [totalAmount, categoryID, userID], (error, updateResult) => {
+          if (error) {
+            console.error("Error updating category amount:", error);
+            return res.status(500).json({ success: false, message: "Error updating category amount", error });
+          }
+          
+          // Log the update result to see if rows were affected
+          console.log("Category update result:", updateResult);
+
+          // Return success
+          res.status(200).json({ 
+            success: true, 
+            message: "Expense updated successfully!",
+            amountDiff: newAmount - oldAmount,
+            newCategoryTotal: totalAmount
+          });
+        });
+      });
+    });
+  });
+};

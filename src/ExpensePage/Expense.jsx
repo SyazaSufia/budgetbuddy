@@ -5,7 +5,8 @@ import { AddModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";
 import { DeleteExpenseModal } from "./DeleteExpenseModal";
 import { AddExpenseModal } from "./AddExpenseModal";
-import TimeFilter from "./TimeFilter"; // Import TimeFilter component
+import { EditExpenseModal } from "./EditExpenseModal";
+import TimeFilter from "./TimeFilter";
 import { toast } from "react-toastify";
 
 export default function Expense({ user }) {
@@ -21,6 +22,47 @@ export default function Expense({ user }) {
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeFilter, setActiveFilter] = useState('thisMonth'); // Default filter
+  const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState(null);
+
+  // Handle edit expense click
+  const handleEditExpenseClick = (expense) => {
+    setSelectedExpense(expense);
+    setIsEditExpenseModalOpen(true);
+  };
+
+  // Handle successful edit
+  const handleEditExpenseSuccess = async (updatedExpense) => {
+    // Update the expenses in state
+    setExpenses((prevExpenses) => {
+      const updated = {};
+      Object.keys(prevExpenses).forEach((categoryId) => {
+        updated[categoryId] = prevExpenses[categoryId].map((expense) => 
+          expense.expenseID === updatedExpense.expenseID ? updatedExpense : expense
+        );
+      });
+      return updated;
+    });
+    
+    // Also update filtered expenses
+    setFilteredExpenses((prevExpenses) => {
+      const updated = {};
+      Object.keys(prevExpenses).forEach((categoryId) => {
+        updated[categoryId] = prevExpenses[categoryId].map((expense) => 
+          expense.expenseID === updatedExpense.expenseID ? updatedExpense : expense
+        );
+      });
+      return updated;
+    });
+    
+    // Re-fetch categories to update the categoryAmount
+    await fetchCategories();
+    
+    setIsEditExpenseModalOpen(false);
+    setSelectedExpense(null);
+    
+    toast.success("Expense updated successfully!");
+  };
 
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
@@ -477,7 +519,10 @@ export default function Expense({ user }) {
                                   {expense.date}
                                 </span>
                                 <div className={styles.actionButtons}>
-                                  <button className={styles.iconButton}>
+                                  <button 
+                                    className={styles.iconButton}
+                                    onClick={() => handleEditExpenseClick(expense)}
+                                  >
                                     <img src="/edit-icon.svg" alt="Edit" />
                                   </button>
                                   <button
@@ -546,6 +591,15 @@ export default function Expense({ user }) {
             onClose={() => setIsAddExpenseModalOpen(false)}
             onAdd={handleAddExpenseSuccess}
             updateCategoryAmount={updateCategoryAmount}
+          />
+        )}
+
+        {/* Edit Expense Modal */}
+        {isEditExpenseModalOpen && (
+          <EditExpenseModal
+            expense={selectedExpense}
+            onClose={() => setIsEditExpenseModalOpen(false)}
+            onEdit={handleEditExpenseSuccess}
           />
         )}
       </main>
