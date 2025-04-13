@@ -27,6 +27,8 @@ const ProfilePage = () => {
   });
 
   const calculateAge = (dob) => {
+    if (!dob) return "";
+
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -50,23 +52,31 @@ const ProfilePage = () => {
 
       if (data.user) {
         const userData = data.user;
-        const age = calculateAge(userData.userDOB);
-        const dob = userData.userDOB?.split("T")[0] || ""; // format YYYY-MM-DD
-        let profileImageUrl = "";
 
-        // Always use the profile-image endpoint to get the blob image
-        if (userData.id) {
-          // Add timestamp to prevent caching
-          profileImageUrl = `http://localhost:8080/profile-image/${userData.id}?t=${new Date().getTime()}`;
-        } else {
-          profileImageUrl = "/default-icon.svg"; // Use default if no user id
+        // Format the date correctly for HTML date input (YYYY-MM-DD)
+        let dob = userData.userDOB || "";
+        if (dob) {
+          // Extract just the YYYY-MM-DD part if it contains time info
+          dob = dob.split('T')[0];
         }
 
+        // Calculate age based on the DOB
+        const age = calculateAge(dob);
+
+        // Rest of your profile image logic
+        let profileImageUrl = "";
+        if (userData.id) {
+          profileImageUrl = `http://localhost:8080/profile-image/${userData.id}?t=${new Date().getTime()}`;
+        } else {
+          profileImageUrl = "/default-icon.svg";
+        }
+
+        // Set form data with all user details
         setFormData({
           id: userData.id,
           name: userData.name || "",
           age: age.toString(),
-          dob,
+          dob, // Now just the YYYY-MM-DD part
           email: userData.email || "",
           phoneNumber: userData.phoneNumber || "",
           profileImage: profileImageUrl,
@@ -107,8 +117,23 @@ const ProfilePage = () => {
         : "";
     }
 
+    // If the field is DOB, we should also update age
+    if (field === "dob") {
+      // Calculate age from the date
+      const age = calculateAge(value);
+
+      // Update form with both the new DOB and calculated age
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value, // Keep DOB exactly as entered (already in YYYY-MM-DD format)
+        age: age.toString(),
+      }));
+    } else {
+      // Handle other fields normally
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
+
     setErrors(updatedErrors);
-    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const checkFormCompletion = () => {
@@ -146,7 +171,10 @@ const ProfilePage = () => {
     e.preventDefault();
 
     try {
-      // First handle image upload if there's a new image
+      // Create a copy of form data for submission
+      const formDataToSubmit = { ...formData };
+
+      // Rest of your image upload code
       if (selectedImage) {
         const imageData = new FormData();
         imageData.append("image", selectedImage);
@@ -163,41 +191,30 @@ const ProfilePage = () => {
           }
 
           const imageResult = await imageResponse.json();
-
-          // Use the endpoint that serves blob images with cache busting
           const imageUrl = `/profile-image/${formData.id}?t=${new Date().getTime()}`;
-
-          // Update profileImage in formData with the blob endpoint URL
-          setFormData((prev) => ({
-            ...prev,
-            profileImage: `http://localhost:8080${imageUrl}`,
-          }));
-
-          // No need to call update-profile-picture separately
-          // The /upload endpoint already updates the database
+          formDataToSubmit.profileImage = `http://localhost:8080${imageUrl}`;
         } catch (error) {
           console.error("Error uploading image:", error);
           toast.error("Failed to upload image.");
-          return; // Stop if image upload fails
+          return;
         }
       }
 
-      // Now update the full profile
+      // Now update the profile with the unmodified date
       const response = await fetch("http://localhost:8080/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formDataToSubmit),
       });
 
       if (response.ok) {
         toast.success("Profile updated successfully!");
-        // Clear the selectedImage since it's been uploaded
         setSelectedImage(null);
-        // Refresh user data
         fetchUserData();
       } else {
-        toast.error("Failed to update profile.");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to update profile.");
       }
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -208,7 +225,9 @@ const ProfilePage = () => {
   return (
     <main className={styles.profile}>
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+      <div
+        className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}
+      >
         <SideBar onToggleCollapse={handleSidebarToggle} />
         <div className={styles.mainContent}>
           <header className={styles.headerSection}>
@@ -255,6 +274,7 @@ const ProfilePage = () => {
                     type="number"
                     value={formData.age}
                     onChange={(e) => handleInputChange("age", e)}
+                    readOnly={true}
                   />
                   {errors.age && (
                     <p className={styles.errorText}>{errors.age}</p>

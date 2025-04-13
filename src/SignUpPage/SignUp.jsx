@@ -3,7 +3,6 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AuthLayout } from "./components/AuthLayout";
 import { Input } from "./components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons
-import axios from "axios";
 import styles from "./SignUp.module.css";
 
 const SignUp = ({ onSignUp }) => {
@@ -31,38 +30,44 @@ const SignUp = ({ onSignUp }) => {
     return true;
   };
 
+  // Check if the form is valid for enabling/disabling the submit button
+  const isFormValid = name && email && dob && password && 
+                     confirmPassword && password === confirmPassword;
+
+  // HandleSignUp function
   const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!validateInputs()) return;
 
     try {
-      const response = await axios.post("http://localhost:8080/sign-up", {
-        userName: name,
-        userEmail: email,
-        userPassword: password,
-        userDOB: dob,
+      const response = await fetch("http://localhost:8080/sign-up", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userName: name,
+          userEmail: email,
+          userPassword: password,
+          userDOB: dob, // Use exactly what came from the form input
+        }),
       });
 
-      if (response.status !== 200) {
-        setError(response.data.message || "Failed to sign up.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Failed to sign up.");
         return;
       }
 
-      setSuccessMessage(response.data.message);
+      setSuccessMessage(data.message || "Sign up successful!");
       navigate("/sign-in");
     } catch (err) {
       console.error("Error during sign-up:", err);
       setError("Something went wrong. Please try again.");
     }
   };
-
-  const isFormValid =
-    name.trim() !== "" &&
-    email.trim() !== "" &&
-    dob.trim() !== "" &&
-    password.trim() !== "" &&
-    confirmPassword.trim() !== "";
 
   return (
     <AuthLayout>
@@ -110,10 +115,11 @@ const SignUp = ({ onSignUp }) => {
           />
           <Input
             label="Enter your date of birth"
-            placeholder="DD/MM/YYYY"
-            type="date"
+            type="date" // Ensure this is set to 'date'
             value={dob}
-            onChange={(e) => setDob(e.target.value)}
+            onChange={(e) => {
+              setDob(e.target.value);
+            }}
           />
           <Input
             label="Enter your password"

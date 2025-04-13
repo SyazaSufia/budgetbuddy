@@ -105,9 +105,6 @@ app.post("/sign-up", (req, res) => {
       .json({ success: false, message: "All fields are required." });
   }
 
-  // Log the received date
-  console.log("DOB received for signup:", userDOB);
-
   const checkEmailSql = "SELECT * FROM user WHERE userEmail = ?";
   db.query(checkEmailSql, [userEmail], (err, data) => {
     if (err) {
@@ -144,7 +141,6 @@ app.post("/sign-up", (req, res) => {
                 message: "Error saving user to database.",
               });
           }
-          console.log("User registered with DOB:", userDOB);
           return res
             .status(201)
             .json({ success: true, message: "User registered successfully." });
@@ -325,7 +321,6 @@ app.post("/update-profile-picture", isAuthenticated, (req, res) => {
 });
 
 // Fetch User Details Endpoint
-// Fetch User Details Endpoint
 app.get("/get-user-details", isAuthenticated, (req, res) => {
   const { id } = req.session.user;
 
@@ -355,9 +350,6 @@ app.get("/get-user-details", isAuthenticated, (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found." });
     }
-
-    // Log the date for debugging
-    console.log("DOB from database before sending to client:", data[0].userDOB);
 
     const user = data[0];
     return res.json({ success: true, user });
@@ -416,8 +408,6 @@ app.post("/update-profile", isAuthenticated, (req, res) => {
       .status(403)
       .json({ success: false, message: "Unauthorized action." });
   }
-
-  console.log("DOB received from client for update:", dob);
 
   const updateProfileSql = `
     UPDATE user 
