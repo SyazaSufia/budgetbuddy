@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import styles from "./AddModal.module.css";
 
-export const AddExpenseModal = ({ onClose, onAdd, categoryId, updateCategoryAmount }) => {
+export const AddExpenseModal = ({
+  onClose,
+  onAdd,
+  categoryId,
+  updateCategoryAmount,
+}) => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -13,6 +18,9 @@ export const AddExpenseModal = ({ onClose, onAdd, categoryId, updateCategoryAmou
       alert("Please fill in all fields.");
       return;
     }
+
+    const shouldProceed = await checkBudgetLimits(categoryId, amount);
+    if (!shouldProceed) return;
 
     if (!categoryId) {
       alert("No category selected!");
@@ -70,6 +78,74 @@ export const AddExpenseModal = ({ onClose, onAdd, categoryId, updateCategoryAmou
     } catch (error) {
       console.error("Error caught:", error);
       alert("Error adding expense: " + error.message);
+    }
+  };
+
+  // Check budget status and show appropriate notifications
+  const checkBudgetLimits = async (
+    categoryId,
+    newExpenseAmount,
+    existingAmount = 0
+  ) => {
+    try {
+      // Fetch the budget information for this category
+      const response = await fetch(
+        `http://localhost:8080/budget/budgets/category/${categoryId}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        console.log("No budget set for this category");
+        return true; // No budget restrictions if there's no budget
+      }
+
+      const budgetData = await response.json();
+
+      if (!budgetData.success || !budgetData.data) {
+        console.log("No budget data available");
+        return true; // Proceed if no budget data
+      }
+
+      const { categoryAmount, targetAmount } = budgetData.data;
+
+      // For editing, we need to subtract the existing amount first
+      const currentAmount =
+        parseFloat(categoryAmount) - parseFloat(existingAmount);
+
+      // Calculate what the new total would be
+      const newTotal = currentAmount + parseFloat(newExpenseAmount);
+
+      // Calculate percentage of budget that would be used
+      const budgetPercentage = (newTotal / parseFloat(targetAmount)) * 100;
+
+      if (budgetPercentage >= 100) {
+        // Budget would be exceeded
+        toast.error(
+          `Warning: This expense will exceed your budget limit! 
+         You'll be RM${(newTotal - targetAmount).toFixed(2)} over budget.`,
+          { autoClose: false }
+        );
+
+        // Still allow the transaction to proceed
+        return true;
+      } else if (budgetPercentage >= 80) {
+        // Budget is approaching the limit
+        toast.warning(
+          `You're approaching your budget limit! 
+         This will bring you to ${budgetPercentage.toFixed(1)}% of your budget.`,
+          { autoClose: 7000 }
+        );
+
+        return true;
+      }
+
+      // Budget is fine, proceed without warning
+      return true;
+    } catch (error) {
+      console.error("Error checking budget limits:", error);
+      return true; // On error, allow the transaction to proceed
     }
   };
 

@@ -29,6 +29,14 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
       return;
     }
 
+    // Check budget limits first, accounting for the existing expense amount
+    const shouldProceed = await checkBudgetLimits(
+      expense.categoryID,
+      amount,
+      expense.amount
+    );
+    if (!shouldProceed) return;
+
     setIsSubmitting(true);
 
     try {
@@ -37,14 +45,17 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
         amount: parseFloat(amount),
       };
 
-      const response = await fetch(`http://localhost:8080/expense/expense/${expense.expenseID}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `http://localhost:8080/expense/expense/${expense.expenseID}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
 
       const result = await response.json();
 
@@ -70,6 +81,74 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
       alert("Error updating expense: " + error.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Check budget status and show appropriate notifications
+  const checkBudgetLimits = async (
+    categoryId,
+    newExpenseAmount,
+    existingAmount = 0
+  ) => {
+    try {
+      // Fetch the budget information for this category
+      const response = await fetch(
+        `http://localhost:8080/budget/budgets/category/${categoryId}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        console.log("No budget set for this category");
+        return true; // No budget restrictions if there's no budget
+      }
+
+      const budgetData = await response.json();
+
+      if (!budgetData.success || !budgetData.data) {
+        console.log("No budget data available");
+        return true; // Proceed if no budget data
+      }
+
+      const { categoryAmount, targetAmount } = budgetData.data;
+
+      // For editing, we need to subtract the existing amount first
+      const currentAmount =
+        parseFloat(categoryAmount) - parseFloat(existingAmount);
+
+      // Calculate what the new total would be
+      const newTotal = currentAmount + parseFloat(newExpenseAmount);
+
+      // Calculate percentage of budget that would be used
+      const budgetPercentage = (newTotal / parseFloat(targetAmount)) * 100;
+
+      if (budgetPercentage >= 100) {
+        // Budget would be exceeded
+        toast.error(
+          `Warning: This expense will exceed your budget limit! 
+           You'll be RM${(newTotal - targetAmount).toFixed(2)} over budget.`,
+          { autoClose: false }
+        );
+
+        // Still allow the transaction to proceed
+        return true;
+      } else if (budgetPercentage >= 80) {
+        // Budget is approaching the limit
+        toast.warning(
+          `You're approaching your budget limit! 
+           This will bring you to ${budgetPercentage.toFixed(1)}% of your budget.`,
+          { autoClose: 7000 }
+        );
+
+        return true;
+      }
+
+      // Budget is fine, proceed without warning
+      return true;
+    } catch (error) {
+      console.error("Error checking budget limits:", error);
+      return true; // On error, allow the transaction to proceed
     }
   };
 
@@ -115,8 +194,8 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className={`${styles.confirmButton}`}
               disabled={isSubmitting}
             >
