@@ -144,19 +144,19 @@
 
 /* Scale up effect on hover */
 .actionCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Different glow effects based on card variant */
 .income:hover {
-  border-color: rgba(23, 178, 106, 0.3);
-  box-shadow: 0 5px 5px rgba(23, 178, 106, 0.1);
+  transform: translateY(-2px); /* Slight upward movement */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .expense:hover {
-  border-color: rgba(240, 68, 56, 0.3);
-  box-shadow: 0 5px 5px rgba(240, 68, 56, 0.1);
+  transform: translateY(-2px); /* Slight upward movement */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Action icon animation */
