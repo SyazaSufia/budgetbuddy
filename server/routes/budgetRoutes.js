@@ -18,4 +18,7 @@ router.put("/budgets/:budgetID/target", isAuthenticated, budgetController.update
 // Delete a budget
 router.delete("/budgets/:budgetID", isAuthenticated, budgetController.deleteBudget);
 
+// Get budget by category ID
+router.get('/budgets/category/:categoryID', isAuthenticated, budgetController.getBudgetByCategory);
+
 module.exports = router;

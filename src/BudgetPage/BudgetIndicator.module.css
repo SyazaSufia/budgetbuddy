@@ -1,0 +1,68 @@
+.indicator {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s ease;
+  }
+  
+  .good {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+  }
+  
+  .cautious {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #ff8f00;
+    border-left: 4px solid #ff8f00;
+  }
+  
+  .warning {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: #e65100;
+    border-left: 4px solid #e65100;
+  }
+  
+  .exceeded {
+    background-color: rgba(244, 67, 54, 0.15);
+    color: #c62828;
+    border-left: 4px solid #c62828;
+    animation: pulse 2s infinite;
+  }
+  
+  .iconContainer {
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .message {
+    font-weight: 600;
+    flex-grow: 1;
+  }
+  
+  .percentage {
+    font-weight: 700;
+    font-size: 16px;
+    padding-left: 12px;
+  }
+  
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }

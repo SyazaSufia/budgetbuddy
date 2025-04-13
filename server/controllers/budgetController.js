@@ -241,3 +241,39 @@ exports.deleteBudget = (req, res) => {
     });
   });
 };
+
+// Get budget by category ID
+exports.getBudgetByCategory = (req, res) => {
+  const userID = req.session.user.id;
+  const { categoryID } = req.params;
+
+  const query = `
+    SELECT b.budgetID, b.categoryID, c.categoryName, c.icon, 
+    COALESCE(c.categoryAmount, 0) as categoryAmount,
+    b.targetAmount
+    FROM budgets b
+    JOIN categories c ON b.categoryID = c.categoryID
+    WHERE b.userID = ? AND b.categoryID = ?
+  `;
+
+  db.query(query, [userID, categoryID], (err, results) => {
+    if (err)
+      return res.status(500).json({ success: false, error: err.message });
+
+    if (results.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No budget found for this category" 
+      });
+    }
+
+    // Format the numeric values
+    const formattedResult = {
+      ...results[0],
+      categoryAmount: parseFloat(results[0].categoryAmount || 0),
+      targetAmount: parseFloat(results[0].targetAmount || 0),
+    };
+
+    res.status(200).json({ success: true, data: formattedResult });
+  });
+};
