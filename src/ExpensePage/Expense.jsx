@@ -13,6 +13,7 @@ export default function Expense({ user }) {
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState({});
   const [filteredExpenses, setFilteredExpenses] = useState({});
+  const [visibleCategories, setVisibleCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
@@ -233,7 +234,15 @@ export default function Expense({ user }) {
     });
     
     setFilteredExpenses(filtered);
-  }, [activeFilter, expenses]);
+
+    // Create a list of categories that have expenses for the current filter
+    const categoriesWithExpenses = categories.filter(category => {
+      const categoryExpenses = filtered[category.categoryID] || [];
+      return categoryExpenses.length > 0;
+    });
+    
+    setVisibleCategories(categoriesWithExpenses);
+  }, [activeFilter, expenses, categories]);
 
   // Calculate total expense across all filtered categories
   const totalExpense = Object.values(filteredExpenses)
@@ -286,6 +295,10 @@ export default function Expense({ user }) {
           delete updatedExpenses[selectedCategoryId];
           return updatedExpenses;
         });
+
+        setVisibleCategories((prevVisibleCategories) =>
+          prevVisibleCategories.filter((cat) => cat.categoryID !== selectedCategoryId)
+        );
 
         setIsDeleteCategoryModalOpen(false);
         setSelectedCategoryId(null);
@@ -443,8 +456,8 @@ export default function Expense({ user }) {
 
             {/* Expense Categories */}
             <section className={styles.expenseListContainer}>
-              {categories.length > 0 ? (
-                categories.map((category) => (
+              {visibleCategories.length > 0 ? (
+                visibleCategories.map((category) => (
                   <div
                     key={category.categoryID}
                     className={styles.categoryContainer}
@@ -565,7 +578,12 @@ export default function Expense({ user }) {
                     className={styles.emptyIllustration} 
                   />
                   <p className={styles.noCategories}>
-                    No expense categories found. Create a category to get started.
+                    {categories.length === 0 
+                      ? "No expense categories found. Create a category to get started."
+                      : `No expenses found for the selected ${activeFilter === 'thisMonth' ? 'month' : 
+                          activeFilter === 'lastMonth' ? 'last month' :
+                          activeFilter === 'thisYear' ? 'year' : 'period'}.`
+                    }
                   </p>
                 </div>
               )}
