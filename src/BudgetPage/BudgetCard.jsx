@@ -3,6 +3,7 @@ import styles from "./BudgetCard.module.css";
 import { toast, ToastContainer } from "react-toastify";
 import { CreateBudgetModal } from "./CreateModal";
 import { useNavigate } from "react-router-dom";
+import BudgetIndicator from "./BudgetIndicator"; // Import BudgetIndicator
 
 function BudgetCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -119,12 +120,24 @@ function BudgetCard() {
               </div>
               <div className={styles.progressBarContainer}>
                 <div
-                  className={`${styles.progressBar} ${getProgressColor(budget.categoryAmount, budget.targetAmount)}`}
+                  className={`${styles.progressBar} ${getProgressColor(
+                    budget.categoryAmount,
+                    budget.targetAmount
+                  )}`}
                   style={{
-                    width: `${Math.min(100, (budget.categoryAmount / budget.targetAmount) * 100)}%`,
+                    width: `${Math.min(
+                      100,
+                      (budget.categoryAmount / budget.targetAmount) * 100
+                    )}%`,
                   }}
                 />
               </div>
+              
+              {/* Add BudgetIndicator component */}
+              <BudgetIndicator 
+                currentAmount={budget.categoryAmount} 
+                targetAmount={budget.targetAmount} 
+              />
             </div>
           </div>
         ))

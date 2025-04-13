@@ -5,6 +5,7 @@ import styles from "./BudgetDetails.module.css";
 import Sidebar from "../SideBar";
 import BreadcrumbNav from "./BreadCrumbNav";
 import { DeleteModal } from "./DeleteModal";
+import BudgetIndicator from "../BudgetIndicator"; // Import BudgetIndicator
 
 function BudgetDetails() {
   const { budgetID } = useParams();
@@ -218,6 +219,14 @@ function BudgetDetails() {
             />
           )}
           <h2 className={styles.budgetTitle}>{budget.categoryName}</h2>
+        </div>
+
+        {/* Add BudgetIndicator at the top of the budget details */}
+        <div className={styles.budgetIndicatorContainer}>
+          <BudgetIndicator 
+            currentAmount={budget.categoryAmount} 
+            targetAmount={budget.targetAmount} 
+          />
         </div>
 
         {/* Budget progress bar */}
