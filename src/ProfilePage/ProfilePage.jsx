@@ -211,24 +211,25 @@ const ProfilePage = () => {
             <InfoSection title="Account Information">
               <div className={styles.row}>
                 <div className={styles.avatarField}>
-                  <label className={styles.label}>Profile Avatar:</label>
-                  <div className={styles.avatarContainer}>
-                    {formData.profileImage && (
-                      <div className={styles.avatarWrapper}>
-                        <img
-                          src={formData.profileImage}
-                          alt="User profile"
-                          className={styles.profileImage}
-                        />
-                      </div>
-                    )}
-                    <button 
-                      type="button"
-                      className={styles.chooseAvatarButton}
-                      onClick={() => setIsAvatarModalOpen(true)}
-                    >
-                      Choose Your Avatar
-                    </button>
+                  <div className={styles.avatarLabelContainer}>
+                    <label className={styles.label}>Profile Image</label>
+                    <span className={styles.labelColon}>:</span>
+                  </div>
+                  <div className={styles.avatarContentContainer}>
+                    <div className={styles.avatarWrapper}>
+                      <img
+                        src={formData.profileImage || "/avatars/Default.svg"}
+                        alt="User profile"
+                        className={styles.profileImage}
+                      />
+                      <button 
+                        type="button"
+                        className={styles.chooseAvatarButton}
+                        onClick={() => setIsAvatarModalOpen(true)}
+                      >
+                        Choose Your Avatar
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

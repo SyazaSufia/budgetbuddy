@@ -79,6 +79,14 @@
   cursor: pointer;
   transition: background-color 0.25s, border-color 0.25s;
   margin-top: 16px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05)
+}
+
+.saveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .saveButton:disabled {
@@ -138,17 +146,11 @@
   white-space: nowrap; /* Prevent label from wrapping */
 }
 
-.profileImage {
-  width: 120px; /* Adjust size as needed */
-  height: 120px;
-  object-fit: cover;
-}
-
 .avatarField {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-direction: row;
   width: 100%;
+  gap: 64px;
 }
 
 .avatarContainer {
@@ -164,37 +166,60 @@
   gap: 8px;
 }
 
-.profileImage {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-  border-radius: 50%;
-  border: 2px solid #e5e7eb;
-  padding: 4px;
-  background-color: #f9fafb;
-}
-
 .avatarName {
   font-size: 14px;
   font-weight: 500;
   color: #4b5563;
 }
 
+.formGroup {
+  margin-bottom: 4px;
+  margin-top: 4px;
+}
+
+.avatarLabelContainer {
+  display: flex;
+  align-items: top;
+  gap: 4px;
+}
+
+.labelColon {
+  font-weight: 600;
+  color: #333;
+}
+
+.avatarContentContainer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.profileImage {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  background-color: #ccc;
+}
+
 .chooseAvatarButton {
-  background-color: var(--secondaryColor);
-  color: var(--primaryColor);
+  background-color: var(--secondaryColor, #e2f1e4);
+  color: var(--primaryColor, #4b6455);
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
+  margin-top: 4px;
   transition: all 0.2s ease;
+  font: 600 14px Montserrat, sans-serif;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.formGroup {
-  margin-bottom: 4px;
-  margin-top: 4px;
+.chooseAvatarButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 991px) {
