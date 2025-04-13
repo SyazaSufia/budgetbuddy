@@ -18,7 +18,7 @@ These are the main functionalities proposed in the system:
 
 ## Related UIs
 ![image](https://github.com/user-attachments/assets/6e39f99b-9d8f-4b8f-846c-99c066d9700d)
-<img width="960" alt="{E27AEC9B-C7A7-4C64-993B-CA57CCACFC7D}" src="https://github.com/user-attachments/assets/632b3d7c-e60f-4166-b4ce-20f7bf6bdad5" />
+<img width="960" alt="{1ABAF078-D16C-46E5-BBF5-E881662D3CC5}" src="https://github.com/user-attachments/assets/75807005-2e1f-482a-aeb8-536d2fab68f1" />
 <img width="960" alt="{8564418E-042E-4AA1-9B19-B5F7EAB64447}" src="https://github.com/user-attachments/assets/dff7c917-80e3-4924-9537-dd9c10a8044d" />
 <img width="960" alt="{612518A6-CADE-4628-9EAA-0AC35E8FD41C}" src="https://github.com/user-attachments/assets/ef3e1643-de7f-4cff-8c02-498cf2c1102a" />
 <img width="960" alt="{B80171B3-6AD0-4FF4-9142-5E67E6B608C9}" src="https://github.com/user-attachments/assets/ec1b4ab4-b05b-44ce-a3ab-8e631669643c" />
