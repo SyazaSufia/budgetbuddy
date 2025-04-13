@@ -16,15 +16,18 @@ export default function Expense({ user }) {
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
-  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] = useState(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] =
+    useState(false);
+  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] =
+    useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('thisMonth'); // Default filter
+  const [activeFilter, setActiveFilter] = useState("thisMonth"); // Default filter
   const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // Added loading state
 
   // Handle edit expense click
   const handleEditExpenseClick = (expense) => {
@@ -38,30 +41,34 @@ export default function Expense({ user }) {
     setExpenses((prevExpenses) => {
       const updated = {};
       Object.keys(prevExpenses).forEach((categoryId) => {
-        updated[categoryId] = prevExpenses[categoryId].map((expense) => 
-          expense.expenseID === updatedExpense.expenseID ? updatedExpense : expense
+        updated[categoryId] = prevExpenses[categoryId].map((expense) =>
+          expense.expenseID === updatedExpense.expenseID
+            ? updatedExpense
+            : expense
         );
       });
       return updated;
     });
-    
+
     // Also update filtered expenses
     setFilteredExpenses((prevExpenses) => {
       const updated = {};
       Object.keys(prevExpenses).forEach((categoryId) => {
-        updated[categoryId] = prevExpenses[categoryId].map((expense) => 
-          expense.expenseID === updatedExpense.expenseID ? updatedExpense : expense
+        updated[categoryId] = prevExpenses[categoryId].map((expense) =>
+          expense.expenseID === updatedExpense.expenseID
+            ? updatedExpense
+            : expense
         );
       });
       return updated;
     });
-    
+
     // Re-fetch categories to update the categoryAmount
     await fetchCategories();
-    
+
     setIsEditExpenseModalOpen(false);
     setSelectedExpense(null);
-    
+
     toast.success("Expense updated successfully!");
   };
 
@@ -77,62 +84,45 @@ export default function Expense({ user }) {
 
   // Fetch categories from the backend
   const fetchCategories = async () => {
+    setIsLoading(true); // Set loading state to true before fetch
     try {
       const response = await fetch("http://localhost:8080/expense/categories", {
         credentials: "include", // Send session cookies
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch categories");
       }
-      
+
       const result = await response.json();
-  
+
       if (!Array.isArray(result.data)) {
         console.error("Expected an array but got:", result.data);
-        throw new Error("Unexpected response format: 'data' should be an array.");
+        throw new Error(
+          "Unexpected response format: 'data' should be an array."
+        );
       }
-  
+
       // Check if data is empty
       if (result.data.length === 0) {
         console.warn("No categories found.");
         setCategories([]); // Initialize with an empty array
+        setIsLoading(false); // Set loading to false
         return;
       }
-  
+
       setCategories(result.data); // Store the categories
-  
+
       // Fetch expenses for each category
       for (const category of result.data) {
         await fetchCategoryExpenses(category.categoryID || category.id);
       }
+
+      setIsLoading(false); // Set loading to false after all fetches complete
     } catch (error) {
       console.error("Error fetching categories:", error);
+      setIsLoading(false); // Set loading to false on error too
     }
-  };
-
-  // Helper function to process API response
-  const handleApiResponse = async (response) => {
-    const result = await response.json();
-
-    if (!Array.isArray(result.data)) {
-      console.error("Expected an array but got:", result.data);
-      throw new Error("Unexpected response format: 'data' should be an array.");
-    }
-
-    // Check if data is empty
-    if (result.data.length === 0) {
-      console.warn("No categories found.");
-      setCategories([]); // Initialize with an empty array
-      return;
-    }
-
-    setCategories(result.data); // Store the categories
-
-    // Fetch expenses for each category
-    result.data.forEach((category) => {
-      fetchCategoryExpenses(category.categoryID || category.id);
-    });
   };
 
   // Fetch expenses for a specific category
@@ -189,59 +179,76 @@ export default function Expense({ user }) {
   }, []);
 
   // Apply time filter whenever activeFilter or expenses change
+  // Apply time filter whenever activeFilter or expenses change
+  // Apply time filter whenever activeFilter or expenses change
   useEffect(() => {
-    if (Object.keys(expenses).length === 0) return;
-    
+    // First, process and filter the expenses based on the time filter
     const currentDate = new Date();
     const filtered = {};
-    
-    // Process each category's expenses
-    Object.keys(expenses).forEach(categoryId => {
-      filtered[categoryId] = expenses[categoryId].filter(expense => {
-        if (!expense.date || expense.date === "N/A") return false;
-        
-        const expenseDate = new Date(expense.date);
-        
-        switch (activeFilter) {
-          case 'thisMonth': {
-            // Current month
-            return expenseDate.getMonth() === currentDate.getMonth() && 
-                   expenseDate.getFullYear() === currentDate.getFullYear();
+
+    // If we have expenses data to filter
+    if (Object.keys(expenses).length > 0) {
+      // Process each category's expenses
+      Object.keys(expenses).forEach((categoryId) => {
+        filtered[categoryId] = expenses[categoryId].filter((expense) => {
+          if (!expense.date || expense.date === "N/A") return false;
+
+          const expenseDate = new Date(expense.date);
+
+          switch (activeFilter) {
+            case "thisMonth": {
+              // Current month
+              return (
+                expenseDate.getMonth() === currentDate.getMonth() &&
+                expenseDate.getFullYear() === currentDate.getFullYear()
+              );
+            }
+            case "lastMonth": {
+              // Last month
+              const lastMonth =
+                currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
+              const lastMonthYear =
+                currentDate.getMonth() === 0
+                  ? currentDate.getFullYear() - 1
+                  : currentDate.getFullYear();
+              return (
+                expenseDate.getMonth() === lastMonth &&
+                expenseDate.getFullYear() === lastMonthYear
+              );
+            }
+            case "thisYear": {
+              // Current year
+              return expenseDate.getFullYear() === currentDate.getFullYear();
+            }
+            case "last12Months": {
+              // Last 12 months
+              const twelveMonthsAgo = new Date();
+              twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
+              return expenseDate >= twelveMonthsAgo;
+            }
+            default:
+              return true;
           }
-          case 'lastMonth': {
-            // Last month
-            const lastMonth = currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
-            const lastMonthYear = currentDate.getMonth() === 0 ? 
-                                 currentDate.getFullYear() - 1 : 
-                                 currentDate.getFullYear();
-            return expenseDate.getMonth() === lastMonth && 
-                   expenseDate.getFullYear() === lastMonthYear;
-          }
-          case 'thisYear': {
-            // Current year
-            return expenseDate.getFullYear() === currentDate.getFullYear();
-          }
-          case 'last12Months': {
-            // Last 12 months
-            const twelveMonthsAgo = new Date();
-            twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
-            return expenseDate >= twelveMonthsAgo;
-          }
-          default:
-            return true;
-        }
+        });
       });
-    });
-    
+    }
+
     setFilteredExpenses(filtered);
 
-    // Create a list of categories that have expenses for the current filter
-    const categoriesWithExpenses = categories.filter(category => {
-      const categoryExpenses = filtered[category.categoryID] || [];
-      return categoryExpenses.length > 0;
-    });
-    
-    setVisibleCategories(categoriesWithExpenses);
+    // Now decide which categories to display
+    if (activeFilter === "thisMonth") {
+      // SPECIAL CASE: For current month view, always show all categories
+      // This ensures new categories with RM0 are visible
+      setVisibleCategories(categories);
+    } else {
+      // For other time periods, only show categories that have expenses in that period
+      const categoriesWithExpenses = categories.filter(
+        (category) =>
+          filtered[category.categoryID] &&
+          filtered[category.categoryID].length > 0
+      );
+      setVisibleCategories(categoriesWithExpenses);
+    }
   }, [activeFilter, expenses, categories]);
 
   // Calculate total expense across all filtered categories
@@ -297,17 +304,23 @@ export default function Expense({ user }) {
         });
 
         setVisibleCategories((prevVisibleCategories) =>
-          prevVisibleCategories.filter((cat) => cat.categoryID !== selectedCategoryId)
+          prevVisibleCategories.filter(
+            (cat) => cat.categoryID !== selectedCategoryId
+          )
         );
 
         setIsDeleteCategoryModalOpen(false);
         setSelectedCategoryId(null);
+
+        toast.success("Category deleted successfully!");
       } else {
         const error = await response.json();
         console.error("Failed to delete category:", error.message);
+        toast.error("Failed to delete category");
       }
     } catch (error) {
       console.error("Error deleting category:", error);
+      toast.error("Error deleting category");
     }
   };
 
@@ -378,7 +391,7 @@ export default function Expense({ user }) {
           });
           return updated;
         });
-        
+
         // Also update filtered expenses
         setFilteredExpenses((prevExpenses) => {
           const updated = {};
@@ -389,13 +402,13 @@ export default function Expense({ user }) {
           });
           return updated;
         });
-        
+
         // Re-fetch categories to update the categoryAmount
         await fetchCategories();
-        
+
         setIsDeleteExpenseModalOpen(false);
         setSelectedExpenseId(null);
-        
+
         toast.success("Expense deleted successfully!");
       } else {
         const error = await response.json();
@@ -420,7 +433,9 @@ export default function Expense({ user }) {
   return (
     <>
       <main className={styles.expenseLayout}>
-        <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+        <div
+          className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}
+        >
           <SidebarNav onToggleCollapse={handleSidebarToggle} />
           <section className={styles.main}>
             <header className={styles.headerSection}>
@@ -428,8 +443,10 @@ export default function Expense({ user }) {
                 Hello, {user ? user.name : "Guest"}!
               </h1>
               <div className={styles.filterContainer}>
-                {/* Add TimeFilter component at the top right */}
-                <TimeFilter activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+                <TimeFilter
+                  activeFilter={activeFilter}
+                  onFilterChange={handleFilterChange}
+                />
               </div>
             </header>
 
@@ -456,7 +473,9 @@ export default function Expense({ user }) {
 
             {/* Expense Categories */}
             <section className={styles.expenseListContainer}>
-              {visibleCategories.length > 0 ? (
+              {isLoading ? (
+                <div className={styles.loadingState}>Loading categories...</div>
+              ) : visibleCategories.length > 0 ? (
                 visibleCategories.map((category) => (
                   <div
                     key={category.categoryID}
@@ -511,58 +530,73 @@ export default function Expense({ user }) {
 
                     {expandedCategories[category.categoryID] && (
                       <div className={styles.expenseList}>
-                        {(filteredExpenses[category.categoryID] || []).length > 0 ? (
-                          (filteredExpenses[category.categoryID] || []).map((expense) => (
-                            <article
-                              key={expense.expenseID}
-                              className={styles.expenseItem}
-                            >
-                              <div className={styles.expenseDetails}>
-                                {/* Title on the left */}
-                                <div className={styles.titleSection}>
-                                  <span className={styles.expenseTitle}>
-                                    {expense.title}
-                                  </span>
-                                </div>
-                                {/* Amount, Date, and Action Buttons on the right */}
-                                <div className={styles.rightSection}>
-                                  <span className={styles.expenseAmount}>
-                                    RM {expense.amount}
-                                  </span>
-                                  <span className={styles.expenseDate}>
-                                    {expense.date}
-                                  </span>
-                                  <div className={styles.actionButtons}>
-                                    <button 
-                                      className={styles.iconButton}
-                                      onClick={() => handleEditExpenseClick(expense)}
-                                    >
-                                      <img src="/edit-icon.svg" alt="Edit" />
-                                    </button>
-                                    <button
-                                      className={styles.iconButton}
-                                      onClick={() =>
-                                        handleDeleteExpenseClick(expense.expenseID)
-                                      }
-                                    >
-                                      <img src="/delete-icon.svg" alt="Delete" />
-                                    </button>
+                        {(filteredExpenses[category.categoryID] || []).length >
+                        0 ? (
+                          (filteredExpenses[category.categoryID] || []).map(
+                            (expense) => (
+                              <article
+                                key={expense.expenseID}
+                                className={styles.expenseItem}
+                              >
+                                <div className={styles.expenseDetails}>
+                                  {/* Title on the left */}
+                                  <div className={styles.titleSection}>
+                                    <span className={styles.expenseTitle}>
+                                      {expense.title}
+                                    </span>
+                                  </div>
+                                  {/* Amount, Date, and Action Buttons on the right */}
+                                  <div className={styles.rightSection}>
+                                    <span className={styles.expenseAmount}>
+                                      RM {parseFloat(expense.amount).toFixed(2)}
+                                    </span>
+                                    <span className={styles.expenseDate}>
+                                      {expense.date}
+                                    </span>
+                                    <div className={styles.actionButtons}>
+                                      <button
+                                        className={styles.iconButton}
+                                        onClick={() =>
+                                          handleEditExpenseClick(expense)
+                                        }
+                                      >
+                                        <img src="/edit-icon.svg" alt="Edit" />
+                                      </button>
+                                      <button
+                                        className={styles.iconButton}
+                                        onClick={() =>
+                                          handleDeleteExpenseClick(
+                                            expense.expenseID
+                                          )
+                                        }
+                                      >
+                                        <img
+                                          src="/delete-icon.svg"
+                                          alt="Delete"
+                                        />
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </article>
-                          ))
+                              </article>
+                            )
+                          )
                         ) : (
                           <div className={styles.emptyState}>
-                            <img 
-                              src="/empty-illustration.svg" 
-                              alt="No expenses" 
-                              className={styles.emptyIllustration} 
+                            <img
+                              src="/empty-illustration.svg"
+                              alt="No expenses"
+                              className={styles.emptyIllustration}
                             />
                             <p className={styles.noExpenses}>
-                              No expenses for this {activeFilter === 'thisMonth' ? 'month' : 
-                                activeFilter === 'lastMonth' ? 'last month' :
-                                activeFilter === 'thisYear' ? 'year' : 'period'}
+                              No expenses for this{" "}
+                              {activeFilter === "thisMonth"
+                                ? "month"
+                                : activeFilter === "lastMonth"
+                                  ? "last month"
+                                  : activeFilter === "thisYear"
+                                    ? "year"
+                                    : "period"}
                             </p>
                           </div>
                         )}
@@ -572,18 +606,23 @@ export default function Expense({ user }) {
                 ))
               ) : (
                 <div className={styles.emptyState}>
-                  <img 
-                    src="/empty-illustration.svg" 
-                    alt="No categories" 
-                    className={styles.emptyIllustration} 
+                  <img
+                    src="/empty-illustration.svg"
+                    alt="No categories"
+                    className={styles.emptyIllustration}
                   />
                   <p className={styles.noCategories}>
-                    {categories.length === 0 
+                    {categories.length === 0
                       ? "No expense categories found. Create a category to get started."
-                      : `No expenses found for the selected ${activeFilter === 'thisMonth' ? 'month' : 
-                          activeFilter === 'lastMonth' ? 'last month' :
-                          activeFilter === 'thisYear' ? 'year' : 'period'}.`
-                    }
+                      : `No expenses found for the selected ${
+                          activeFilter === "thisMonth"
+                            ? "month"
+                            : activeFilter === "lastMonth"
+                              ? "last month"
+                              : activeFilter === "thisYear"
+                                ? "year"
+                                : "period"
+                        }.`}
                   </p>
                 </div>
               )}
