@@ -4,6 +4,7 @@ import { ActionCard } from './ActionCard';
 import { ExpenseCategory } from './ExpenseCategory';
 import { SideBar } from './SideBar';
 import ExpensePieChart from './ExpensePieChart'; // Your pie chart component
+import BudgetCard from '../BudgetPage/BudgetCard'; // Import BudgetCard component
 import styles from './Dashboard.module.css';
 
 export const Dashboard = ({ user }) => {
@@ -198,27 +199,38 @@ export const Dashboard = ({ user }) => {
               </section>
 
               <section className={styles.expenseSection}>
-                <div className={styles.expenseChart}>
-                  <h3 className={styles.expenseTitle}>Expenses by category</h3>
-                  <div className={styles.chartContent}>
-                    {/* Pie chart with validated colors */}
-                    <div className={styles.chartImage}>
-                      <ExpensePieChart categories={dashboardData.expensesByCategory || []} />
+                <div className={styles.expenseBudgetContainer}>
+                  <div className={styles.expenseChart}>
+                    <h3 className={styles.expenseTitle}>Expenses by category</h3>
+                    <div className={styles.chartContent}>
+                      {/* Pie chart with validated colors */}
+                      <div className={styles.chartImage}>
+                        <ExpensePieChart categories={dashboardData.expensesByCategory || []} />
+                      </div>
+                      <div className={styles.expenseList}>
+                        {dashboardData.expensesByCategory && dashboardData.expensesByCategory.length > 0 ? (
+                          dashboardData.expensesByCategory.map((category, index) => (
+                            <ExpenseCategory 
+                              key={index} 
+                              color={category.color} // We've ensured this is set in fetchDashboardData
+                              category={category.category}
+                              percentage={category.percentage}
+                              amount={category.amount}
+                            />
+                          ))
+                        ) : (
+                          <p>No expense data for this period</p>
+                        )}
+                      </div>
                     </div>
-                    <div className={styles.expenseList}>
-                      {dashboardData.expensesByCategory && dashboardData.expensesByCategory.length > 0 ? (
-                        dashboardData.expensesByCategory.map((category, index) => (
-                          <ExpenseCategory 
-                            key={index} 
-                            color={category.color} // We've ensured this is set in fetchDashboardData
-                            category={category.category}
-                            percentage={category.percentage}
-                            amount={category.amount}
-                          />
-                        ))
-                      ) : (
-                        <p>No expense data for this period</p>
-                      )}
+                  </div>
+                  
+                  {/* Add BudgetCard component to the right of ExpenseChart */}
+                  <div className={styles.budgetSection}>
+                    <h3 className={styles.budgetTitle}>Budget Overview</h3>
+                    <div className={styles.budgetList}>
+                      <BudgetCard />
+                      {/* You can add more budget cards here if needed */}
                     </div>
                   </div>
                 </div>
