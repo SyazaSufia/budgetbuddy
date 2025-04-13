@@ -7,7 +7,8 @@ import TimeFilter from "./TimeFilter"; // Import TimeFilter component
 export default function IncomeLayout({ user }) {
   const [totalIncome, setTotalIncome] = useState(0); // State for total income
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('thisMonth'); // Default filter
+  const [activeFilter, setActiveFilter] = useState("thisMonth"); // Default filter
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
 
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
@@ -19,9 +20,16 @@ export default function IncomeLayout({ user }) {
     setActiveFilter(filterId);
   };
 
+  // Function to trigger refresh
+  const handleRefreshIncomeList = () => {
+    setRefreshTrigger((prev) => prev + 1); // Increment to trigger refresh
+  };
+
   return (
     <main className={styles.incomeDefault}>
-      <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+      <div
+        className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}
+      >
         <SidebarNav onToggleCollapse={handleSidebarToggle} />
         <section className={styles.main}>
           <header className={styles.headerSection}>
@@ -30,7 +38,10 @@ export default function IncomeLayout({ user }) {
             </h1>
             <div className={styles.filterContainer}>
               {/* Add TimeFilter component at the top right */}
-              <TimeFilter activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+              <TimeFilter
+                activeFilter={activeFilter}
+                onFilterChange={handleFilterChange}
+              />
             </div>
           </header>
 
@@ -54,9 +65,11 @@ export default function IncomeLayout({ user }) {
             </form>
 
             {/* Pass the callback to update total income and the active filter */}
-            <IncomeList 
-              onUpdateTotalIncome={setTotalIncome} 
+            <IncomeList
+              onUpdateTotalIncome={setTotalIncome}
               activeFilter={activeFilter}
+              refreshTrigger={refreshTrigger} // Pass refresh trigger prop
+              onRefresh={handleRefreshIncomeList} // Pass refresh function
             />
           </section>
         </section>

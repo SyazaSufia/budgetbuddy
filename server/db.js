@@ -7,6 +7,8 @@ const db = mysql.createPool({
   user: "u858196522_budgetbuddy",
   password: "Dv7>74Xr]",
   database: "u858196522_budgetbuddy",
+  timezone: '+00:00', // Force UTC timezone
+  dateStrings: true
 });
 
 // Function to handle reconnection

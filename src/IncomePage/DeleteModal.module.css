@@ -71,6 +71,39 @@
     font-size: 14px;
     animation: fade-in 0.3s ease-in-out;
   }
+
+  .occurrence {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 4px 0;
+    font-size: 0.85rem;
+  }
+  
+  .occurrenceLabel {
+    font-weight: 500;
+    color: #666;
+  }
+  
+  .occurrenceValue {
+    color: #0077cc;
+    font-weight: 500;
+  }
+  
+  .recurringOption {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+  }
+  
+  .checkbox {
+    margin-right: 8px;
+  }
+  
+  .checkboxLabel {
+    font-size: 0.9rem;
+    color: #333;
+  }
   
   @keyframes fade-in {
     from {

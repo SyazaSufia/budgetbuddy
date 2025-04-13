@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import styles from "./AddModal.module.css";
 
-export const AddIncomeModal = ({ onClose }) => {
+export const AddIncomeModal = ({ onClose, onAddIncome }) => {
   const [incomeType, setIncomeType] = useState("");
   const [scholarship, setScholarship] = useState("");
   const [amount, setAmount] = useState("");
-  const [title, setTitle] = useState(""); // Add title state
+  const [title, setTitle] = useState("");
+  const [occurrence, setOccurrence] = useState("once"); // Default to one-time payment
+  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]); // Default to today
 
   const scholarshipOptions = [
     "Jabatan Perkhidmatan Awam (JPA)",
@@ -16,15 +18,24 @@ export const AddIncomeModal = ({ onClose }) => {
     "Other"
   ];
 
+  const occurrenceOptions = [
+    { value: "once", label: "One-time" },
+    { value: "daily", label: "Daily" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
+    { value: "yearly", label: "Yearly" }
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newIncome = {
+    const incomeData = {
       type: incomeType,
-      title: incomeType === "Passive" ? scholarship || "Custom Income" : title, // Use scholarship or title
-      source: incomeType === "Passive" ? scholarship || null : null, // Source for passive income only
-      date: new Date().toISOString().split("T")[0], // Current date
+      title: incomeType === "Passive" ? scholarship || "Custom Income" : title,
+      source: incomeType === "Passive" ? scholarship || null : null,
+      date: startDate,
       amount,
+      occurrence, // Add occurrence type
     };
 
     try {
@@ -33,8 +44,8 @@ export const AddIncomeModal = ({ onClose }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newIncome),
-        credentials: "include", // Ensure session cookies are sent
+        body: JSON.stringify(incomeData),
+        credentials: "include",
       });
 
       const result = await response.json();
@@ -49,6 +60,12 @@ export const AddIncomeModal = ({ onClose }) => {
           draggable: true,
           theme: "light",
         });
+        
+        // Call the onAddIncome callback after successful addition
+        if (onAddIncome) {
+          onAddIncome();
+        }
+        
         onClose(); // Close the modal after successful submission
       } else {
         toast.error(result.error || "Failed to add income.", {
@@ -129,18 +146,49 @@ export const AddIncomeModal = ({ onClose }) => {
           )}
 
           {incomeType && (
-            <div className={styles.formGroup}>
-              <label htmlFor="amount" className={styles.label}>Amount:</label>
-              <input
-                id="amount"
-                type="number"
-                className={styles.input}
-                placeholder="RM 0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
+            <>
+              <div className={styles.formGroup}>
+                <label htmlFor="amount" className={styles.label}>Amount:</label>
+                <input
+                  id="amount"
+                  type="number"
+                  className={styles.input}
+                  placeholder="RM 0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={styles.formGroup}>
+                <label htmlFor="startDate" className={styles.label}>Start Date:</label>
+                <input
+                  id="startDate"
+                  type="date"
+                  className={styles.input}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={styles.formGroup}>
+                <label htmlFor="occurrence" className={styles.label}>Occurrence:</label>
+                <select
+                  id="occurrence"
+                  className={styles.input}
+                  value={occurrence}
+                  onChange={(e) => setOccurrence(e.target.value)}
+                  required
+                >
+                  {occurrenceOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
 
           <div className={styles.modalActions}>
@@ -148,7 +196,13 @@ export const AddIncomeModal = ({ onClose }) => {
             <button
               type="submit"
               className={styles.confirmButton}
-              disabled={!incomeType || !amount || (incomeType === "Passive" && !scholarship) || (incomeType === "Active" && !title)}
+              disabled={
+                !incomeType || 
+                !amount || 
+                !startDate || 
+                (incomeType === "Passive" && !scholarship) || 
+                (incomeType === "Active" && !title)
+              }
             >
               Add
             </button>

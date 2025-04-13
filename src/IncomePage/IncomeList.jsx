@@ -4,7 +4,12 @@ import { AddIncomeModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";
 import EditIncomeModal from "./EditIncomeModal";
 
-export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
+export default function IncomeList({
+  onUpdateTotalIncome,
+  activeFilter,
+  refreshTrigger,
+  onRefresh,
+}) {
   const [incomeItems, setIncomeItems] = useState([]);
   const [filteredIncomeItems, setFilteredIncomeItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,6 +17,7 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentIncome, setCurrentIncome] = useState(null);
   const [selectedIncomeId, setSelectedIncomeId] = useState(null);
+  const [isRecurringIncome, setIsRecurringIncome] = useState(false);
 
   // Fetch incomes from the backend
   const fetchIncomes = async () => {
@@ -25,18 +31,18 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
         // Format dates properly to avoid timezone issues
         const formattedIncomes = incomes.map((item) => {
           // Parse the date into year, month, day components
-          const dateParts = item.date.split('T')[0].split('-');
+          const dateParts = item.date.split("T")[0].split("-");
           const year = parseInt(dateParts[0]);
           const month = parseInt(dateParts[1]) - 1; // JS months are 0-indexed
           const day = parseInt(dateParts[2]);
-          
+
           // Create a date object that preserves the exact date regardless of timezone
           const fixedDate = new Date(year, month, day);
-          
+
           return {
             ...item,
-            date: item.date.split('T')[0], // Keep formatted date string for display
-            dateObj: fixedDate // Add proper date object for filtering
+            date: item.date.split("T")[0], // Keep formatted date string for display
+            dateObj: fixedDate, // Add proper date object for filtering
           };
         });
         setIncomeItems(formattedIncomes); // Populate the income list
@@ -50,37 +56,43 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
 
   useEffect(() => {
     fetchIncomes();
-  }, []);
+  }, [refreshTrigger]);
 
   // Apply time filter whenever activeFilter or incomeItems change
   useEffect(() => {
     if (!incomeItems.length) return;
-    
+
     const currentDate = new Date();
-    const filteredItems = incomeItems.filter(item => {
+    const filteredItems = incomeItems.filter((item) => {
       // Use the dateObj property which has the correct date
       const itemDate = item.dateObj;
-      
+
       switch (activeFilter) {
-        case 'thisMonth': {
+        case "thisMonth": {
           // Current month
-          return itemDate.getMonth() === currentDate.getMonth() && 
-                 itemDate.getFullYear() === currentDate.getFullYear();
+          return (
+            itemDate.getMonth() === currentDate.getMonth() &&
+            itemDate.getFullYear() === currentDate.getFullYear()
+          );
         }
-        case 'lastMonth': {
+        case "lastMonth": {
           // Last month
-          const lastMonth = currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
-          const lastMonthYear = currentDate.getMonth() === 0 ? 
-                               currentDate.getFullYear() - 1 : 
-                               currentDate.getFullYear();
-          return itemDate.getMonth() === lastMonth && 
-                 itemDate.getFullYear() === lastMonthYear;
+          const lastMonth =
+            currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
+          const lastMonthYear =
+            currentDate.getMonth() === 0
+              ? currentDate.getFullYear() - 1
+              : currentDate.getFullYear();
+          return (
+            itemDate.getMonth() === lastMonth &&
+            itemDate.getFullYear() === lastMonthYear
+          );
         }
-        case 'thisYear': {
+        case "thisYear": {
           // Current year
           return itemDate.getFullYear() === currentDate.getFullYear();
         }
-        case 'last12Months': {
+        case "last12Months": {
           // Last 12 months
           const twelveMonthsAgo = new Date();
           twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
@@ -90,24 +102,35 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
           return true;
       }
     });
-    
+
     setFilteredIncomeItems(filteredItems);
-    
+
     // Calculate and update total income based on filtered items
-    const total = filteredItems.reduce((acc, item) => acc + parseFloat(item.amount), 0);
+    const total = filteredItems.reduce(
+      (acc, item) => acc + parseFloat(item.amount),
+      0
+    );
     onUpdateTotalIncome(total);
   }, [activeFilter, incomeItems, onUpdateTotalIncome]);
 
   // Handle delete button click
-  const handleDeleteClick = (id) => {
+  const handleDeleteClick = (id, isRecurring = false) => {
     setSelectedIncomeId(id);
+    setIsRecurringIncome(isRecurring || false);
     setIsDeleteModalOpen(true);
   };
 
   // Confirm income deletion
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (deleteAllRecurrences = false) => {
     try {
-      const response = await fetch(`http://localhost:8080/income/delete/${selectedIncomeId}`, {
+      let url = `http://localhost:8080/income/delete/${selectedIncomeId}`;
+
+      // Add query parameter if deleting all recurrences
+      if (deleteAllRecurrences) {
+        url += "?deleteAllRecurrences=true";
+      }
+
+      const response = await fetch(url, {
         method: "DELETE",
         credentials: "include", // Send session cookies
       });
@@ -145,9 +168,19 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
     try {
       await fetchIncomes(); // Auto-refresh after adding a new one
       setIsModalOpen(false);
+      // Notify parent component that refresh occurred
+      if (onRefresh) {
+        onRefresh();
+      }
     } catch (error) {
       console.error("Error adding income:", error);
     }
+  };
+
+  // Format occurrence text for display
+  const formatOccurrence = (occurrence) => {
+    if (!occurrence || occurrence === "once") return null;
+    return occurrence.charAt(0).toUpperCase() + occurrence.slice(1);
   };
 
   return (
@@ -162,6 +195,19 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
                 <div className={styles.leftContent}>
                   <p className={styles.type}>Type: {item.type}</p>
                   <time className={styles.date}>{item.date}</time>
+
+                  {/* Display occurrence information if it's recurring */}
+                  {item.occurrence && item.occurrence !== "once" && (
+                    <p className={styles.occurrence}>
+                      <span className={styles.occurrenceLabel}>
+                        Recurring:{" "}
+                      </span>
+                      <span className={styles.occurrenceValue}>
+                        {formatOccurrence(item.occurrence)}
+                      </span>
+                    </p>
+                  )}
+
                   <div className={styles.amount}>
                     <span className={styles.currency}>RM</span>
                     <span className={styles.amount}>{item.amount}</span>
@@ -178,7 +224,9 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
                   <button
                     className={styles.iconButton}
                     aria-label="Delete income"
-                    onClick={() => handleDeleteClick(item.incomeID)}
+                    onClick={() =>
+                      handleDeleteClick(item.incomeID, item.isRecurring)
+                    }
                   >
                     <img loading="lazy" src="/delete-icon.svg" alt="Delete" />
                   </button>
@@ -187,20 +235,31 @@ export default function IncomeList({ onUpdateTotalIncome, activeFilter }) {
             </article>
           ))
         ) : (
-          <p className={styles.noIncome}>No income entries found for this period.</p>
+          <p className={styles.noIncome}>
+            No income entries found for this period.
+          </p>
         )}
       </div>
 
-      <button className={styles.addIncomeButton} onClick={() => setIsModalOpen(true)}>
+      <button
+        className={styles.addIncomeButton}
+        onClick={() => setIsModalOpen(true)}
+      >
         <img loading="lazy" src="/add-icon.svg" alt="Add" />
         <span>Add Income</span>
       </button>
 
-      {isModalOpen && <AddIncomeModal onClose={() => setIsModalOpen(false)} onAddIncome={handleAddIncome} />}
+      {isModalOpen && (
+        <AddIncomeModal
+          onClose={() => setIsModalOpen(false)}
+          onAddIncome={handleAddIncome}
+        />
+      )}
       {isDeleteModalOpen && (
         <DeleteModal
           onCancel={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteConfirm}
+          isRecurring={isRecurringIncome}
         />
       )}
       {isEditModalOpen && (

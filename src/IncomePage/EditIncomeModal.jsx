@@ -4,6 +4,8 @@ import styles from "./EditModal.module.css";
 
 export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
   const [amount, setAmount] = useState("");
+  const [occurrence, setOccurrence] = useState(income.occurrence || "once");
+  const [updateAllRecurrences, setUpdateAllRecurrences] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,6 +16,8 @@ export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
       date: income.date, // Keep original date
       title: income.title, // Keep original title
       source: income.source, // Keep original source
+      occurrence: occurrence, // Add occurrence to the update
+      updateAllRecurrences: income.isRecurring ? updateAllRecurrences : false, // Only send if it's recurring
     };
 
     try {
@@ -30,7 +34,19 @@ export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success("Income updated successfully!");
+        // Show different toast messages based on what was updated
+        if (amount && occurrence !== income.occurrence) {
+          toast.success("Amount and occurrence updated successfully!");
+        } else if (amount) {
+          toast.success("Amount updated successfully!");
+        } else if (occurrence !== income.occurrence) {
+          toast.success("Occurrence updated successfully!");
+        } else if (updateAllRecurrences) {
+          toast.success("Future occurrences updated successfully!");
+        } else {
+          toast.success("Income updated successfully!");
+        }
+        
         onUpdate(updatedIncome); // Update income in parent component
         onClose();
       } else {
@@ -45,7 +61,7 @@ export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.modalTitle}>Edit Amount</h2>
+        <h2 className={styles.modalTitle}>Edit Income</h2>
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label className={styles.label}>Type:</label>
@@ -64,9 +80,41 @@ export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
               placeholder={income.amount} // Placeholder shows current amount
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              required
             />
           </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Occurrence:</label>
+            <select
+              className={styles.input}
+              value={occurrence}
+              onChange={(e) => setOccurrence(e.target.value)}
+            >
+              <option value="once">Once</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          
+          {/* Show this checkbox only for recurring incomes */}
+          {income.isRecurring && (
+            <div className={styles.formGroup}>
+              <div className={styles.checkboxContainer}>
+                <input
+                  type="checkbox"
+                  id="updateAllRecurrences"
+                  checked={updateAllRecurrences}
+                  onChange={(e) => setUpdateAllRecurrences(e.target.checked)}
+                  className={styles.checkbox}
+                />
+                <label htmlFor="updateAllRecurrences" className={styles.checkboxLabel}>
+                  Update all future occurrences
+                </label>
+              </div>
+            </div>
+          )}
+          
           <div className={styles.modalActions}>
             <button
               type="button"

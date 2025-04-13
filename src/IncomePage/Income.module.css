@@ -216,6 +216,8 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  margin: 0;
+  
 }
   
 .title2 {
@@ -230,15 +232,26 @@
   align-items: center;
   gap: 24px;
   font: 400 14px Montserrat, sans-serif;
+  height: 20px;
 }
   
 .date,
-.type {
+.type,
+.occurrenceLabel,
+.occurrenceValue {
   color: #8d8d8d;
   font: 400 14px Montserrat, sans-serif;
   display: flex;
   align-items: center;
   margin: 0;
+}
+
+.occurrence {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  height: 20px;
 }
   
 .amount {
