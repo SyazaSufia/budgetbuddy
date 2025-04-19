@@ -23,7 +23,7 @@ import DashboardPage from './DashboardPage/Dashboard';
 import ExpensePage from './ExpensePage/Expense';
 import CommunityPage from './CommunityPage/Community';
 import AddPostPage from './CommunityPage/AddPostPage/InputDesign';
-import CommunityDetails from './CommunityPage/PostDetailsPage/Main';
+import CommunityDetails from './CommunityPage/PostDetailsPage/PostDetail';
 import AdminUserPage from './AdminPage/Users/InputDesign';
 import AdminCommunityPage from './AdminPage/Community/CommunityManagement';
 import './App.css';
@@ -79,7 +79,7 @@ const App = () => {
             <Route path="/expense" element={<ExpensePage user={user} />} />
             <Route path="/community" element={<CommunityPage user={user} />} />
             <Route path="/addpost" element={<AddPostPage user={user} />} />
-            <Route path="/postdetails" element={<CommunityDetails user={user} />} />
+            <Route path="/postdetails/:postId" element={<CommunityDetails user={user} />} />
             <Route path="/adminUser" element={<AdminUserPage />} />
             <Route path="/adminCommunity" element={<AdminCommunityPage />} />
           </Route>
