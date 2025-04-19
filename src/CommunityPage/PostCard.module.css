@@ -31,7 +31,16 @@
     flex-direction: column;
     justify-content: space-between; /* Keeps spacing consistent */
     max-height: 100%;
-}
+  }
+
+  .postAuthor {
+    color: black;
+    font-family: Montserrat;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    margin: 0px;
+  }
 
   .iconContainer {
     flex-direction: column;
@@ -45,14 +54,13 @@
     flex-direction: column; /* Stacks the elements vertically */
     flex: 1 0 auto; /* Ensures the container grows as needed */
     align-items: flex-start;
-    gap: 24px; /* Spacing between elements */
+    gap: 8px; /* Spacing between elements */
     width: 100%;
   }
   
   .textContent {
     flex-direction: column;
     flex: 1 0 0;
-    align-items: flex-start;
     gap: 8px;
     width: 100%;
     display: flex;
@@ -86,6 +94,7 @@
     font-weight: 400;
     line-height: 18px;
     overflow: hidden;
+    height: 20px;
     text-overflow: ellipsis;
 }
   
@@ -128,7 +137,7 @@
 }
 
 .iconContainer img {
-    max-width: 100%; /* Prevents the icon from getting too large */
+    width: 30px; /* Prevents the icon from getting too large */
     height: auto;
     object-fit: contain; /* Ensures it stays within the box */
 }

@@ -59,12 +59,12 @@ const getAllPosts = (req, res) => {
       p.updatedAt,
       u.userID,
       u.username, 
-      u.profilePicture,
+      u.profileImage,
       (SELECT COUNT(*) FROM community_comments WHERE postID = p.postID) as commentCount
     FROM 
       community_posts p
     JOIN 
-      users u ON p.userID = u.userID
+      user u ON p.userID = u.userID
     ORDER BY 
       p.createdAt DESC
     LIMIT ? OFFSET ?
@@ -127,11 +127,11 @@ const getPostById = (req, res) => {
       p.updatedAt,
       u.userID,
       u.username, 
-      u.profilePicture
+      u.profileImage
     FROM 
       community_posts p
     JOIN 
-      users u ON p.userID = u.userID
+      user u ON p.userID = u.userID
     WHERE 
       p.postID = ?
   `;
@@ -144,11 +144,11 @@ const getPostById = (req, res) => {
       c.createdAt,
       u.userID, 
       u.username, 
-      u.profilePicture
+      u.profileImage
     FROM 
       community_comments c
     JOIN 
-      users u ON c.userID = u.userID
+      user u ON c.userID = u.userID
     WHERE 
       c.postID = ?
     ORDER BY 

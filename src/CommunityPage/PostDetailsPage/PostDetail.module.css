@@ -1,8 +1,57 @@
+.communityDefault {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  height: 100%;
+  overflow-y: auto;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebarCollapsed .main {
+  margin-left: 64px;
+}
+
 .postDetailContainer {
-  max-width: 800px;
-  margin: 0 auto;
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding: 20px;
-  font-family: Montserrat, sans-serif;
+  font-family: "Montserrat";
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  padding: 48px;
+}
+
+:global(html), :global(body) {
+  background-color: #f9f9f9; 
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+:global(#root) {
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
 }
 
 .backButtonContainer {
@@ -14,7 +63,7 @@
   border: none;
   color: #151aa5;
   cursor: pointer;
-  font-family: Montserrat, sans-serif;
+  font-family: "Montserrat";
   font-size: 14px;
   font-weight: 600;
   padding: 0;
@@ -64,7 +113,7 @@
 
 .errorMessage {
   color: #e53935;
-  font-family: Montserrat, sans-serif;
+  font-family: "Montserrat";
   margin-bottom: 16px;
 }
 
@@ -74,7 +123,7 @@
   border: none;
   border-radius: 4px;
   padding: 8px 16px;
-  font-family: Montserrat, sans-serif;
+  font-family: "Montserrat";
   cursor: pointer;
 }
 
@@ -83,10 +132,13 @@
 }
 
 .postWrapper {
+  width: 100%;
+  margin: 0 auto;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  margin-bottom: 30px;
 }
 
 .postHeader {
@@ -154,16 +206,26 @@
 
 .commentForm {
   margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.commentForm :global(.RichTextEditor_editorContainer__XXXXX) {
+  margin-bottom: 12px;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .commentInput {
+  background-color: white;
+  color: black;
   width: 100%;
   height: 100px;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: vertical;
-  font-family: Montserrat, sans-serif;
+  font-family: "Montserrat";
   margin-bottom: 12px;
 }
 
@@ -173,7 +235,7 @@
   border: none;
   border-radius: 4px;
   padding: 10px 20px;
-  font-family: Montserrat, sans-serif;
+  font-family: "Montserrat";
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -209,6 +271,7 @@
 
 .commentAuthor {
   font-weight: 600;
+  font-size: 16px;
   color: #151aa5;
 }
 
@@ -221,6 +284,21 @@
   font-size: 14px;
   line-height: 1.5;
   color: #333;
+}
+
+.commentContent :global(p) {
+  margin-bottom: 8px;
+}
+
+.commentContent :global(ul), .commentContent :global(ol) {
+  margin-left: 20px;
+  margin-bottom: 8px;
+}
+
+.commentContent :global(h2) {
+  font-size: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .noComments {
