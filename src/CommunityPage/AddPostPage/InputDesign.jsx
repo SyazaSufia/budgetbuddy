@@ -1,49 +1,20 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./InputDesign.module.css";
-import SidebarNav from "../SideBar"; // Import SidebarNav component
-import { ChevronRight, Link2, Minus, Bold, Italic, Underline, Strikethrough, List, ListOrdered, AlignCenter, AlignLeft, AlignRight, Indent, Outdent, Edit } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { SideBar } from "../SideBar";
+import { ChevronRightIcon, PencilIcon, AlertIcon } from "./Icons";
 
-// Icons with black color
-const ChevronRightIcon = () => <ChevronRight size={20} color="black" />;
-const LinkIcon = () => <Link2 size={24} color="black" />;
-const HorizontalLineIcon = () => <Minus size={24} color="black" />;
-const BoldIcon = () => <Bold size={24} color="black" />;
-const ItalicIcon = () => <Italic size={24} color="black" />;
-const UnderlineIcon = () => <Underline size={24} color="black" />;
-const StrikethroughIcon = () => <Strikethrough size={24} color="black" />;
-const BulletListIcon = () => <List size={24} color="black" />;
-const NumberedListIcon = () => <ListOrdered size={24} color="black" />;
-const AlignCenterIcon = () => <AlignCenter size={24} color="black" />;
-const AlignLeftIcon = () => <AlignLeft size={24} color="black" />;
-const AlignRightIcon = () => <AlignRight size={24} color="black" />;
-const IndentIncreaseIcon = () => <Indent size={24} color="black" />;
-const IndentDecreaseIcon = () => <Outdent size={24} color="black" />;
-const PencilIcon = () => <Edit size={16} color="black" />;
-
-export {
-  ChevronRightIcon,
-  LinkIcon,
-  HorizontalLineIcon,
-  BoldIcon,
-  ItalicIcon,
-  UnderlineIcon,
-  StrikethroughIcon,
-  BulletListIcon,
-  NumberedListIcon,
-  AlignCenterIcon,
-  AlignLeftIcon,
-  AlignRightIcon,
-  IndentIncreaseIcon,
-  IndentDecreaseIcon,
-  PencilIcon,
-};
+// Import the separated RichTextEditor component
+import RichTextEditor from "./RichTextEditor";
 
 // Breadcrumb Component
 const Breadcrumb = () => {
   return (
     <nav className={styles.breadcrumbContainer}>
       <div className={styles.breadcrumbItem}>
-        <a href="#" className={styles.breadcrumbLink}>
+        <a href="/community" className={styles.breadcrumbLink}>
           Community
         </a>
         <ChevronRightIcon />
@@ -54,125 +25,84 @@ const Breadcrumb = () => {
 };
 
 // Form Field Component
-const FormField = ({ label, placeholder, required, isTextarea = false }) => {
+const FormField = ({
+  label,
+  placeholder,
+  required,
+  value,
+  onChange,
+  error,
+}) => {
   return (
     <div className={styles.fieldContainer}>
       <div className={styles.fieldLabelContainer}>
         <label className={styles.fieldLabel}>{label}</label>
         {required && <span className={styles.requiredMark}>*</span>}
       </div>
-      {!isTextarea ? (
-        <div className={styles.inputWrapper}>
-          <div className={styles.inputField}>
-            <div className={styles.inputContent}>
-              <input
-                type="text"
-                placeholder={placeholder}
-                className={styles.inputPlaceholder}
-                required={required}
-              />
-            </div>
+      <div className={styles.inputWrapper}>
+        <div className={styles.inputField}>
+          <div className={styles.inputContent}>
+            <input
+              type="text"
+              placeholder={placeholder}
+              className={styles.inputPlaceholder}
+              required={required}
+              value={value}
+              onChange={onChange}
+            />
           </div>
         </div>
-      ) : null}
-    </div>
-  );
-};
-
-// Rich Text Editor Toolbar Component
-const RichTextToolbar = () => {
-  return (
-    <div className={styles.toolbar}>
-      <div className={styles.toolbarGroup}>
-        <button className={styles.headingButton} aria-label="Heading">
-          H
-        </button>
-        <button aria-label="Link">
-          <LinkIcon />
-        </button>
-        <button aria-label="Horizontal Line">
-          <HorizontalLineIcon />
-        </button>
       </div>
-      <div className={styles.toolbarGroup}>
-        <button aria-label="Bold">
-          <BoldIcon />
-        </button>
-        <button aria-label="Italic">
-          <ItalicIcon />
-        </button>
-        <button aria-label="Underline">
-          <UnderlineIcon />
-        </button>
-        <button aria-label="Strikethrough">
-          <StrikethroughIcon />
-        </button>
-      </div>
-      <div className={styles.toolbarGroup}>
-        <button aria-label="Bullet List">
-          <BulletListIcon />
-        </button>
-        <button aria-label="Numbered List">
-          <NumberedListIcon />
-        </button>
-      </div>
-      <div className={styles.toolbarGroup}>
-        <button aria-label="Align Center">
-          <AlignCenterIcon />
-        </button>
-        <button aria-label="Align Left">
-          <AlignLeftIcon />
-        </button>
-        <button aria-label="Align Right">
-          <AlignRightIcon />
-        </button>
-        <button aria-label="Increase Indent">
-          <IndentIncreaseIcon />
-        </button>
-        <button aria-label="Decrease Indent">
-          <IndentDecreaseIcon />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Rich Text Editor Component
-const RichTextEditor = ({ placeholder }) => {
-  return (
-    <div className={styles.editorContainer}>
-      <RichTextToolbar />
-      <div className={styles.editorField}>
-        <textarea
-          className={styles.editorPlaceholder}
-          placeholder={placeholder}
-        ></textarea>
-        <div className={styles.editorActions}>
-          <button aria-label="Edit">
-            <PencilIcon />
-          </button>
+      {error && (
+        <div className={styles.errorMessage}>
+          <AlertIcon /> {error}
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-// Action Buttons Component
-const ActionButtons = () => {
-  return (
-    <div className={styles.formActions}>
-      <button className={styles.cancelButton}>Cancel</button>
-      <button className={styles.addButton} disabled>
-        Add
-      </button>
-    </div>
-  );
-};
+// PostForm Component
+const PostForm = ({ onSubmit, isSubmitting }) => {
+  const [subject, setSubject] = useState("");
+  const [content, setContent] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
-// Post Form Component
-const PostForm = () => {
+  // Check form validity whenever subject or content changes
+  useEffect(() => {
+    const subjectValid = subject.trim() !== "";
+    const contentValid =
+      content.trim() !== "" && content !== "<br>" && content !== "<p></p>";
+    setIsFormValid(subjectValid && contentValid);
+  }, [subject, content]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!subject.trim()) {
+      newErrors.subject = "Subject is required";
+    }
+    if (!content.trim() || content === "<br>" || content === "<p></p>") {
+      newErrors.content = "Content is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      await onSubmit({ subject, content });
+    }
+  };
+
+  const handleCancel = () => {
+    navigate("/community");
+  };
+
   return (
-    <section className={styles.formContainer}>
+    <form className={styles.formContainer} onSubmit={handleSubmit}>
       <div className={styles.formContent}>
         <h1 className={styles.formTitle}>New Post</h1>
 
@@ -180,6 +110,9 @@ const PostForm = () => {
           label="Subject"
           placeholder="Enter a subject"
           required={true}
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          error={errors.subject}
         />
 
         <div className={styles.fieldContainer}>
@@ -187,31 +120,133 @@ const PostForm = () => {
             <label className={styles.fieldLabel}>Content</label>
             <span className={styles.requiredMark}>*</span>
           </div>
-          <RichTextEditor placeholder="Add a message here" />
+          <RichTextEditor
+            placeholder="Add a message here"
+            onChange={setContent}
+            error={errors.content}
+          />
         </div>
 
-        <ActionButtons />
+        <div className={styles.formActions}>
+          <button
+            className={styles.cancelButton}
+            onClick={handleCancel}
+            disabled={isSubmitting}
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            className={`${styles.addButton} ${isFormValid ? styles.addButtonActive : ""}`}
+            disabled={isSubmitting || !isFormValid}
+            type="submit"
+          >
+            {isSubmitting ? "Posting..." : "Add"}
+          </button>
+        </div>
       </div>
-    </section>
+    </form>
   );
 };
 
 // Main Component
 function InputDesign({ user }) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  // Handle sidebar collapse toggle
+  const handleSidebarToggle = (isCollapsed) => {
+    setIsSidebarCollapsed(isCollapsed);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (formData) => {
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      // Call the API endpoint to create a new post using fetch
+      const response = await fetch("http://localhost:8080/community/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject: formData.subject,
+          content: formData.content,
+        }),
+        credentials: "include", // Include session cookies
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        navigate(`/community?toast=success&message=Post created successfully!`);
+      } else {
+        setError(data.error || "Failed to create post. Please try again.");
+        toast.error(data.error || "Failed to create post. Please try again.", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    } catch (err) {
+      console.error("Error creating post:", err);
+      const errorMessage =
+        "An error occurred while creating your post. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className={styles.container}>
-      <div className={styles.content}>
-        <SidebarNav /> {/* Sidebar added */}
-        <div className={styles.main}>
-          <header className={styles.headerContainer}>
-            <h2 className={styles.greeting}>Hello, {user?.name || "Guest"}!</h2>
-          </header>
-          <div className={styles.mainContent}>
-            <Breadcrumb />
-            <PostForm />
-          </div>
+      <SideBar onToggleCollapse={handleSidebarToggle} />
+      <div
+        className={`${styles.content} ${isSidebarCollapsed ? styles.expandedContent : ""}`}
+      >
+        <header className={styles.headerContainer}>
+          <h2 className={styles.greeting}>Hello, {user?.name || "Guest"}!</h2>
+        </header>
+        <div className={styles.mainContent}>
+          <Breadcrumb />
+
+          {error && (
+            <div className={styles.errorAlert}>
+              <AlertIcon /> {error}
+            </div>
+          )}
+
+          <PostForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </div>
       </div>
+      {/* Explicitly configure the ToastContainer */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        style={{ zIndex: 9999 }}
+      />
     </main>
   );
 }

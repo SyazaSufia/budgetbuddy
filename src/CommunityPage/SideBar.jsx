@@ -25,7 +25,13 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
   }, [isCollapsed, onToggleCollapse]);
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    
+    // Call onToggleCollapse callback immediately to prevent delay
+    if (onToggleCollapse) {
+      onToggleCollapse(newCollapsedState);
+    }
   };
 
   const openSignOutModal = () => {
@@ -74,7 +80,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
                 key={item.id} 
                 className={`${styles.menuItem} ${item.active ? styles.menuItemActive : ""}`} 
                 role="button" 
-                tabIndex={0} 
+                tabIndex={0}
                 onClick={() => navigate(item.path)}
               >
                 <img src={item.icon} className={styles.menuIcon} alt={`${item.label} icon`} />
