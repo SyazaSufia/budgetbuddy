@@ -17,6 +17,7 @@ const expenseRoutes = require("./routes/expenseRoutes"); // Import expense route
 const budgetRoutes = require("./routes/budgetRoutes"); // Import budget routes
 const adminRoutes = require("./routes/adminRoutes"); // Import admin routes
 const dashboardRoutes = require("./routes/dashboardRoutes"); // Import dashboard routes
+const communityRoutes = require("./routes/communityRoutes"); // Import community routes
 
 incomeScheduler.initialize(); // Initialize the income scheduler
 
@@ -77,6 +78,8 @@ app.use("/budget", budgetRoutes);
 app.use("/admin", adminRoutes);
 // Dashboard routes
 app.use("/dashboard", dashboardRoutes);
+// Community routes
+app.use("/community", communityRoutes);
 
 // Sign-up endpoint
 app.post("/sign-up", (req, res) => {
