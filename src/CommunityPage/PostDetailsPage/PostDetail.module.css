@@ -150,7 +150,8 @@
   color: #151aa5;
   font-size: 24px;
   font-weight: 700;
-  margin: 0 0 12px 0;
+  margin: 16px 0 24px 0;
+  padding: 0px;
 }
 
 .postInfo {
@@ -159,6 +160,32 @@
   align-items: center;
   color: #757575;
   font-size: 14px;
+}
+
+/* New styles for post author with image */
+.postAuthorContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.postAuthorImage {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.defaultProfileImage {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #555;
 }
 
 .postAuthor {
@@ -197,7 +224,7 @@
   padding: 20px;
 }
 
-.commentHeader {
+.commentSectionHeader {
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 16px 0;
@@ -266,12 +293,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+/* New styles for comment author with image */
+.commentAuthorContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.commentAuthorImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.commentDefaultImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #555;
+  font-size: 14px;
 }
 
 .commentAuthor {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   color: #151aa5;
 }
 
@@ -318,5 +372,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+  
+  .commentContent {
+    margin-left: 0; /* Remove the margin on small screens */
   }
 }

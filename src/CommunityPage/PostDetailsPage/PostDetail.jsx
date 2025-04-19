@@ -4,6 +4,8 @@ import styles from "./PostDetail.module.css";
 import { format } from "date-fns";
 import RichTextEditor from "../AddPostPage/RichTextEditor";
 import SidebarNav from "../SideBar";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function PostDetail({ user }) {
   const { postId } = useParams();
@@ -82,6 +84,15 @@ function PostDetail({ user }) {
       const data = await response.json();
 
       if (data.success) {
+        // Show success toast notification
+        toast.success("Comment added successfully!", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         // Refresh post to get the new comment
         const postResponse = await fetch(
           `http://localhost:8080/community/posts/${postId}`,
@@ -103,8 +114,17 @@ function PostDetail({ user }) {
         throw new Error(data.error || "Unknown error occurred");
       }
     } catch (err) {
-      console.error("Error submitting comment:", err);
-      alert(`Failed to submit comment: ${err.message}`);
+      toast.error(
+        err.message || "Failed to submit comment. Please try again.",
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
     } finally {
       setIsSubmittingComment(false);
     }
@@ -152,9 +172,22 @@ function PostDetail({ user }) {
                 <div className={styles.postHeader}>
                   <h1 className={styles.postTitle}>{post.subject}</h1>
                   <div className={styles.postInfo}>
-                    <span className={styles.postAuthor}>
-                      Posted by: {post.username}
-                    </span>
+                    <div className={styles.postAuthorContainer}>
+                      {post.profileImage ? (
+                        <img
+                          src={post.profileImage}
+                          alt={`${post.username}'s profile`}
+                          className={styles.postAuthorImage}
+                        />
+                      ) : (
+                        <div className={styles.defaultProfileImage}>
+                          {post.username
+                            ? post.username.charAt(0).toUpperCase()
+                            : "?"}
+                        </div>
+                      )}
+                      <span className={styles.postAuthor}>{post.username}</span>
+                    </div>
                     <span className={styles.postDate}>
                       <img
                         src="/calendarGrey.svg"
@@ -173,7 +206,7 @@ function PostDetail({ user }) {
                 />
 
                 <div className={styles.commentSection}>
-                  <h2 className={styles.commentHeader}>
+                  <h2 className={styles.commentSectionHeader}>
                     Comments ({post.comments?.length || 0})
                   </h2>
 
@@ -204,8 +237,23 @@ function PostDetail({ user }) {
                           className={styles.commentItem}
                         >
                           <div className={styles.commentHeader}>
-                            <div className={styles.commentAuthor}>
-                              {comment.username}
+                            <div className={styles.commentAuthorContainer}>
+                              {comment.profileImage ? (
+                                <img
+                                  src={comment.profileImage}
+                                  alt={`${comment.username}'s profile`}
+                                  className={styles.commentAuthorImage}
+                                />
+                              ) : (
+                                <div className={styles.commentDefaultImage}>
+                                  {comment.username
+                                    ? comment.username.charAt(0).toUpperCase()
+                                    : "?"}
+                                </div>
+                              )}
+                              <div className={styles.commentAuthor}>
+                                {comment.username}
+                              </div>
                             </div>
                             <div className={styles.commentDate}>
                               {formatDate(comment.createdAt)}
@@ -241,6 +289,19 @@ function PostDetail({ user }) {
           </div>
         </section>
       </div>
+      {/* Add ToastContainer to display toast notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        style={{ zIndex: 9999 }}
+      />
     </main>
   );
 }

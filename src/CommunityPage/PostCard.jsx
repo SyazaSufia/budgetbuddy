@@ -2,7 +2,6 @@ import React from "react";
 import styles from "./PostCard.module.css";
 import { formatDistanceToNow } from 'date-fns'; // For formatting dates
 
-// Update PostCard to handle both direct props and post object
 function PostCard({ post, title, description, commentCount, date }) {
   // If post object is provided, use its data, otherwise use direct props
   const usePost = post !== undefined;
@@ -11,6 +10,7 @@ function PostCard({ post, title, description, commentCount, date }) {
   const postTitle = usePost ? post.subject : title;
   const postCommentCount = usePost ? (post.commentCount || 0) : commentCount;
   const username = usePost ? post.username : null;
+  const profileImage = usePost ? post.profileImage : null;
   
   // Format date
   let formattedDate;
@@ -41,13 +41,25 @@ function PostCard({ post, title, description, commentCount, date }) {
   return (
     <article className={styles.postCard}>
       <div className={styles.postContent}>
-        <div className={styles.iconContainer}>
-          <img src="/chat-icon.svg" alt="Chat" width="40" height="25" />
-        </div>
+        {usePost && (
+          <div className={styles.userInfo}>
+            {profileImage ? (
+              <img 
+                src={profileImage} 
+                alt={`${username}'s profile`} 
+                className={styles.profileImage} 
+              />
+            ) : (
+              <div className={styles.defaultProfileImage}>
+                {username ? username.charAt(0).toUpperCase() : '?'}
+              </div>
+            )}
+            <span className={styles.username}>{username}</span>
+          </div>
+        )}
         <div className={styles.postBody}>
           <div className={styles.textContent}>
             <h2 className={styles.postTitle}>{postTitle}</h2>
-            {username && <p className={styles.postAuthor}>Posted by: {username}</p>}
             <p className={styles.postDescription}>{postDescription}</p>
           </div>
           <div className={styles.postMeta}>
