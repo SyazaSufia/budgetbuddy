@@ -1,13 +1,13 @@
 import React from 'react';
 import styles from './DeleteModal.module.css';
 
-export const DeleteModal = ({ expenseId, onCancel, onConfirm }) => {
+export const DeleteModal = ({ onCancel, onConfirm }) => {
   return (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true">
       <div className={styles.modalContent}>
-        <h2 className={styles.modalTitle}>Delete Expense?</h2> {/* Changed "Category" to "Expense" */}
+        <h2 className={styles.modalTitle}>Delete Category?</h2>
         <p className={styles.modalText}>
-          Are you sure you want to delete this expense? This action cannot be undone.
+          Are you sure you want to delete this category? This will also delete all expenses in this category. This action cannot be undone.
         </p>
         <div className={styles.modalActions}>
           <button 
@@ -17,7 +17,7 @@ export const DeleteModal = ({ expenseId, onCancel, onConfirm }) => {
             Cancel
           </button>
           <button 
-            onClick={() => onConfirm(expenseId)}
+            onClick={onConfirm}
             className={styles.confirmButton}
           >
             Confirm

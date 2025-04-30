@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./AddModal.module.css";
+import { toast } from "react-toastify"; // Make sure this is imported
 
 export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
   const [title, setTitle] = useState("");
@@ -40,13 +41,15 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
     setIsSubmitting(true);
 
     try {
+      // Updated payload to match what the controller expects
       const payload = {
         title: trimmedTitle,
         amount: parseFloat(amount),
       };
 
+      // Updated endpoint to match the new route structure
       const response = await fetch(
-        `http://localhost:8080/expense/expense/${expense.expenseID}`,
+        `http://localhost:8080/expenses/${expense.expenseID}`,
         {
           method: "PUT",
           headers: {
@@ -91,9 +94,9 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
     existingAmount = 0
   ) => {
     try {
-      // Fetch the budget information for this category
+      // Fetch the budget information for this category - using the route from budgetRoutes
       const response = await fetch(
-        `http://localhost:8080/budget/budgets/category/${categoryId}`,
+        `http://localhost:8080/categories/${categoryId}`,
         {
           credentials: "include",
         }
@@ -207,5 +210,3 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
     </div>
   );
 };
-
-export default EditExpenseModal;

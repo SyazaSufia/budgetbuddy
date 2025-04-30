@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styles from "./AddModal.module.css";
+import { toast } from "react-toastify"; // Make sure this is imported
 
 export const AddExpenseModal = ({
   onClose,
@@ -9,6 +10,11 @@ export const AddExpenseModal = ({
 }) => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
+
+  // API base URLs with proper prefixes
+  const API_BASE_URL = "http://localhost:8080";
+  const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
+  const ADD_EXPENSE_URL = `${API_BASE_URL}/expense/expenses`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,15 +38,17 @@ export const AddExpenseModal = ({
 
     try {
       console.log("Submitting expense with categoryId:", categoryId);
+      // Updated payload structure to match what the controller expects
       const payload = {
-        category: categoryId,
+        categoryID: categoryId, // Changed from 'category' to 'categoryID'
         title: trimmedTitle,
         amount: parseFloat(amount),
         date,
       };
       console.log("Payload:", payload);
 
-      const response = await fetch("http://localhost:8080/expense/expense", {
+      // Updated endpoint with the correct prefixed URL
+      const response = await fetch(ADD_EXPENSE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,9 +62,9 @@ export const AddExpenseModal = ({
       if (response.ok && result.success) {
         console.log("Success response:", result);
 
-        // Create new expense object with the data we have
+        // Create new expense object with the data from the server response
         const newExpense = {
-          expenseID: result.insertId || Date.now(), // Use the ID from server if available
+          expenseID: result.data.expenseID || Date.now(), // Use the ID from server if available
           categoryID: categoryId,
           title: trimmedTitle,
           amount: parseFloat(amount),
@@ -64,7 +72,9 @@ export const AddExpenseModal = ({
         };
 
         // Update the category amount optimistically
-        updateCategoryAmount(categoryId, amount);
+        if (updateCategoryAmount) {
+          updateCategoryAmount(categoryId, amount);
+        }
 
         // Call the parent component's handler with the new expense
         onAdd(newExpense);
@@ -73,7 +83,7 @@ export const AddExpenseModal = ({
         onClose();
       } else {
         console.error("Error response:", result);
-        alert("Error adding expense: " + (result.error || "Unknown error"));
+        alert("Error adding expense: " + (result.message || "Unknown error"));
       }
     } catch (error) {
       console.error("Error caught:", error);
@@ -88,13 +98,10 @@ export const AddExpenseModal = ({
     existingAmount = 0
   ) => {
     try {
-      // Fetch the budget information for this category
-      const response = await fetch(
-        `http://localhost:8080/budget/budgets/category/${categoryId}`,
-        {
-          credentials: "include",
-        }
-      );
+      // Fetch the category information using the correct URL with prefix
+      const response = await fetch(CATEGORY_URL(categoryId), {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         console.log("No budget set for this category");
