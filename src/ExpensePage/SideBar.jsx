@@ -7,8 +7,8 @@ const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: "/dashboard-icon.svg", path: "/dashboard" },
   { id: "personal", label: "Personal", icon: "/profile-icon.svg", path: "/profile" },
   { id: "income", label: "Income", icon: "/income-icon.svg", path: "/income" },
-  { id: "expenses", label: "Expenses", icon: "/expenses-icon.svg", path: "/expense", active: true },
   { id: "budget", label: "Budget", icon: "/budget-icon.svg", path: "/budget" },
+  { id: "expenses", label: "Expenses", icon: "/expenses-icon.svg", path: "/expense", active: true },
   { id: "community", label: "Community", icon: "/community-icon.svg", path: "/community" }
 ];
 
