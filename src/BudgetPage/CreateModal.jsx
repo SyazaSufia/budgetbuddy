@@ -1,89 +1,72 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "./CreateModal.module.css";
 
 export const CreateBudgetModal = ({ onClose, onAdd }) => {
-  const [categories, setCategories] = useState([]);
-  const [budgets, setBudgets] = useState([]);
-  const [selectedCategoryID, setSelectedCategoryID] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [customCategoryName, setCustomCategoryName] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [catRes, budgetRes] = await Promise.all([
-          fetch("http://localhost:8080/expense/categories", {
-            credentials: "include",
-          }),
-          fetch("http://localhost:8080/budget/budgets", {
-            credentials: "include",
-          }),
-        ]);
+  const categories = [
+    { name: "Food & Groceries", icon: "/food-icon.svg" },
+    { name: "Transportation", icon: "/transport-icon.svg" },
+    { name: "Shopping", icon: "/shopping-icon.svg" },
+    { name: "Entertainment", icon: "/entertainment-icon.svg" },
+    { name: "Housing", icon: "/housing-icon.svg" },
+    { name: "Subscriptions", icon: "/subscription-icon.svg" },
+    { name: "Savings", icon: "/saving-icon.svg" },
+    { name: "Others", icon: "/otherExpense-icon.svg" },
+  ];
 
-        const catData = await catRes.json();
-        const budgetData = await budgetRes.json();
-
-        if (catData.success && budgetData.success) {
-          setCategories(catData.data);
-          setBudgets(budgetData.data);
-        } else {
-          alert("Failed to load categories or budgets.");
-        }
-      } catch (err) {
-        console.error("Error loading modal data:", err);
-        alert("Error loading data. Please try again.");
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const usedCategoryIDs = budgets.map((b) => b.categoryID);
-  const availableCategories = categories.filter(
-    (cat) => !usedCategoryIDs.includes(cat.categoryID)
-  );
+  const handleCategoryChange = (e) => {
+    const categoryName = e.target.value;
+    const category = categories.find(cat => cat.name === categoryName);
+    setSelectedCategory(category || "");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedCategoryID) {
-      alert("Please select a category.");
+    if (!selectedCategory) {
+      setError("Please select a category.");
+      return;
+    }
+
+    if (selectedCategory.name === "Others" && !customCategoryName.trim()) {
+      setError("Please enter a custom category name.");
       return;
     }
 
     setIsSubmitting(true);
+    setError("");
 
     try {
-      // Fixed the endpoint URL to match the backend route
-      const response = await fetch("http://localhost:8080/budget/budget", {
+      const budgetName =
+        selectedCategory.name === "Others"
+          ? customCategoryName.trim()
+          : selectedCategory.name;
+
+      const response = await fetch("http://localhost:8080/budget/budgets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ categoryID: selectedCategoryID }),
+        body: JSON.stringify({
+          budgetName,
+          icon: selectedCategory.icon,
+        }),
       });
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        const selected = categories.find(
-          (c) => c.categoryID === parseInt(selectedCategoryID)
-        );
-
-        onAdd({
-          budgetID: result.insertId,
-          categoryID: selectedCategoryID,
-          categoryName: selected.categoryName,
-          icon: selected.icon,
-          categoryAmount: 0,
-          targetAmount: 2000,
-        });
-
+        onAdd(result.data); // send new budget to parent
         onClose();
       } else {
-        alert(result.message || "Error creating budget.");
+        setError(result.message || "Error creating budget.");
       }
     } catch (err) {
-      console.error("Error submitting budget:", err);
-      alert("An error occurred.");
+      console.error("Error creating budget:", err);
+      setError("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -93,31 +76,46 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.modalTitle}>Create New Budget</h2>
+
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
-            <label htmlFor="categoryID" className={styles.label}>
-              Select Category:
+            <label htmlFor="category" className={styles.label}>
+              Category:
             </label>
             <select
-              id="categoryID"
-              className={styles.input}
-              value={selectedCategoryID}
-              onChange={(e) => setSelectedCategoryID(e.target.value)}
+              id="category"
+              className={styles.select}
+              value={selectedCategory?.name || ""}
+              onChange={handleCategoryChange}
               required
-              disabled={availableCategories.length === 0}
             >
-              <option value="">
-                {availableCategories.length === 0
-                  ? "-- No Available Categories --"
-                  : "-- Select --"}
-              </option>
-              {availableCategories.map((cat) => (
-                <option key={cat.categoryID} value={cat.categoryID}>
-                  {cat.categoryName}
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category.name} value={category.name}>
+                  {category.name}
                 </option>
               ))}
             </select>
           </div>
+
+          {selectedCategory?.name === "Others" && (
+            <div className={styles.formGroup}>
+              <label htmlFor="customCategory" className={styles.label}>
+                Budget Title:
+              </label>
+              <input
+                id="customCategory"
+                type="text"
+                className={styles.input}
+                value={customCategoryName}
+                onChange={(e) => setCustomCategoryName(e.target.value)}
+                placeholder="Enter custom budget name"
+                required
+              />
+            </div>
+          )}
 
           <div className={styles.modalActions}>
             <button
@@ -127,15 +125,13 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
             >
               Cancel
             </button>
-            {availableCategories.length > 0 && (
-              <button
-                type="submit"
-                className={styles.confirmButton}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Creating..." : "Create Budget"}
-              </button>
-            )}
+            <button
+              type="submit"
+              className={styles.confirmButton}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create Budget"}
+            </button>
           </div>
         </form>
       </div>

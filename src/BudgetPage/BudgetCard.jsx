@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import styles from "./BudgetCard.module.css";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { CreateBudgetModal } from "./CreateModal";
 import { useNavigate } from "react-router-dom";
-import BudgetIndicator from "./BudgetIndicator"; // Import BudgetIndicator
+import BudgetIndicator from "./BudgetIndicator";
 
 function BudgetCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +28,6 @@ function BudgetCard() {
           // Ensure default values if properties are missing
           const processedBudgets = data.data.map((budget) => ({
             ...budget,
-            categoryAmount: budget.categoryAmount || 0,
             targetAmount: budget.targetAmount || 2000,
           }));
           setBudgets(processedBudgets);
@@ -57,7 +56,7 @@ function BudgetCard() {
     setIsModalOpen(false);
 
     // Show success toast when budget is added
-    toast.success(`Budget "${newBudget.categoryName}" created successfully!`);
+    toast.success(`Budget "${newBudget.budgetName}" created successfully!`);
 
     // Refresh the budgets from the server to get the actual amounts
     fetchBudgets();
@@ -68,7 +67,7 @@ function BudgetCard() {
     navigate(`/budgetdetails/${budget.budgetID}`, { state: { budget } });
   };
 
-  // Calculate progress color based on percentage - updated to match BudgetDetails logic
+  // Calculate progress color based on percentage
   const getProgressColor = (current, target) => {
     const percentage = (current / target) * 100;
 
@@ -98,49 +97,56 @@ function BudgetCard() {
           <p>No budgets found. Create your first budget!</p>
         </div>
       ) : (
-        budgets.map((budget) => (
-          <div
-            key={budget.budgetID}
-            className={styles.card}
-            onClick={() => navigateToBudgetDetails(budget)}
-          >
-            <div className={styles.iconWrapper}>
-              <img
-                src={budget.icon || "/default-icon.svg"}
-                alt={budget.categoryName}
-                width={50}
-                height={50}
-              />
-            </div>
-            <div className={styles.contentContainer}>
-              <div className={styles.title}>{budget.categoryName}</div>
-              <div className={styles.description}>
-                RM {budget.categoryAmount.toLocaleString()} / RM{" "}
-                {budget.targetAmount.toLocaleString()}
-              </div>
-              <div className={styles.progressBarContainer}>
-                <div
-                  className={`${styles.progressBar} ${getProgressColor(
-                    budget.categoryAmount,
-                    budget.targetAmount
-                  )}`}
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (budget.categoryAmount / budget.targetAmount) * 100
-                    )}%`,
-                  }}
+        budgets.map((budget) => {
+          // Calculate spent amount from categories if available
+          const spentAmount = budget.categories ? 
+            budget.categories.reduce((total, cat) => total + cat.categoryAmount, 0) : 
+            0;
+            
+          return (
+            <div
+              key={budget.budgetID}
+              className={styles.card}
+              onClick={() => navigateToBudgetDetails(budget)}
+            >
+              <div className={styles.iconWrapper}>
+                <img
+                  src={budget.icon || "/default-icon.svg"}
+                  alt={budget.budgetName}
+                  width={50}
+                  height={50}
                 />
               </div>
-              
-              {/* Add BudgetIndicator component */}
-              <BudgetIndicator 
-                currentAmount={budget.categoryAmount} 
-                targetAmount={budget.targetAmount} 
-              />
+              <div className={styles.contentContainer}>
+                <div className={styles.title}>{budget.budgetName}</div>
+                <div className={styles.description}>
+                  RM {spentAmount.toLocaleString()} / RM{" "}
+                  {budget.targetAmount.toLocaleString()}
+                </div>
+                <div className={styles.progressBarContainer}>
+                  <div
+                    className={`${styles.progressBar} ${getProgressColor(
+                      spentAmount,
+                      budget.targetAmount
+                    )}`}
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        (spentAmount / budget.targetAmount) * 100
+                      )}%`,
+                    }}
+                  />
+                </div>
+                
+                {/* Add BudgetIndicator component */}
+                <BudgetIndicator 
+                  currentAmount={spentAmount} 
+                  targetAmount={budget.targetAmount} 
+                />
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
 
       {/* Button to create new budget */}

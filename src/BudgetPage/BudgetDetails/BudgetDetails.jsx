@@ -5,7 +5,7 @@ import styles from "./BudgetDetails.module.css";
 import Sidebar from "../SideBar";
 import BreadcrumbNav from "./BreadCrumbNav";
 import { DeleteModal } from "./DeleteModal";
-import BudgetIndicator from "../BudgetIndicator"; // Import BudgetIndicator
+import BudgetIndicator from "../BudgetIndicator";
 
 function BudgetDetails() {
   const { budgetID } = useParams();
@@ -13,11 +13,10 @@ function BudgetDetails() {
   const navigate = useNavigate();
   const [budgetDetails, setBudgetDetails] = useState({
     budget: location.state?.budget || {
-      categoryName: "",
-      categoryAmount: 0,
+      budgetName: "",
       targetAmount: 2000,
     },
-    history: [],
+    categories: []
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +32,12 @@ function BudgetDetails() {
     setIsSidebarCollapsed(collapsed);
   };
 
+  // Calculate total amount spent across all categories
+  const calculateTotalSpent = () => {
+    return budgetDetails.categories.reduce((total, category) => 
+      total + parseFloat(category.categoryAmount || 0), 0);
+  };
+
   useEffect(() => {
     // If we don't have a budgetID, redirect to the budgets page
     if (!budgetID) {
@@ -46,14 +51,13 @@ function BudgetDetails() {
         ...prev,
         budget: {
           ...location.state.budget,
-          categoryAmount: location.state.budget.categoryAmount || 0,
           targetAmount: location.state.budget.targetAmount || 2000,
         },
       }));
       setTargetAmount(location.state.budget.targetAmount || 2000);
     }
 
-    // Fetch complete budget details including history
+    // Fetch complete budget details including categories
     fetch(`http://localhost:8080/budget/budgets/${budgetID}`, {
       credentials: "include",
     })
@@ -65,14 +69,13 @@ function BudgetDetails() {
       })
       .then((data) => {
         if (data.success) {
-          // Ensure the data has proper defaults if values are missing
+          // Format the data properly
           const processedData = {
             budget: {
               ...data.data.budget,
-              categoryAmount: data.data.budget.categoryAmount || 0,
-              targetAmount: data.data.budget.targetAmount || 2000,
+              targetAmount: parseFloat(data.data.budget.targetAmount || 2000),
             },
-            history: data.data.history || [],
+            categories: data.data.categories || [],
           };
           setBudgetDetails(processedData);
           setTargetAmount(processedData.budget.targetAmount);
@@ -94,7 +97,7 @@ function BudgetDetails() {
     setIsSubmittingGoal(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/budget/budgets/${budgetID}/target`,
+        `http://localhost:8080/budget/budgets/${budgetID}`,
         {
           method: "PUT",
           headers: {
@@ -117,12 +120,15 @@ function BudgetDetails() {
           },
         }));
         setGoalExpanded(false);
+        toast.success("Budget goal updated successfully!");
       } else {
         setError(data.message || "Failed to update target amount");
+        toast.error(data.message || "Failed to update target amount");
       }
     } catch (err) {
       console.error("Error updating target amount:", err);
       setError(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     } finally {
       setIsSubmittingGoal(false);
     }
@@ -131,6 +137,14 @@ function BudgetDetails() {
   const handleDeleteBudget = async () => {
     setIsDeleting(true);
     try {
+      // Check if budget has categories
+      if (budgetDetails.categories && budgetDetails.categories.length > 0) {
+        toast.error("Cannot delete budget with associated categories. Delete categories first.");
+        setShowDeleteModal(false);
+        setIsDeleting(false);
+        return;
+      }
+
       const response = await fetch(
         `http://localhost:8080/budget/budgets/${budgetID}`,
         {
@@ -147,7 +161,6 @@ function BudgetDetails() {
 
       if (data.success) {
         // Show toast notification for successful deletion
-        // Using react-toastify
         toast.success("Budget deleted successfully");
 
         // Redirect to budget page after successful deletion
@@ -173,7 +186,7 @@ function BudgetDetails() {
     return null; // Will redirect in useEffect
   }
 
-  if (isLoading && !budgetDetails.budget.categoryName) {
+  if (isLoading && !budgetDetails.budget.budgetName) {
     return <div className={styles.loading}>Loading budget details...</div>;
   }
 
@@ -181,10 +194,11 @@ function BudgetDetails() {
     return <div className={styles.error}>{error}</div>;
   }
 
-  const { budget, history } = budgetDetails;
+  const { budget, categories } = budgetDetails;
+  const totalSpent = calculateTotalSpent();
   const progressPercentage = Math.min(
     100,
-    (budget.categoryAmount / budget.targetAmount) * 100
+    (totalSpent / budget.targetAmount) * 100
   );
 
   let progressColorClass = "";
@@ -199,13 +213,14 @@ function BudgetDetails() {
 
   return (
     <section className={`${styles.container} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+      <ToastContainer position="top-right" autoClose={3000} />
       <Sidebar className={styles.sidebar} onToggleCollapse={handleSidebarToggle} />
       <div className={styles.content}>
         {/* Breadcrumb Nav Only */}
         <div className={styles.topNavSection}>
           <div className={styles.topNav}>
             <BreadcrumbNav
-              categoryName={budget.categoryName || "Budget Details"}
+              budgetName={budget.budgetName || "Budget Details"}
             />
           </div>
         </div>
@@ -214,17 +229,17 @@ function BudgetDetails() {
           {budget.icon && (
             <img
               src={budget.icon}
-              alt={budget.categoryName}
+              alt={budget.budgetName}
               className={styles.budgetIcon}
             />
           )}
-          <h2 className={styles.budgetTitle}>{budget.categoryName}</h2>
+          <h2 className={styles.budgetTitle}>{budget.budgetName}</h2>
         </div>
 
         {/* Add BudgetIndicator at the top of the budget details */}
         <div className={styles.budgetIndicatorContainer}>
           <BudgetIndicator 
-            currentAmount={budget.categoryAmount} 
+            currentAmount={totalSpent} 
             targetAmount={budget.targetAmount} 
           />
         </div>
@@ -234,7 +249,7 @@ function BudgetDetails() {
           <div className={styles.budgetLabel}>
             Budget{" "}
             <span className={styles.budgetAmount}>
-              {budget.categoryAmount} / {budget.targetAmount}
+              RM {totalSpent.toLocaleString()} / RM {budget.targetAmount.toLocaleString()}
             </span>
           </div>
           <div className={styles.progressBarContainer}>
@@ -317,18 +332,25 @@ function BudgetDetails() {
           </div>
         </div>
 
-        {/* History section */}
-        <div className={styles.historySection}>
-          <h2>History</h2>
-          {history.length === 0 ? (
-            <div className={styles.noHistory}>No transaction history yet</div>
+        {/* Categories section */}
+        <div className={styles.categoriesSection}>
+          <h2>Categories</h2>
+          {categories.length === 0 ? (
+            <div className={styles.noCategories}>No categories added yet</div>
           ) : (
-            <div className={styles.historyList}>
-              {history.map((item) => (
-                <div key={item.expenseID} className={styles.historyItem}>
-                  <div className={styles.historyDate}>{item.date}</div>
-                  <div className={styles.historyAmount}>
-                    RM {item.amount.toLocaleString()}
+            <div className={styles.categoriesList}>
+              {categories.map((category) => (
+                <div key={category.categoryID} className={styles.categoryItem}>
+                  <div className={styles.categoryInfo}>
+                    <img 
+                      src={category.icon || "/default-icon.svg"} 
+                      alt={category.categoryName}
+                      className={styles.categoryIcon}
+                    />
+                    <div className={styles.categoryName}>{category.categoryName}</div>
+                  </div>
+                  <div className={styles.categoryAmount}>
+                    RM {parseFloat(category.categoryAmount || 0).toLocaleString()}
                   </div>
                 </div>
               ))}
@@ -342,6 +364,7 @@ function BudgetDetails() {
         <DeleteModal
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteBudget}
+          isDeleting={isDeleting}
         />
       )}
     </section>

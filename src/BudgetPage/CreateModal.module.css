@@ -1,89 +1,129 @@
 .modalOverlay {
-    background-color: rgba(0, 0, 0, 0.5);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .modalContent {
-    border-radius: 16px;
-    background-color: #fff;  /* Ensure modal background is white */
-    width: 500px;
-    padding: 24px;
-    border: 1px solid var(--borderColor);
-    position: relative;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
-  
-  .modalTitle {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    margin-top: 4px;
-    font-family: 'Montserrat';
-    text-align: center;
-  }
-  
-  .formGroup {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  
-  .label {
-    color: var(--textColor);
-    min-width: 100px;
-    text-align: left;
-    font-weight: 600;
-    font-family: 'Montserrat';
-  }
-  
-  .input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    color: var(--textColor);
-    font-family: 'montserrat';
-  }
-  
-  .modalActions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-    width: 100%;
-    gap: 16px;
-  }
-  
-  .cancelButton, .confirmButton {
-    background-color: #c01f1f;
-    padding: 12px 16px;
-    border-radius: 16px;
-    cursor: pointer;
-    font-weight: 600;
-    flex: 1;
-  }
-  
-  .cancelButton {
-    border: 1px solid #c01f1f;
-    color: #c01f1f;
-    background-color: #fff;
-  }
-  
-  .confirmButton {
-    background-color: var(--secondaryColor);
-    border: none;
-    color: var(--primaryColor);
-  }
-  
-  form, input, button {
-    background-color: #fff;
-  }
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  border-radius: 16px;
+  background-color: #fff;  /* Ensure modal background is white */
+  width: 500px;
+  padding: 24px;
+  border: 1px solid var(--borderColor);
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  margin-top: 4px;
+  font-family: 'Montserrat';
+  text-align: center;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 20px;
+  gap: 16px;
+  align-items: center;
+}
+
+.label {
+  color: var(--textColor);
+  margin-bottom: 8px;
+  text-align: left;
+  font-weight: 600;
+  font-family: 'Montserrat';
+}
+
+.input, .select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: var(--textColor);
+  font-family: 'montserrat';
+  width: 100%;
+}
+
+.input:focus, .select:focus {
+  outline: none;
+  border-color: #5871EB;
+  box-shadow: 0 0 0 2px rgba(88, 113, 235, 0.2);
+}
+
+.select {
+  height: 45px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px top 50%;
+  background-size: 12px auto;
+  padding-right: 30px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  width: 100%;
+  gap: 16px;
+}
+
+.cancelButton, .confirmButton {
+  padding: 12px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.cancelButton {
+  border: 1px solid #c01f1f;
+  color: #c01f1f;
+  background-color: #fff;
+}
+
+.cancelButton:hover {
+  background-color: #fff0f0;
+}
+
+.confirmButton {
+  background-color: var(--secondaryColor);
+  border: none;
+  color: var(--primaryColor);
+}
+
+.confirmButton:hover {
+  opacity: 0.9;
+}
+
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+form, input, button, select {
+  background-color: #fff;
+}
+
+.errorMessage {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
