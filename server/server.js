@@ -7,28 +7,32 @@ const bodyParser = require("body-parser");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const multer = require("multer"); // Import multer for file uploads
-const fs = require("fs");
-const incomeScheduler = require('./services/incomeScheduler'); // Import income scheduler
-const isAuthenticated = require("./middleware/isAuthenticated"); // Import isAuthenticated middleware
-const passwordRoutes = require("./routes/passwordRoutes"); // Import password routes
-const incomeRoutes = require("./routes/incomeRoutes"); // Import income routes
-const expenseRoutes = require("./routes/expenseRoutes"); // Import expense routes
-const budgetRoutes = require("./routes/budgetRoutes"); // Import budget routes
-const adminRoutes = require("./routes/adminRoutes"); // Import admin routes
-const dashboardRoutes = require("./routes/dashboardRoutes"); // Import dashboard routes
-const communityRoutes = require("./routes/communityRoutes"); // Import community routes
 
-incomeScheduler.initialize(); // Initialize the income scheduler
+// Import routes
+const passwordRoutes = require("./routes/passwordRoutes");
+const incomeRoutes = require("./routes/incomeRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const budgetRoutes = require("./routes/budgetRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const communityRoutes = require("./routes/communityRoutes");
 
-// Serve frontend static files
-//app.use(express.static(path.join(__dirname, '../dist')));
+// Note: Scheduler is commented out for serverless environment
+// In serverless, you'd use a separate cron service like Vercel Cron
+// const incomeScheduler = require('./services/incomeScheduler');
+// incomeScheduler.initialize();
 
-// CORS options
+const isAuthenticated = require("./middleware/isAuthenticated");
+
+// CORS options - allow the deployed frontend and local development
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://budgetbuddy.space"],
-  methods: ["GET", "POST", "DELETE", "PUT"],
-  allowedHeaders: ["Content-Type"],
+  origin: [
+    "http://localhost:5173",
+    "https://budgetbuddy.space",
+    "https://www.budgetbuddy.space"
+  ],
+  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
@@ -38,13 +42,13 @@ const saltRounds = 10;
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors(corsOptions)); // Single CORS configuration
-app.options("*", cors(corsOptions)); // Allow preflight requests
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
-// Session configuration
+// Session configuration - Note that for production you should use a proper session store
 app.use(
   session({
-    secret: "4eba08474238b7a30245666cec4ab4b199199473a2fc9020b8d766cf2cf8731f",
+    secret: process.env.SESSION_SECRET || "4eba08474238b7a30245666cec4ab4b199199473a2fc9020b8d766cf2cf8731f",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -61,144 +65,121 @@ app.use((req, res, next) => {
   next();
 });
 
+// Simple request logger
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
 
-// Password reset routes
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", environment: process.env.NODE_ENV });
+});
+
+// API Routes
 app.use("/api", passwordRoutes);
-// Income routes
 app.use("/income", incomeRoutes);
-// Expense routes
 app.use("/expense", expenseRoutes);
-// Budget routes
 app.use("/budget", budgetRoutes);
-// Admin routes
 app.use("/admin", adminRoutes);
-// Dashboard routes
 app.use("/dashboard", dashboardRoutes);
-// Community routes
 app.use("/community", communityRoutes);
 
 // Sign-up endpoint
-app.post("/sign-up", (req, res) => {
-  const { userName, userEmail, userPassword, userDOB } = req.body;
+app.post("/sign-up", async (req, res) => {
+  try {
+    const { userName, userEmail, userPassword, userDOB } = req.body;
 
-  if (!userName || !userEmail || !userPassword || !userDOB) {
-    return res
-      .status(400)
-      .json({ success: false, message: "All fields are required." });
-  }
-
-  const checkEmailSql = "SELECT * FROM user WHERE userEmail = ?";
-  db.query(checkEmailSql, [userEmail], (err, data) => {
-    if (err) {
-      console.error("Error querying database:", err);
-      return res.status(500).json({ success: false, message: "Server error." });
+    if (!userName || !userEmail || !userPassword || !userDOB) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required." });
     }
-    if (data.length > 0) {
+
+    // Check if email exists
+    const existingUsers = await db.query("SELECT * FROM user WHERE userEmail = ?", [userEmail]);
+    
+    if (existingUsers.length > 0) {
       return res
         .status(400)
         .json({ success: false, message: "Email already exists." });
     }
 
-    bcrypt.hash(userPassword, saltRounds, (err, hash) => {
-      if (err) {
-        console.error("Error hashing password:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Error encrypting password." });
-      }
-
-      // Use STR_TO_DATE to explicitly format the date in the SQL query
-      const insertUserSql =
-        'INSERT INTO user (userName, userEmail, userPassword, userDOB) VALUES (?, ?, ?, STR_TO_DATE(?, "%Y-%m-%d"))';
-      db.query(
-        insertUserSql,
-        [userName, userEmail, hash, userDOB],
-        (err, result) => {
-          if (err) {
-            console.error("Error inserting user into database:", err);
-            return res
-              .status(500)
-              .json({
-                success: false,
-                message: "Error saving user to database.",
-              });
-          }
-          return res
-            .status(201)
-            .json({ success: true, message: "User registered successfully." });
-        }
-      );
-    });
-  });
+    // Hash password
+    const hash = await bcrypt.hash(userPassword, saltRounds);
+    
+    // Insert user
+    await db.query(
+      'INSERT INTO user (userName, userEmail, userPassword, userDOB) VALUES (?, ?, ?, STR_TO_DATE(?, "%Y-%m-%d"))',
+      [userName, userEmail, hash, userDOB]
+    );
+    
+    return res
+      .status(201)
+      .json({ success: true, message: "User registered successfully." });
+      
+  } catch (error) {
+    console.error("Error in sign-up:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error during registration." });
+  }
 });
 
 // Sign-in endpoint
 app.post("/sign-in", async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    const userQuery =
-      "SELECT userID AS id, userName AS name, userEmail AS email, userPassword AS password, " +
-      "'user' AS role FROM user WHERE userEmail = ?";
-    db.query(userQuery, [email], async (userErr, userData) => {
-      if (userErr) {
-        console.error("Error querying user:", userErr);
-        return res.json({ error: true, message: "Error querying database." });
+    const { email, password } = req.body;
+
+    // Check user table
+    const userData = await db.query(
+      "SELECT userID AS id, userName AS name, userEmail AS email, userPassword AS password, 'user' AS role FROM user WHERE userEmail = ?",
+      [email]
+    );
+
+    if (userData.length > 0) {
+      const user = userData[0];
+      const isMatch = await bcrypt.compare(password, user.password);
+      
+      if (isMatch) {
+        req.session.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
+        return res.json({ success: true, user: user });
       }
+    }
 
-      if (userData.length > 0) {
-        const user = userData[0];
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (isMatch) {
-          req.session.user = {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          };
-          return res.json({ success: true, user: user });
-        } else {
-          console.log("Password does not match");
-        }
+    // Check admin table
+    const adminData = await db.query(
+      "SELECT adminID AS id, adminName AS name, adminEmail AS email, adminPassword AS password, 'admin' AS role FROM admin WHERE adminEmail = ?",
+      [email]
+    );
+
+    if (adminData.length > 0) {
+      const admin = adminData[0];
+      const isMatch = await bcrypt.compare(password, admin.password);
+      
+      if (isMatch) {
+        req.session.user = {
+          id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          role: admin.role,
+        };
+        return res.json({ success: true, user: admin });
       }
+    }
 
-      const adminQuery =
-        "SELECT adminID AS id, adminName AS name, adminEmail AS email, adminPassword AS password, " +
-        "'admin' AS role FROM admin WHERE adminEmail = ?";
-      db.query(adminQuery, [email], async (adminErr, adminData) => {
-        if (adminErr) {
-          console.error("Error querying admin:", adminErr);
-          return res.json({ error: true, message: "Error querying database." });
-        }
-
-        if (adminData.length > 0) {
-          const admin = adminData[0];
-          const isMatch = await bcrypt.compare(password, admin.password);
-          if (isMatch) {
-            req.session.user = {
-              id: admin.id,
-              name: admin.name,
-              email: admin.email,
-              role: admin.role,
-            };
-            return res.json({ success: true, user: admin });
-          } else {
-            console.log("Password does not match");
-          }
-        }
-
-        return res.json({
-          success: false,
-          message: "Invalid email or password.",
-        });
-      });
+    return res.json({
+      success: false,
+      message: "Invalid email or password.",
     });
-  } catch (err) {
-    console.error("Error processing sign-in:", err);
+    
+  } catch (error) {
+    console.error("Error in sign-in:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error." });
@@ -241,118 +222,112 @@ app.get("/check-auth", (req, res) => {
 });
 
 // Fetch User Details Endpoint
-app.get("/get-user-details", isAuthenticated, (req, res) => {
-  const { id } = req.session.user;
+app.get("/get-user-details", isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.session.user;
 
-  const getUserDetailsSql = `
-    SELECT 
-      userID AS id, 
-      userName AS name, 
-      userEmail AS email, 
-      DATE_FORMAT(userDOB, '%Y-%m-%d') AS userDOB, 
-      userPhoneNumber AS phoneNumber, 
-      profileImage 
-    FROM user 
-    WHERE userID = ?`;
+    const users = await db.query(
+      `SELECT 
+        userID AS id, 
+        userName AS name, 
+        userEmail AS email, 
+        DATE_FORMAT(userDOB, '%Y-%m-%d') AS userDOB, 
+        userPhoneNumber AS phoneNumber, 
+        profileImage 
+      FROM user 
+      WHERE userID = ?`,
+      [id]
+    );
 
-  db.query(getUserDetailsSql, [id], (err, data) => {
-    if (err) {
-      console.error("Error fetching user details:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: "Error fetching user details." });
-    }
-
-    if (data.length === 0) {
-      console.log("User not found");
+    if (users.length === 0) {
       return res
         .status(404)
         .json({ success: false, message: "User not found." });
     }
 
-    const user = data[0];
+    const user = users[0];
     return res.json({ success: true, user });
-  });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching user details." });
+  }
 });
 
 // Update Profile Endpoint
-app.post("/update-profile", isAuthenticated, (req, res) => {
-  const { id, name, email, dob, phoneNumber, profileImage } = req.body;
-  const userId = req.session.user.id;
+app.post("/update-profile", isAuthenticated, async (req, res) => {
+  try {
+    const { id, name, email, dob, phoneNumber, profileImage } = req.body;
+    const userId = req.session.user.id;
 
-  // Validation: ensure the ID matches the logged-in user
-  if (id !== userId) {
-    return res
-      .status(403)
-      .json({ success: false, message: "Unauthorized action." });
-  }
-
-  const updateProfileSql = `
-    UPDATE user 
-    SET 
-      userName = ?, 
-      userDOB = STR_TO_DATE(?, '%Y-%m-%d'), 
-      userEmail = ?, 
-      userPhoneNumber = ?, 
-      profileImage = ? 
-    WHERE userID = ?`;
-
-  db.query(
-    updateProfileSql,
-    [name, dob, email, phoneNumber, profileImage, userId],
-    (err, result) => {
-      if (err) {
-        console.error("Error updating profile:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Error updating profile." });
-      }
-      return res.json({
-        success: true,
-        message: "Profile updated successfully.",
-      });
-    }
-  );
-});
-
-//-------------------- Admin routes --------------------
-
-app.post("/add-admin", (req, res) => {
-  const { adminName, adminEmail, adminPassword } = req.body;
-
-  if (!adminName || !adminEmail || !adminPassword) {
-    console.error("Missing required fields");
-    return res
-      .status(400)
-      .json({ success: false, message: "All fields are required." });
-  }
-
-  bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
-    if (err) {
-      console.error("Error hashing password:", err);
+    // Validation: ensure the ID matches the logged-in user
+    if (id !== userId) {
       return res
-        .status(500)
-        .json({ success: false, message: "Error encrypting password." });
+        .status(403)
+        .json({ success: false, message: "Unauthorized action." });
     }
 
-    const insertAdminSql =
-      "INSERT INTO admin (adminName, adminEmail, adminPassword, role) VALUES (?, ?, ?, " +
-      "'admin')";
-    db.query(insertAdminSql, [adminName, adminEmail, hash], (err, result) => {
-      if (err) {
-        console.error("Error inserting admin into database:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Error saving admin to database." });
-      }
-      console.log("Admin added successfully");
-      return res
-        .status(201)
-        .json({ success: true, message: "Admin added successfully." });
+    await db.query(
+      `UPDATE user 
+      SET 
+        userName = ?, 
+        userDOB = STR_TO_DATE(?, '%Y-%m-%d'), 
+        userEmail = ?, 
+        userPhoneNumber = ?, 
+        profileImage = ? 
+      WHERE userID = ?`,
+      [name, dob, email, phoneNumber, profileImage, userId]
+    );
+    
+    return res.json({
+      success: true,
+      message: "Profile updated successfully.",
     });
-  });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error updating profile." });
+  }
 });
 
-app.listen(8080, () => {
-  console.log("Server running on port 8080");
+// Add Admin endpoint
+app.post("/add-admin", async (req, res) => {
+  try {
+    const { adminName, adminEmail, adminPassword } = req.body;
+
+    if (!adminName || !adminEmail || !adminPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required." });
+    }
+
+    const hash = await bcrypt.hash(adminPassword, saltRounds);
+    
+    await db.query(
+      "INSERT INTO admin (adminName, adminEmail, adminPassword, role) VALUES (?, ?, ?, 'admin')",
+      [adminName, adminEmail, hash]
+    );
+    
+    return res
+      .status(201)
+      .json({ success: true, message: "Admin added successfully." });
+  } catch (error) {
+    console.error("Error adding admin:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error saving admin to database." });
+  }
 });
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for serverless
+module.exports = app;
