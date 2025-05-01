@@ -44,6 +44,7 @@
   text-align: left;
   font-weight: 600;
   font-family: 'Montserrat';
+  min-width: 100px;
 }
 
 .input, .select {

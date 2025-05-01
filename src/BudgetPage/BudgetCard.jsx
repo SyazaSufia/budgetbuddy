@@ -8,6 +8,7 @@ import BudgetIndicator from "./BudgetIndicator";
 function BudgetCard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [budgets, setBudgets] = useState([]);
+  const [budgetExpenses, setBudgetExpenses] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -31,6 +32,11 @@ function BudgetCard() {
             targetAmount: budget.targetAmount || 2000,
           }));
           setBudgets(processedBudgets);
+          
+          // Fetch detailed information for each budget
+          processedBudgets.forEach(budget => {
+            fetchBudgetDetails(budget.budgetID);
+          });
         } else {
           console.error("Failed to load budgets:", data.message);
           setError("Failed to load budgets");
@@ -44,6 +50,35 @@ function BudgetCard() {
         setIsLoading(false);
       });
   };
+
+  // Fetch detailed budget information including categories
+  const fetchBudgetDetails = (budgetID) => {
+    fetch(`http://localhost:8080/budget/budgets/${budgetID}`, {
+      credentials: "include"
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (data.success) {
+          // Calculate total expenses for this budget from its categories
+          const totalSpent = data.data.categories.reduce(
+            (sum, category) => sum + parseFloat(category.categoryAmount || 0), 
+            0
+          );
+          
+          // Update budget expenses state with the calculated total
+          setBudgetExpenses(prev => ({
+            ...prev,
+            [budgetID]: totalSpent
+          }));
+        }
+      })
+      .catch(err => {
+        console.error(`Error fetching details for budget ${budgetID}:`, err);
+      });
+  }; 
 
   useEffect(() => {
     // Fetch budgets from the backend on component mount
@@ -98,10 +133,8 @@ function BudgetCard() {
         </div>
       ) : (
         budgets.map((budget) => {
-          // Calculate spent amount from categories if available
-          const spentAmount = budget.categories ? 
-            budget.categories.reduce((total, cat) => total + cat.categoryAmount, 0) : 
-            0;
+          // Get the actual spent amount from our budgetExpenses state
+          const spentAmount = budgetExpenses[budget.budgetID] || 0;
             
           return (
             <div

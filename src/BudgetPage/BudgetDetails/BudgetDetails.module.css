@@ -296,6 +296,101 @@
   background-color: #f44336; /* Red */
 }
 
+/* History Section Styles */
+.historySection {
+  margin-top: 32px;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.historySection h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.loadingExpenses {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.noExpenses {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.expensesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expenseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s;
+}
+
+.expenseItem:hover {
+  background-color: #f0f0f0;
+}
+
+.expenseItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expenseIcon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 50%;
+  background-color: #e8e8e8;
+  padding: 4px;
+}
+
+.expenseInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.expenseTitle {
+  font-weight: 500;
+  font-size: 1rem;
+  color: #333;
+}
+
+.expenseMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 4px;
+}
+
+.expenseDate {
+  color: #888;
+}
+
+.expenseAmount {
+  font-weight: 500;
+  font-size: 16px;
+  color: #e74c3c;
+  font-family: "montserrat";
+}
+
 @media (max-width: 991px) {
   .content {
     margin-left: 0;

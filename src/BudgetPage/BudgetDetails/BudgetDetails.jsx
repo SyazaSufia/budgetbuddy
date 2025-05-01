@@ -18,7 +18,9 @@ function BudgetDetails() {
     },
     categories: []
   });
+  const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
   const [error, setError] = useState(null);
   const [goalExpanded, setGoalExpanded] = useState(false);
   const [targetAmount, setTargetAmount] = useState("");
@@ -26,6 +28,11 @@ function BudgetDetails() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // API endpoints
+  const API_BASE_URL = "http://localhost:8080";
+  const BUDGET_DETAILS_URL = `${API_BASE_URL}/budget/budgets/${budgetID}`;
+  const CATEGORY_EXPENSES_URL = (categoryId) => `${API_BASE_URL}/expense/categories/${categoryId}/expenses`;
 
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
@@ -58,7 +65,7 @@ function BudgetDetails() {
     }
 
     // Fetch complete budget details including categories
-    fetch(`http://localhost:8080/budget/budgets/${budgetID}`, {
+    fetch(BUDGET_DETAILS_URL, {
       credentials: "include",
     })
       .then((res) => {
@@ -79,6 +86,9 @@ function BudgetDetails() {
           };
           setBudgetDetails(processedData);
           setTargetAmount(processedData.budget.targetAmount);
+          
+          // After loading categories, fetch expenses for each category
+          fetchAllExpensesForBudget(data.data.categories || []);
         } else {
           setError(data.message || "Failed to load budget details");
         }
@@ -91,13 +101,62 @@ function BudgetDetails() {
       });
   }, [budgetID, location.state, navigate]);
 
+  // Fetch expenses for all categories in this budget
+  const fetchAllExpensesForBudget = async (categories) => {
+    if (!categories || categories.length === 0) return;
+    
+    setIsLoadingExpenses(true);
+    try {
+      // Create an array of promises for fetching expenses for each category
+      const expensePromises = categories.map(category => 
+        fetch(CATEGORY_EXPENSES_URL(category.categoryID), {
+          credentials: "include"
+        })
+        .then(res => {
+          if (!res.ok) throw new Error(`Error fetching expenses for ${category.categoryName}`);
+          return res.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Return expenses with category info added
+            return data.data.map(expense => ({
+              ...expense,
+              categoryName: category.categoryName,
+              categoryIcon: category.icon
+            }));
+          }
+          return [];
+        })
+        .catch(err => {
+          console.error(`Error fetching expenses for category ${category.categoryID}:`, err);
+          return [];
+        })
+      );
+
+      // Wait for all expense fetch promises to resolve
+      const allCategoryExpenses = await Promise.all(expensePromises);
+      
+      // Flatten the array of arrays into a single array of expenses
+      const allExpenses = allCategoryExpenses.flat();
+      
+      // Sort expenses by date (newest first)
+      allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      setExpenses(allExpenses);
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+    } finally {
+      setIsLoadingExpenses(false);
+    }
+  };
+
   const handleSetGoal = async () => {
     if (!targetAmount) return;
 
     setIsSubmittingGoal(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/budget/budgets/${budgetID}`,
+        BUDGET_DETAILS_URL,
         {
           method: "PUT",
           headers: {
@@ -146,7 +205,7 @@ function BudgetDetails() {
       }
 
       const response = await fetch(
-        `http://localhost:8080/budget/budgets/${budgetID}`,
+        BUDGET_DETAILS_URL,
         {
           method: "DELETE",
           credentials: "include",
@@ -180,6 +239,16 @@ function BudgetDetails() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Format date to more readable format
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-MY', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   if (!budgetID) {
@@ -332,25 +401,33 @@ function BudgetDetails() {
           </div>
         </div>
 
-        {/* Categories section */}
-        <div className={styles.categoriesSection}>
-          <h2>Categories</h2>
-          {categories.length === 0 ? (
-            <div className={styles.noCategories}>No categories added yet</div>
+        {/* Expense History Section */}
+        <div className={styles.historySection}>
+          <h2>Expense History</h2>
+          {isLoadingExpenses ? (
+            <div className={styles.loadingExpenses}>Loading expense history...</div>
+          ) : expenses.length === 0 ? (
+            <div className={styles.noExpenses}>No expense history found</div>
           ) : (
-            <div className={styles.categoriesList}>
-              {categories.map((category) => (
-                <div key={category.categoryID} className={styles.categoryItem}>
-                  <div className={styles.categoryInfo}>
+            <div className={styles.expensesList}>
+              {expenses.map((expense) => (
+                <div key={expense.expenseID} className={styles.expenseItem}>
+                  <div className={styles.expenseItemLeft}>
                     <img 
-                      src={category.icon || "/default-icon.svg"} 
-                      alt={category.categoryName}
-                      className={styles.categoryIcon}
+                      src={expense.categoryIcon || "/default-icon.svg"} 
+                      alt={expense.categoryName}
+                      className={styles.expenseIcon}
                     />
-                    <div className={styles.categoryName}>{category.categoryName}</div>
+                    <div className={styles.expenseInfo}>
+                      <div className={styles.expenseTitle}>{expense.title}</div>
+                      <div className={styles.expenseMeta}>
+                        <span className={styles.expenseCategory}>{expense.categoryName}</span>
+                        <span className={styles.expenseDate}>{formatDate(expense.date)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className={styles.categoryAmount}>
-                    RM {parseFloat(category.categoryAmount || 0).toLocaleString()}
+                  <div className={styles.expenseAmount}>
+                    RM {parseFloat(expense.amount || 0).toLocaleString()}
                   </div>
                 </div>
               ))}

@@ -1,12 +1,15 @@
 import { useState } from "react";
 import styles from "./CreateModal.module.css";
+import { toast } from "react-toastify";
 
 export const CreateBudgetModal = ({ onClose, onAdd }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [customCategoryName, setCustomCategoryName] = useState("");
+  const [targetAmount, setTargetAmount] = useState(2000);
 
+  // These are our predefined budget types (matching the category options in AddCategoryModal)
   const categories = [
     { name: "Food & Groceries", icon: "/food-icon.svg" },
     { name: "Transportation", icon: "/transport-icon.svg" },
@@ -37,6 +40,11 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
       return;
     }
 
+    if (!targetAmount || targetAmount <= 0) {
+      setError("Please enter a valid budget amount.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError("");
 
@@ -46,23 +54,50 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
           ? customCategoryName.trim()
           : selectedCategory.name;
 
-      const response = await fetch("http://localhost:8080/budget/budgets", {
+      // First create budget - keeping the budget type aligned with the selected category
+      const budgetResponse = await fetch("http://localhost:8080/budget/budgets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           budgetName,
           icon: selectedCategory.icon,
+          targetAmount: parseFloat(targetAmount)
         }),
       });
 
-      const result = await response.json();
+      const budgetResult = await budgetResponse.json();
 
-      if (response.ok && result.success) {
-        onAdd(result.data); // send new budget to parent
-        onClose();
+      if (budgetResponse.ok && budgetResult.success) {
+        // Create the initial category that matches the budget
+        const categoryResponse = await fetch("http://localhost:8080/budget/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            categoryName: budgetName,
+            icon: selectedCategory.icon,
+            budgetID: budgetResult.data.budgetID
+          }),
+        });
+
+        const categoryResult = await categoryResponse.json();
+
+        if (categoryResponse.ok && categoryResult.success) {
+          // Successfully created both budget and initial category
+          const updatedBudgetData = {
+            ...budgetResult.data,
+            categories: [categoryResult.data]
+          };
+          
+          onAdd(updatedBudgetData);
+          toast.success("Budget created successfully!");
+          onClose();
+        } else {
+          setError("Budget created but failed to create category.");
+        }
       } else {
-        setError(result.message || "Error creating budget.");
+        setError(budgetResult.message || "Error creating budget.");
       }
     } catch (err) {
       console.error("Error creating budget:", err);
@@ -82,7 +117,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label htmlFor="category" className={styles.label}>
-              Category:
+              Type:
             </label>
             <select
               id="category"
@@ -91,7 +126,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
               onChange={handleCategoryChange}
               required
             >
-              <option value="">Select a category</option>
+              <option value="">Select a budget type</option>
               {categories.map((category) => (
                 <option key={category.name} value={category.name}>
                   {category.name}
@@ -103,7 +138,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
           {selectedCategory?.name === "Others" && (
             <div className={styles.formGroup}>
               <label htmlFor="customCategory" className={styles.label}>
-                Budget Title:
+                Title:
               </label>
               <input
                 id="customCategory"
@@ -116,6 +151,22 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
               />
             </div>
           )}
+
+          <div className={styles.formGroup}>
+            <label htmlFor="targetAmount" className={styles.label}>
+              Amount:
+            </label>
+            <input
+              id="targetAmount"
+              type="number"
+              className={styles.input}
+              value={targetAmount}
+              onChange={(e) => setTargetAmount(e.target.value)}
+              placeholder="Enter budget amount"
+              min="1"
+              required
+            />
+          </div>
 
           <div className={styles.modalActions}>
             <button
