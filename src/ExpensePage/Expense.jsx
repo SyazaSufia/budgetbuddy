@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./Expense.module.css";
 import SidebarNav from "./SideBar";
-import { AddCategoryModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";
 import { DeleteExpenseModal } from "./DeleteExpenseModal";
 import { AddExpenseModal } from "./AddExpenseModal";
@@ -45,7 +44,8 @@ const CategoryItem = ({
   categoryTotal,
   activeFilter,
   onEditExpense,
-  onDeleteExpense 
+  onDeleteExpense,
+  budgetName 
 }) => (
   <div className={styles.categoryContainer}>
     <div className={styles.categoryHeader}>
@@ -56,7 +56,12 @@ const CategoryItem = ({
             alt={`${category.categoryName} icon`}
             className={styles.categoryIcon}
           />
-          <h3 className={styles.categoryTitle}>{category.categoryName}</h3>
+          <h3 className={styles.categoryTitle}>
+            {category.categoryName} 
+            {budgetName && budgetName !== category.categoryName && (
+              <span className={styles.budgetTag}> ({budgetName})</span>
+            )}
+          </h3>
         </div>
         <span className={styles.categoryTotal}>
           RM {categoryTotal.toFixed(2)}
@@ -133,7 +138,6 @@ export default function Expense({ user }) {
   const [filteredExpenses, setFilteredExpenses] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
   const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
@@ -144,23 +148,22 @@ export default function Expense({ user }) {
   const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [budgetId, setBudgetId] = useState(null); // Store the active budget ID
+  const [budgets, setBudgets] = useState([]); // Store all user budgets
+  const [categoryBudgetMap, setCategoryBudgetMap] = useState({}); // Map categories to their budget names
 
   // API URLs - CORRECTED to match server.js route prefixes
   const API_BASE_URL = "http://localhost:8080";
   
   // Budget routes with "/budget" prefix
   const BUDGETS_URL = `${API_BASE_URL}/budget/budgets`;
-  const CATEGORIES_URL = (budgetId) => `${API_BASE_URL}/budget/budgets/${budgetId}/categories`;
+  const BUDGET_DETAILS_URL = (budgetId) => `${API_BASE_URL}/budget/budgets/${budgetId}`;
   const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
-  const ADD_CATEGORY_URL = `${API_BASE_URL}/budget/categories`;
   
   // Expense routes with "/expense" prefix
   const CATEGORY_EXPENSES_URL = (id) => `${API_BASE_URL}/expense/categories/${id}/expenses`;
   const EXPENSE_URL = (id) => `${API_BASE_URL}/expense/expenses/${id}`;
-  const ADD_EXPENSE_URL = `${API_BASE_URL}/expense/expenses`;
 
-  // Fetch user's budgets first
+  // Fetch all user's budgets
   const fetchBudgets = async () => {
     try {
       const response = await fetch(BUDGETS_URL, {
@@ -171,48 +174,60 @@ export default function Expense({ user }) {
 
       const result = await response.json();
       if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-        // Set the first budget as active
-        setBudgetId(result.data[0].budgetID);
-        return result.data[0].budgetID;
+        setBudgets(result.data);
+        return result.data; // Return all budgets
       } else {
         // No budgets found
         setIsLoading(false);
-        return null;
+        return [];
       }
     } catch (error) {
       console.error("Error fetching budgets:", error);
       setIsLoading(false);
-      return null;
+      return [];
     }
   };
 
-  // Fetch categories for the active budget
-  const fetchCategories = async (activeBudgetId) => {
-    if (!activeBudgetId) {
+  // Fetch details for each budget including its categories
+  const fetchAllBudgetDetails = async (budgetsList) => {
+    if (!budgetsList || budgetsList.length === 0) {
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(CATEGORIES_URL(activeBudgetId), {
-        credentials: "include",
-      });
+      let allCategories = [];
+      const budgetCategoryMapping = {};
 
-      if (!response.ok) throw new Error("Failed to fetch categories");
+      // Process each budget one by one
+      for (const budget of budgetsList) {
+        const response = await fetch(BUDGET_DETAILS_URL(budget.budgetID), {
+          credentials: "include",
+        });
 
-      const result = await response.json();
-      if (!Array.isArray(result.data)) {
-        throw new Error("Unexpected response format: 'data' should be an array.");
+        if (!response.ok) continue;
+
+        const result = await response.json();
+        if (result.success && result.data && Array.isArray(result.data.categories)) {
+          // Map each category to its budget name
+          result.data.categories.forEach(category => {
+            budgetCategoryMapping[category.categoryID] = result.data.budget.budgetName;
+          });
+          
+          // Add these categories to our complete list
+          allCategories = [...allCategories, ...result.data.categories];
+        }
       }
 
-      setCategories(result.data);
+      setCategories(allCategories);
+      setCategoryBudgetMap(budgetCategoryMapping);
 
       // Fetch expenses for each category
-      for (const category of result.data) {
-        await fetchCategoryExpenses(category.categoryID || category.id);
+      for (const category of allCategories) {
+        await fetchCategoryExpenses(category.categoryID);
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error fetching budget details:", error);
     } finally {
       setIsLoading(false);
     }
@@ -328,9 +343,10 @@ export default function Expense({ user }) {
       return updated;
     });
 
-    if (budgetId) {
-      await fetchCategories(budgetId);
-    }
+    // Refresh categories data to get updated amounts
+    const fetchedBudgets = await fetchBudgets();
+    await fetchAllBudgetDetails(fetchedBudgets);
+    
     setIsEditExpenseModalOpen(false);
     setSelectedExpense(null);
     toast.success("Expense updated successfully!");
@@ -383,6 +399,13 @@ export default function Expense({ user }) {
           prev.filter((cat) => cat.categoryID !== selectedCategoryId)
         );
         
+        // Remove from category-budget map
+        setCategoryBudgetMap(prev => {
+          const updated = { ...prev };
+          delete updated[selectedCategoryId];
+          return updated;
+        });
+        
         setIsDeleteCategoryModalOpen(false);
         setSelectedCategoryId(null);
         toast.success("Category deleted successfully!");
@@ -408,9 +431,10 @@ export default function Expense({ user }) {
       [selectedCategoryId]: [...(prev[selectedCategoryId] || []), newExpense],
     }));
 
-    if (budgetId) {
-      await fetchCategories(budgetId);
-    }
+    // Refresh categories data to get updated amounts
+    const fetchedBudgets = await fetchBudgets();
+    await fetchAllBudgetDetails(fetchedBudgets);
+    
     setIsAddExpenseModalOpen(false);
     toast.success("Expense added successfully!");
   };
@@ -442,9 +466,10 @@ export default function Expense({ user }) {
         setExpenses(updateExpensesList);
         setFilteredExpenses(updateExpensesList);
         
-        if (budgetId) {
-          await fetchCategories(budgetId);
-        }
+        // Refresh categories data to get updated amounts
+        const fetchedBudgets = await fetchBudgets();
+        await fetchAllBudgetDetails(fetchedBudgets);
+        
         setIsDeleteExpenseModalOpen(false);
         setSelectedExpenseId(null);
         toast.success("Expense deleted successfully!");
@@ -456,44 +481,6 @@ export default function Expense({ user }) {
     } catch (error) {
       console.error("Error deleting expense:", error);
       toast.error("Error deleting expense");
-    }
-  };
-
-  // Handle adding a new category
-  const handleAddCategory = async (categoryData) => {
-    try {
-      // Make sure budgetID is included in the data
-      const dataToSend = {
-        ...categoryData,
-        budgetID: budgetId
-      };
-      
-      const response = await fetch(ADD_CATEGORY_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(dataToSend),
-      });
-      
-      if (response.ok) {
-        if (budgetId) {
-          await fetchCategories(budgetId);
-        }
-        setIsAddCategoryModalOpen(false);
-        toast.success("Category added successfully!");
-        return true;
-      } else {
-        const error = await response.json();
-        console.error("Failed to add category:", error.message);
-        toast.error(error.message || "Failed to add category");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error adding category:", error);
-      toast.error("Error adding category");
-      return false;
     }
   };
 
@@ -514,11 +501,11 @@ export default function Expense({ user }) {
 
   // Get message for empty states
   const getEmptyStateMessage = () => {
-    if (!budgetId) {
+    if (budgets.length === 0) {
       return "No budgets found. Create a budget first to get started.";
     }
     if (categories.length === 0) {
-      return "No expense categories found. Create a category to get started.";
+      return "No expense categories found. Categories are created automatically when you create a budget.";
     }
     return `No expenses found for the selected ${
       activeFilter === "thisMonth"
@@ -534,10 +521,8 @@ export default function Expense({ user }) {
   // Effect hooks
   useEffect(() => {
     const initializeData = async () => {
-      const activeBudgetId = await fetchBudgets();
-      if (activeBudgetId) {
-        await fetchCategories(activeBudgetId);
-      }
+      const fetchedBudgets = await fetchBudgets();
+      await fetchAllBudgetDetails(fetchedBudgets);
     };
     
     initializeData();
@@ -606,23 +591,11 @@ export default function Expense({ user }) {
                     activeFilter={activeFilter}
                     onEditExpense={handleEditExpenseClick}
                     onDeleteExpense={handleDeleteExpenseClick}
+                    budgetName={categoryBudgetMap[category.categoryID]}
                   />
                 ))
               ) : (
                 <EmptyState message={getEmptyStateMessage()} />
-              )}
-
-              {/* Add Category Button - Always show if we have a budget */}
-              {budgetId && (
-                <div className={styles.addCategoryContainer}>
-                  <button
-                    className={styles.addExpenseButton}
-                    onClick={() => setIsAddCategoryModalOpen(true)}
-                  >
-                    <img src="/add-icon.svg" alt="Add" />
-                    <span>Add Category</span>
-                  </button>
-                </div>
               )}
             </section>
 
@@ -641,15 +614,6 @@ export default function Expense({ user }) {
             )}
           </section>
         </div>
-
-        {/* Add Category Modal */}
-        {isAddCategoryModalOpen && (
-          <AddCategoryModal
-            onClose={() => setIsAddCategoryModalOpen(false)}
-            onAdd={handleAddCategory}
-            budgetId={budgetId}
-          />
-        )}
 
         {/* Add Expense Modal */}
         {isAddExpenseModalOpen && (
