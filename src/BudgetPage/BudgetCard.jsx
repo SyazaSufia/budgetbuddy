@@ -5,7 +5,7 @@ import { CreateBudgetModal } from "./CreateModal";
 import { useNavigate } from "react-router-dom";
 import BudgetIndicator from "./BudgetIndicator";
 
-function BudgetCard() {
+function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [budgets, setBudgets] = useState([]);
   const [budgetExpenses, setBudgetExpenses] = useState({});
@@ -13,9 +13,10 @@ function BudgetCard() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const fetchBudgets = () => {
+  const fetchBudgets = (timeFilter) => {
     setIsLoading(true);
-    fetch("http://localhost:8080/budget/budgets", {
+    // Add the timeFilter to the API request
+    fetch(`http://localhost:8080/budget/budgets?timeFilter=${timeFilter}`, {
       credentials: "include", // Send cookies/session info
     })
       .then((res) => {
@@ -81,9 +82,9 @@ function BudgetCard() {
   }; 
 
   useEffect(() => {
-    // Fetch budgets from the backend on component mount
-    fetchBudgets();
-  }, []);
+    // Fetch budgets with the active time filter
+    fetchBudgets(activeTimeFilter);
+  }, [activeTimeFilter]); // Re-fetch when activeTimeFilter changes
 
   // Handle adding a new budget
   const handleAddBudget = (newBudget) => {
@@ -94,7 +95,7 @@ function BudgetCard() {
     toast.success(`Budget "${newBudget.budgetName}" created successfully!`);
 
     // Refresh the budgets from the server to get the actual amounts
-    fetchBudgets();
+    fetchBudgets(activeTimeFilter);
   };
 
   // Navigate to budget details with budget ID
@@ -129,7 +130,7 @@ function BudgetCard() {
             alt="No budgets"
             className={styles.emptyIllustration}
           />
-          <p>No budgets found. Create your first budget!</p>
+          <p>No budgets found for this time period. Create a new budget!</p>
         </div>
       ) : (
         budgets.map((budget) => {

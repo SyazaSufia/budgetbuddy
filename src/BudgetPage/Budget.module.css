@@ -33,6 +33,14 @@
   min-width: 60px;
 }
 
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
 .greeting {
   min-width: 240px;
   color: #101828;
@@ -72,4 +80,65 @@
   .budgetSection {
     padding: 0 16px;
   }
+}
+
+.filterContainer {
+  margin-left: auto;
+}
+
+/* Button group styling */
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.buttonGroup {
+  display: flex;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.buttonGroup button {
+  border: none;
+  background: #fff;
+  padding: 8px 16px;
+  font: 14px/1 Inter, sans-serif;
+  color: #516778;
+  cursor: pointer;
+  border-right: 1px solid #eceff2;
+}
+
+.buttonGroup button.active {
+  background: #eff6ff;
+  color: #155eef;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s, color 0.2s;
+  outline: none; /* Remove the focus outline */
+}
+
+/* Standard focus style for all browsers */
+.filterButton:focus {
+  outline: none;
+}
+
+/* Enhanced focus style for browsers that support focus-visible */
+.filterButton:focus-visible {
+  box-shadow: 0 0 0 2px rgba(74, 108, 250, 0.4);
+}
+
+.filterButton:hover {
+  background-color: #e0e0e0;
+}
+
+.filterButton.active {
+  background-color: #4a6cfa;
+  color: white;
 }

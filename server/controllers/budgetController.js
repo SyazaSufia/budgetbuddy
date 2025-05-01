@@ -3,14 +3,63 @@ const db = require("../db");
 // Get all budgets for logged-in user
 exports.getBudgets = (req, res) => {
   const userID = req.session.user.id;
+  const { timeFilter } = req.query; // Get timeFilter from query params
+
+  let dateCondition = '';
+  const queryParams = [userID];
+  
+  // Get current date for calculations
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  // Add date filtering based on timeFilter parameter
+  if (timeFilter) {
+    let startDate;
+    
+    switch (timeFilter) {
+      case 'thisMonth':
+        // First day of current month to today
+        startDate = new Date(currentYear, currentMonth, 1);
+        dateCondition = ' AND b.createdAt >= ?';
+        queryParams.push(startDate);
+        break;
+        
+      case 'lastMonth':
+        // First day of last month to last day of last month
+        startDate = new Date(currentYear, currentMonth - 1, 1);
+        const endDate = new Date(currentYear, currentMonth, 0);
+        dateCondition = ' AND b.createdAt >= ? AND b.createdAt <= ?';
+        queryParams.push(startDate, endDate);
+        break;
+        
+      case 'thisYear':
+        // First day of current year to today
+        startDate = new Date(currentYear, 0, 1);
+        dateCondition = ' AND b.createdAt >= ?';
+        queryParams.push(startDate);
+        break;
+        
+      case 'last12Months':
+        // 12 months ago from today to today
+        startDate = new Date(currentYear, currentMonth - 11, 1);
+        dateCondition = ' AND b.createdAt >= ?';
+        queryParams.push(startDate);
+        break;
+        
+      default:
+        // No filter or invalid filter, return all budgets
+        break;
+    }
+  }
 
   const query = `
-    SELECT b.budgetID, b.budgetName, b.targetAmount, b.icon
+    SELECT b.budgetID, b.budgetName, b.targetAmount, b.icon, b.createdAt
     FROM budgets b
-    WHERE b.userID = ?
+    WHERE b.userID = ?${dateCondition}
   `;
 
-  db.query(query, [userID], (err, results) => {
+  db.query(query, queryParams, (err, results) => {
     if (err)
       return res.status(500).json({ success: false, error: err.message });
 
