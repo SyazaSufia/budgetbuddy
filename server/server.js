@@ -12,6 +12,7 @@ const bcrypt = require("bcrypt");
 const passwordRoutes = require("./routes/passwordRoutes");
 const incomeRoutes = require("./routes/incomeRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
+const receiptRoutes = require('./routes/receiptRoutes');
 const budgetRoutes = require("./routes/budgetRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
@@ -80,6 +81,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api", passwordRoutes);
 app.use("/income", incomeRoutes);
 app.use("/expense", expenseRoutes);
+app.use('/expense', receiptRoutes);
 app.use("/budget", budgetRoutes);
 app.use("/admin", adminRoutes);
 app.use("/dashboard", dashboardRoutes);
