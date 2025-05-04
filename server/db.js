@@ -11,7 +11,22 @@ const pool = mysql.createPool({
   connectionLimit: 10, // more connections for a serverful environment
   queueLimit: 0,
   timezone: '+00:00',
-  dateStrings: true
+  dateStrings: true,
+  // Add connection retry options
+  connectTimeout: 60000, // longer timeout
+  acquireTimeout: 60000
+});
+
+// Add connection event listeners
+pool.on('connection', (connection) => {
+  console.log('DB Connection established');
+});
+
+pool.on('error', (err) => {
+  console.error('Database error', err);
+  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+    console.error('Database connection was closed. Attempting to reconnect...');
+  }
 });
 
 // Query helper using the shared pool

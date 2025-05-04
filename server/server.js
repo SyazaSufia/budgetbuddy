@@ -331,23 +331,30 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// In production, serve the static frontend files
+// Modify the server startup portion in server.js
+// Replace the conditional server startup with a unified approach
+
+const PORT = process.env.PORT || 10000;
+
+// Serve static files from the React app build directory for production
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the React app build directory
-  const frontendPath = path.join(__dirname, '../build'); // Adjust this path to where your frontend build is
+  const frontendPath = path.join(__dirname, '../build');
   app.use(express.static(frontendPath));
   
   // For any request that doesn't match an API route, send the React app
   app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
-  
-  // Listen on the port Render provides
-  const PORT = process.env.PORT || 10000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
 }
+
+// Start the server regardless of environment
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  
+  // Log connection info to help with debugging
+  console.log(`Database host: ${process.env.DB_HOST}`);
+  console.log(`Database name: ${process.env.DB_NAME}`);
+});
 
 // Export for serverless
 module.exports = app;
