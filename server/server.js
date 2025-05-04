@@ -323,17 +323,6 @@ app.post("/add-admin", async (req, res) => {
   }
 });
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 8080;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-// Modify the server startup portion in server.js
-// Replace the conditional server startup with a unified approach
-
 const PORT = process.env.PORT || 10000;
 
 // Serve static files from the React app build directory for production
