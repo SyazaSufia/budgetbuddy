@@ -29,14 +29,25 @@ pool.on('error', (err) => {
   }
 });
 
-// Query helper using the shared pool
+// Update the query function in db.js
 const query = async (sql, params) => {
+  let connection;
   try {
-    const [results] = await pool.execute(sql, params);
+    connection = await pool.getConnection();
+    console.log("Got database connection");
+    const [results] = await connection.execute(sql, params);
     return results;
   } catch (error) {
     console.error("Query error:", error);
+    if (error.code === 'ECONNREFUSED' || error.code === 'ER_ACCESS_DENIED_ERROR') {
+      console.error("Database connection failed - check credentials and connectivity");
+    }
     throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+      console.log("Database connection released");
+    }
   }
 };
 
