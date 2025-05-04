@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { API_BASE_URL, fetchWithAuth } from "./config/api";
 
 // Create authentication context
 const AuthContext = createContext();
@@ -9,16 +10,13 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false); // Track if auth has been checked
+  const [authChecked, setAuthChecked] = useState(false);
   
   const login = (userData) => setUser(userData);
   
   const logout = async () => {
     try {
-      await fetch("http://localhost:8080/sign-out", {
-        method: "POST",
-        credentials: "include",
-      });
+      await fetchWithAuth("/sign-out", { method: "POST" });
       setUser(null);
     } catch (error) {
       console.error("Error during logout:", error);
@@ -26,26 +24,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkAuthStatus = async () => {
-    // Only check if we haven't checked before
     if (authChecked) return;
     
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8080/check-auth", {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetchWithAuth("/check-auth");
+      
+      if (!response.ok) {
+        throw new Error(`Auth check failed with status: ${response.status}`);
+      }
+      
       const data = await response.json();
       if (data.isAuthenticated) {
         setUser(data.user);
       } else {
         setUser(null);
       }
-      setAuthChecked(true); // Mark that we've checked auth
+      setAuthChecked(true);
     } catch (error) {
       console.error("Error checking authentication status:", error);
       setUser(null);
-      setAuthChecked(true); // Mark that we've checked auth even if it failed
+      setAuthChecked(true);
     } finally {
       setLoading(false);
     }

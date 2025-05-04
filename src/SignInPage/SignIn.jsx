@@ -4,6 +4,7 @@ import { AuthLayout } from "./components/AuthLayout";
 import { Link, useLocation } from "react-router-dom";
 import { Input } from "./components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { API_BASE_URL, fetchWithAuth } from "../config/api";
 import styles from "./SignIn.module.css";
 
 const SignIn = ({ onSignIn }) => {
@@ -17,10 +18,8 @@ const SignIn = ({ onSignIn }) => {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/sign-in", {
+      const response = await fetchWithAuth("/sign-in", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ email, password }),
       });      
 
