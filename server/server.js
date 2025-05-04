@@ -323,7 +323,8 @@ app.post("/add-admin", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 10000;
+// Development vs Production server setup
+const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 10000) : 8080;
 
 // Serve static files from the React app build directory for production
 if (process.env.NODE_ENV === 'production') {
@@ -345,5 +346,3 @@ app.listen(PORT, () => {
   console.log(`Database name: ${process.env.DB_NAME}`);
 });
 
-// Export for serverless
-module.exports = app;
