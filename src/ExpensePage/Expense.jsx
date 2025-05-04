@@ -24,7 +24,10 @@ const ExpenseItem = ({ expense, onEdit, onDelete }) => (
           <button className={styles.iconButton} onClick={() => onEdit(expense)}>
             <img src="/edit-icon.svg" alt="Edit" />
           </button>
-          <button className={styles.iconButton} onClick={() => onDelete(expense.expenseID)}>
+          <button
+            className={styles.iconButton}
+            onClick={() => onDelete(expense.expenseID)}
+          >
             <img src="/delete-icon.svg" alt="Delete" />
           </button>
         </div>
@@ -34,18 +37,18 @@ const ExpenseItem = ({ expense, onEdit, onDelete }) => (
 );
 
 // Component to display a category with its expenses
-const CategoryItem = ({ 
-  category, 
-  isExpanded, 
-  onToggle, 
-  onDelete, 
-  onAddExpense, 
+const CategoryItem = ({
+  category,
+  isExpanded,
+  onToggle,
+  onDelete,
+  onAddExpense,
   expenses,
   categoryTotal,
   activeFilter,
   onEditExpense,
   onDeleteExpense,
-  budgetName 
+  budgetName,
 }) => (
   <div className={styles.categoryContainer}>
     <div className={styles.categoryHeader}>
@@ -57,7 +60,7 @@ const CategoryItem = ({
             className={styles.categoryIcon}
           />
           <h3 className={styles.categoryTitle}>
-            {category.categoryName} 
+            {category.categoryName}
             {budgetName && budgetName !== category.categoryName && (
               <span className={styles.budgetTag}> ({budgetName})</span>
             )}
@@ -138,8 +141,10 @@ export default function Expense({ user }) {
   const [filteredExpenses, setFilteredExpenses] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
-  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] = useState(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] =
+    useState(false);
+  const [isDeleteExpenseModalOpen, setIsDeleteExpenseModalOpen] =
+    useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
@@ -150,17 +155,21 @@ export default function Expense({ user }) {
   const [isLoading, setIsLoading] = useState(true);
   const [budgets, setBudgets] = useState([]); // Store all user budgets
   const [categoryBudgetMap, setCategoryBudgetMap] = useState({}); // Map categories to their budget names
+  const [selectedCategoryName, setSelectedCategoryName] = useState(null);
+  const [categoryHasExpenses, setCategoryHasExpenses] = useState(false);
 
   // API URLs - CORRECTED to match server.js route prefixes
   const API_BASE_URL = "http://localhost:8080";
-  
+
   // Budget routes with "/budget" prefix
   const BUDGETS_URL = `${API_BASE_URL}/budget/budgets`;
-  const BUDGET_DETAILS_URL = (budgetId) => `${API_BASE_URL}/budget/budgets/${budgetId}`;
+  const BUDGET_DETAILS_URL = (budgetId) =>
+    `${API_BASE_URL}/budget/budgets/${budgetId}`;
   const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
-  
+
   // Expense routes with "/expense" prefix
-  const CATEGORY_EXPENSES_URL = (id) => `${API_BASE_URL}/expense/categories/${id}/expenses`;
+  const CATEGORY_EXPENSES_URL = (id) =>
+    `${API_BASE_URL}/expense/categories/${id}/expenses`;
   const EXPENSE_URL = (id) => `${API_BASE_URL}/expense/expenses/${id}`;
 
   // Fetch all user's budgets
@@ -173,7 +182,11 @@ export default function Expense({ user }) {
       if (!response.ok) throw new Error("Failed to fetch budgets");
 
       const result = await response.json();
-      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+      if (
+        result.success &&
+        Array.isArray(result.data) &&
+        result.data.length > 0
+      ) {
         setBudgets(result.data);
         return result.data; // Return all budgets
       } else {
@@ -208,12 +221,17 @@ export default function Expense({ user }) {
         if (!response.ok) continue;
 
         const result = await response.json();
-        if (result.success && result.data && Array.isArray(result.data.categories)) {
+        if (
+          result.success &&
+          result.data &&
+          Array.isArray(result.data.categories)
+        ) {
           // Map each category to its budget name
-          result.data.categories.forEach(category => {
-            budgetCategoryMapping[category.categoryID] = result.data.budget.budgetName;
+          result.data.categories.forEach((category) => {
+            budgetCategoryMapping[category.categoryID] =
+              result.data.budget.budgetName;
           });
-          
+
           // Add these categories to our complete list
           allCategories = [...allCategories, ...result.data.categories];
         }
@@ -257,7 +275,10 @@ export default function Expense({ user }) {
         setExpenses((prev) => ({ ...prev, [categoryId]: formattedExpenses }));
       }
     } catch (error) {
-      console.error(`Error fetching expenses for category ${categoryId}:`, error);
+      console.error(
+        `Error fetching expenses for category ${categoryId}:`,
+        error
+      );
       setExpenses((prev) => ({ ...prev, [categoryId]: [] }));
     }
   };
@@ -280,10 +301,12 @@ export default function Expense({ user }) {
                 expenseDate.getFullYear() === currentDate.getFullYear()
               );
             case "lastMonth": {
-              const lastMonth = currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
-              const lastMonthYear = currentDate.getMonth() === 0
-                ? currentDate.getFullYear() - 1
-                : currentDate.getFullYear();
+              const lastMonth =
+                currentDate.getMonth() === 0 ? 11 : currentDate.getMonth() - 1;
+              const lastMonthYear =
+                currentDate.getMonth() === 0
+                  ? currentDate.getFullYear() - 1
+                  : currentDate.getFullYear();
               return (
                 expenseDate.getMonth() === lastMonth &&
                 expenseDate.getFullYear() === lastMonthYear
@@ -310,7 +333,9 @@ export default function Expense({ user }) {
       setVisibleCategories(categories);
     } else {
       const categoriesWithExpenses = categories.filter(
-        (category) => filtered[category.categoryID] && filtered[category.categoryID].length > 0
+        (category) =>
+          filtered[category.categoryID] &&
+          filtered[category.categoryID].length > 0
       );
       setVisibleCategories(categoriesWithExpenses);
     }
@@ -327,7 +352,9 @@ export default function Expense({ user }) {
       const updated = {};
       Object.keys(prevExpenses).forEach((categoryId) => {
         updated[categoryId] = prevExpenses[categoryId].map((expense) =>
-          expense.expenseID === updatedExpense.expenseID ? updatedExpense : expense
+          expense.expenseID === updatedExpense.expenseID
+            ? updatedExpense
+            : expense
         );
       });
       return updated;
@@ -337,7 +364,9 @@ export default function Expense({ user }) {
       const updated = {};
       Object.keys(prevExpenses).forEach((categoryId) => {
         updated[categoryId] = prevExpenses[categoryId].map((expense) =>
-          expense.expenseID === updatedExpense.expenseID ? updatedExpense : expense
+          expense.expenseID === updatedExpense.expenseID
+            ? updatedExpense
+            : expense
         );
       });
       return updated;
@@ -346,7 +375,7 @@ export default function Expense({ user }) {
     // Refresh categories data to get updated amounts
     const fetchedBudgets = await fetchBudgets();
     await fetchAllBudgetDetails(fetchedBudgets);
-    
+
     setIsEditExpenseModalOpen(false);
     setSelectedExpense(null);
     toast.success("Expense updated successfully!");
@@ -368,7 +397,13 @@ export default function Expense({ user }) {
   };
 
   const handleDeleteCategoryClick = (categoryId) => {
+    // Find the category details
+    const category = categories.find((cat) => cat.categoryID === categoryId);
+    const hasExpenses = expenses[categoryId] && expenses[categoryId].length > 0;
+
     setSelectedCategoryId(categoryId);
+    setSelectedCategoryName(category ? category.categoryName : null);
+    setCategoryHasExpenses(hasExpenses);
     setIsDeleteCategoryModalOpen(true);
   };
 
@@ -378,34 +413,36 @@ export default function Expense({ user }) {
         method: "DELETE",
         credentials: "include",
       });
-      
+
       if (response.ok) {
         // Remove the category and its expenses from state
-        setCategories((prev) => prev.filter((cat) => cat.categoryID !== selectedCategoryId));
-        
+        setCategories((prev) =>
+          prev.filter((cat) => cat.categoryID !== selectedCategoryId)
+        );
+
         setExpenses((prev) => {
           const updated = { ...prev };
           delete updated[selectedCategoryId];
           return updated;
         });
-        
+
         setFilteredExpenses((prev) => {
           const updated = { ...prev };
           delete updated[selectedCategoryId];
           return updated;
         });
-        
-        setVisibleCategories((prev) => 
+
+        setVisibleCategories((prev) =>
           prev.filter((cat) => cat.categoryID !== selectedCategoryId)
         );
-        
+
         // Remove from category-budget map
-        setCategoryBudgetMap(prev => {
+        setCategoryBudgetMap((prev) => {
           const updated = { ...prev };
           delete updated[selectedCategoryId];
           return updated;
         });
-        
+
         setIsDeleteCategoryModalOpen(false);
         setSelectedCategoryId(null);
         toast.success("Category deleted successfully!");
@@ -434,7 +471,7 @@ export default function Expense({ user }) {
     // Refresh categories data to get updated amounts
     const fetchedBudgets = await fetchBudgets();
     await fetchAllBudgetDetails(fetchedBudgets);
-    
+
     setIsAddExpenseModalOpen(false);
     toast.success("Expense added successfully!");
   };
@@ -450,7 +487,7 @@ export default function Expense({ user }) {
         method: "DELETE",
         credentials: "include",
       });
-      
+
       if (response.ok) {
         // Remove expense from state
         const updateExpensesList = (prevExpenses) => {
@@ -462,14 +499,14 @@ export default function Expense({ user }) {
           });
           return updated;
         };
-        
+
         setExpenses(updateExpensesList);
         setFilteredExpenses(updateExpensesList);
-        
+
         // Refresh categories data to get updated amounts
         const fetchedBudgets = await fetchBudgets();
         await fetchAllBudgetDetails(fetchedBudgets);
-        
+
         setIsDeleteExpenseModalOpen(false);
         setSelectedExpenseId(null);
         toast.success("Expense deleted successfully!");
@@ -524,7 +561,7 @@ export default function Expense({ user }) {
       const fetchedBudgets = await fetchBudgets();
       await fetchAllBudgetDetails(fetchedBudgets);
     };
-    
+
     initializeData();
   }, []);
 
@@ -537,7 +574,9 @@ export default function Expense({ user }) {
   return (
     <>
       <main className={styles.expenseLayout}>
-        <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}>
+        <div
+          className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}
+        >
           <SidebarNav onToggleCollapse={handleSidebarToggle} />
           <section className={styles.main}>
             <header className={styles.headerSection}>
@@ -584,8 +623,12 @@ export default function Expense({ user }) {
                     category={category}
                     isExpanded={expandedCategories[category.categoryID]}
                     onToggle={() => toggleCategory(category.categoryID)}
-                    onDelete={() => handleDeleteCategoryClick(category.categoryID)}
-                    onAddExpense={() => handleAddExpenseClick(category.categoryID)}
+                    onDelete={() =>
+                      handleDeleteCategoryClick(category.categoryID)
+                    }
+                    onAddExpense={() =>
+                      handleAddExpenseClick(category.categoryID)
+                    }
                     expenses={filteredExpenses[category.categoryID] || []}
                     categoryTotal={getCategoryTotal(category.categoryID)}
                     activeFilter={activeFilter}
@@ -604,6 +647,8 @@ export default function Expense({ user }) {
               <DeleteModal
                 onCancel={() => setIsDeleteCategoryModalOpen(false)}
                 onConfirm={handleDeleteCategoryConfirm}
+                categoryName={selectedCategoryName}
+                hasExpenses={categoryHasExpenses}
               />
             )}
             {isDeleteExpenseModalOpen && (

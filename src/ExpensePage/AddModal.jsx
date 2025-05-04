@@ -48,9 +48,6 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
           const budgetCategories = result.data.categories || [];
           setExistingCategories(budgetCategories);
           
-          // Find relevant categories based on budget name
-          // If budget name matches one of our category options, filter to show only that and "Others"
-          // Otherwise, filter out categories that are already associated with this budget
           const budgetName = result.data.budget.budgetName;
           
           // Try to find if budget name matches one of our predefined categories
@@ -61,9 +58,7 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
           let filteredCategories;
           
           if (matchingCategory) {
-            // If budget matches a predefined category, only show relevant categories or "Others"
-            // Determine relevant categories based on budget type
-            // This approach is simplified - you might want to create a more sophisticated mapping
+
             const relevantCategories = findRelevantCategories(budgetName);
             
             // Filter out categories that already exist in this budget
@@ -94,10 +89,7 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
 
   // Find relevant categories based on budget type
   const findRelevantCategories = (budgetName) => {
-    // This function maps budget types to relevant categories
-    // You can customize this mapping based on your business logic
-    
-    // Convert to lowercase for case-insensitive comparison
+
     const lowerBudgetName = budgetName.toLowerCase();
     
     // Always include "Others" category
@@ -165,8 +157,6 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
       );
     }
     
-    // Default case: If no specific match, return just the Others category
-    // or you could return all categories
     return [othersCategory];
   };
 

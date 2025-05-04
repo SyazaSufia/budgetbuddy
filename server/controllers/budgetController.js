@@ -517,55 +517,72 @@ exports.updateCategory = async (req, res) => {
 
 // Delete a category
 exports.deleteCategory = async (req, res) => {
+  let connection = null;
+  
   try {
     const { categoryID } = req.params;
     const userID = req.session.user.id;
 
-    // First check if there are any expenses associated with this category
-    const checkExpensesQuery = `
-      SELECT COUNT(*) as expenseCount 
-      FROM expenses 
-      WHERE categoryID = ? AND userID = ?
-    `;
+    // Create a new connection for the transaction
+    connection = await require("../db").createConnection();
+    
+    // Start a transaction
+    await connection.beginTransaction();
 
-    const checkResults = await db.query(checkExpensesQuery, [
-      categoryID,
-      userID,
-    ]);
-    const expenseCount = checkResults[0].expenseCount;
-
-    if (expenseCount > 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Cannot delete category with associated expenses. Delete expenses first.",
+    try {
+      // First, delete all expenses associated with this category
+      const deleteExpensesQuery = `
+        DELETE FROM expenses 
+        WHERE categoryID = ? AND userID = ?
+      `;
+      
+      await connection.execute(deleteExpensesQuery, [categoryID, userID]);
+      
+      // Then delete the category
+      const deleteCategoryQuery = `
+        DELETE FROM categories 
+        WHERE categoryID = ? AND userID = ?
+      `;
+      
+      const [result] = await connection.execute(deleteCategoryQuery, [categoryID, userID]);
+      
+      if (result.affectedRows === 0) {
+        await connection.rollback();
+        return res.status(404).json({
+          success: false,
+          message: "Category not found or you don't have permission to delete it",
+        });
+      }
+      
+      // Commit the transaction
+      await connection.commit();
+      
+      res.status(200).json({
+        success: true,
+        message: "Category and all associated expenses deleted successfully",
       });
+    } catch (err) {
+      // Rollback the transaction on error
+      if (connection) {
+        await connection.rollback();
+      }
+      throw err;
     }
-
-    // If no expenses exist, proceed with deletion
-    const deleteQuery = `
-      DELETE FROM categories 
-      WHERE categoryID = ? AND userID = ?
-    `;
-
-    const result = await db.query(deleteQuery, [categoryID, userID]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found or you don't have permission to delete it",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Category deleted successfully",
-    });
   } catch (error) {
+    console.error("Delete error:", error);
     res.status(500).json({
       success: false,
       message: "Error deleting category",
       error: error.message,
     });
+  } finally {
+    // Always close the connection
+    if (connection) {
+      try {
+        await connection.end();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
   }
 };
