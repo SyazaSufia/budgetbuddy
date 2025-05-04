@@ -331,5 +331,23 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// In production, serve the static frontend files
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the React app build directory
+  const frontendPath = path.join(__dirname, '../build'); // Adjust this path to where your frontend build is
+  app.use(express.static(frontendPath));
+  
+  // For any request that doesn't match an API route, send the React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+  
+  // Listen on the port Render provides
+  const PORT = process.env.PORT || 10000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
 // Export for serverless
 module.exports = app;
