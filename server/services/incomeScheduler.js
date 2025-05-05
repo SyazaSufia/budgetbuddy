@@ -3,28 +3,24 @@ const cron = require('node-cron');
 
 // Function to create next occurrence income entry based on recurring pattern
 const createNextRecurringIncome = async () => {
-  console.log('Running recurring income scheduler...');
+  console.log('Running recurring income scheduler job - checking for recurring incomes...');
   
-  // Find all recurring incomes that need next entries created
-  const findRecurringQuery = `
-    SELECT i.*, u.userID as userID 
-    FROM income i
-    JOIN user u ON i.userID = u.userID
-    WHERE i.isRecurring = true 
-    AND i.occurrence != 'once'
-    AND (
-      (i.occurrence = 'daily' AND DATE_ADD(i.date, INTERVAL 1 DAY) <= CURDATE()) OR
-      (i.occurrence = 'weekly' AND DATE_ADD(i.date, INTERVAL 1 WEEK) <= CURDATE()) OR
-      (i.occurrence = 'monthly' AND DATE_ADD(i.date, INTERVAL 1 MONTH) <= CURDATE()) OR
-      (i.occurrence = 'yearly' AND DATE_ADD(i.date, INTERVAL 1 YEAR) <= CURDATE())
-    )
-  `;
-  
-  db.query(findRecurringQuery, [], async (err, incomes) => {
-    if (err) {
-      console.error('Error finding recurring incomes:', err);
-      return;
-    }
+  try {
+    // Find all recurring incomes that need next entries created
+    const findRecurringQuery = `
+      SELECT * 
+      FROM income 
+      WHERE isRecurring = true 
+      AND occurrence != 'once'
+      AND (
+        (occurrence = 'daily' AND DATE_ADD(date, INTERVAL 1 DAY) <= CURDATE()) OR
+        (occurrence = 'weekly' AND DATE_ADD(date, INTERVAL 1 WEEK) <= CURDATE()) OR
+        (occurrence = 'monthly' AND DATE_ADD(date, INTERVAL 1 MONTH) <= CURDATE()) OR
+        (occurrence = 'yearly' AND DATE_ADD(date, INTERVAL 1 YEAR) <= CURDATE())
+      )
+    `;
+    
+    const incomes = await db.query(findRecurringQuery);
     
     console.log(`Found ${incomes.length} recurring incomes to process`);
     
@@ -34,57 +30,51 @@ const createNextRecurringIncome = async () => {
         // Calculate next date based on occurrence pattern
         const nextDate = calculateNextDate(income.date, income.occurrence);
         
-        // Check if we already have an entry for this date
+        // Check if we already have an entry for this date and parent ID
         const checkExistingQuery = `
-          SELECT COUNT(*) as count FROM income 
+          SELECT COUNT(*) as count 
+          FROM income 
           WHERE parentIncomeID = ? AND date = ?
         `;
         
-        db.query(checkExistingQuery, [income.incomeID, nextDate], (err, result) => {
-          if (err) {
-            console.error('Error checking existing entries:', err);
-            return;
-          }
-          
-          // Skip if we already have an entry for this date
-          if (result[0].count > 0) {
-            console.log(`Entry already exists for income ID ${income.incomeID} on ${nextDate}`);
-            return;
-          }
-          
-          // Create new income entry
-          const insertQuery = `
-            INSERT INTO income (
-              userID, type, title, source, date, amount, 
-              occurrence, isRecurring, parentIncomeID
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `;
-          
-          db.query(insertQuery, [
-            income.userID,
-            income.type,
-            income.title,
-            income.source,
-            nextDate,
-            income.amount,
-            income.occurrence,
-            true,
-            income.incomeID
-          ], (err, result) => {
-            if (err) {
-              console.error('Error creating recurring income entry:', err);
-              return;
-            }
-            
-            console.log(`Created recurring income entry: ID ${result.insertId} for user ${income.userID}`);
-          });
-        });
+        const existingResults = await db.query(checkExistingQuery, [income.incomeID, nextDate]);
+        
+        // Skip if we already have an entry for this date
+        if (existingResults[0].count > 0) {
+          console.log(`Entry already exists for income ID ${income.incomeID} on ${nextDate}`);
+          continue;
+        }
+        
+        // Create new income entry
+        const insertQuery = `
+          INSERT INTO income (
+            userID, type, title, source, date, amount, 
+            occurrence, isRecurring, parentIncomeID
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        
+        const result = await db.query(insertQuery, [
+          income.userID,
+          income.type,
+          income.title,
+          income.source,
+          nextDate,
+          income.amount,
+          income.occurrence,
+          true,
+          income.incomeID
+        ]);
+        
+        console.log(`Created recurring income entry: ID ${result.insertId} for user ${income.userID}`);
+        
       } catch (error) {
         console.error(`Error processing recurring income ID ${income.incomeID}:`, error);
       }
     }
-  });
+  } catch (err) {
+    console.error('Error in recurring income scheduler:', err);
+  }
 };
 
 // Helper function to calculate next date based on occurrence pattern
@@ -113,17 +103,24 @@ const calculateNextDate = (baseDate, occurrence) => {
 
 // Schedule the job to run daily at midnight
 const scheduleJob = () => {
+  // Schedule daily at midnight
   cron.schedule('0 0 * * *', () => {
+    console.log('Running scheduled recurring income job');
     createNextRecurringIncome();
   });
   
+  // Also run at server start to catch up any missed occurrences
   console.log('Recurring income scheduler initialized');
 };
 
 // Run immediately on startup to handle any missed occurrences
 const initialize = () => {
   scheduleJob();
-  createNextRecurringIncome();
+  
+  // Run immediately to process any pending recurrences
+  createNextRecurringIncome()
+    .then(() => console.log('Initial income recurrence processing complete'))
+    .catch(err => console.error('Error in initial income recurrence processing:', err));
 };
 
 module.exports = {

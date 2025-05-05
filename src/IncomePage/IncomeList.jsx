@@ -18,6 +18,7 @@ export default function IncomeList({
   const [currentIncome, setCurrentIncome] = useState(null);
   const [selectedIncomeId, setSelectedIncomeId] = useState(null);
   const [isRecurringIncome, setIsRecurringIncome] = useState(false);
+  const [updateAllRecurrences, setUpdateAllRecurrences] = useState(false);
 
   // Fetch incomes from the backend
   const fetchIncomes = async () => {
@@ -116,7 +117,7 @@ export default function IncomeList({
   // Handle delete button click
   const handleDeleteClick = (id, isRecurring = false) => {
     setSelectedIncomeId(id);
-    setIsRecurringIncome(isRecurring || false);
+    setIsRecurringIncome(isRecurring);
     setIsDeleteModalOpen(true);
   };
 
@@ -139,6 +140,11 @@ export default function IncomeList({
         fetchIncomes(); // Reload incomes after deletion
         setIsDeleteModalOpen(false);
         setSelectedIncomeId(null);
+        
+        // Notify parent component of refresh
+        if (onRefresh) {
+          onRefresh();
+        }
       } else {
         console.error("Failed to delete income");
       }
@@ -151,13 +157,20 @@ export default function IncomeList({
   const handleEditClick = (income) => {
     setCurrentIncome(income);
     setIsEditModalOpen(true);
+    // Reset the update all recurrences flag
+    setUpdateAllRecurrences(false);
   };
 
   // Confirm income update
-  const handleUpdateIncome = async () => {
+  const handleUpdateIncome = async (updatedIncome, updateAllRecurrences = false) => {
     try {
       await fetchIncomes(); // Auto-refresh after update
       setIsEditModalOpen(false);
+      
+      // Notify parent component of refresh
+      if (onRefresh) {
+        onRefresh();
+      }
     } catch (error) {
       console.error("Error updating income:", error);
     }
@@ -183,6 +196,17 @@ export default function IncomeList({
     return occurrence.charAt(0).toUpperCase() + occurrence.slice(1);
   };
 
+  // Render recurring income badge if needed
+  const renderRecurringBadge = (item) => {
+    if (!item.isRecurring) return null;
+    
+    return (
+      <div className={styles.recurringBadge}>
+        {item.parentIncomeID ? "Part of recurring series" : "Recurring income"}
+      </div>
+    );
+  };
+
   return (
     <section className={styles.incomeLists}>
       <h2 className={styles.title}>All Income</h2>
@@ -205,8 +229,15 @@ export default function IncomeList({
                       <span className={styles.occurrenceValue}>
                         {formatOccurrence(item.occurrence)}
                       </span>
+                      {item.recurrenceCount > 0 && (
+                        <span className={styles.recurrenceCount}>
+                          ({item.recurrenceCount} future entries)
+                        </span>
+                      )}
                     </p>
                   )}
+
+                  {renderRecurringBadge(item)}
 
                   <div className={styles.amount}>
                     <span className={styles.currency}>RM</span>
@@ -274,6 +305,7 @@ export default function IncomeList({
           income={currentIncome}
           onClose={() => setIsEditModalOpen(false)}
           onUpdate={handleUpdateIncome}
+          showRecurringOptions={currentIncome?.isRecurring}
         />
       )}
     </section>

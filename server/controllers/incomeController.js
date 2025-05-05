@@ -39,7 +39,7 @@ const addIncome = async (req, res) => {
 
     const incomeID = result.insertId;
 
-    // If not recurring, we're done
+    // Return early for non-recurring incomes
     if (!isRecurring) {
       return res.status(201).json({
         message: "Income added successfully!",
@@ -47,15 +47,8 @@ const addIncome = async (req, res) => {
       });
     }
 
-    // For recurring income, schedule future occurrences in the system
-    await scheduleRecurringIncome(userID, incomeID, {
-      type,
-      title,
-      source,
-      date,
-      amount,
-      occurrence,
-    });
+    // For recurring incomes, the scheduler service will take care of future occurrences
+    // No need to do anything additional here as the cron job will pick up new recurring incomes
 
     res.status(201).json({
       message: "Recurring income set up successfully!",
@@ -65,19 +58,6 @@ const addIncome = async (req, res) => {
     console.error("Error adding income:", err);
     res.status(500).json({ error: "Failed to add income." });
   }
-};
-
-// Schedule recurring income entries
-const scheduleRecurringIncome = async (userID, parentIncomeID, incomeData) => {
-  // This function would set up a scheduler or create future dated entries
-  // For demonstration, we'll just log it, but in production you'd use a scheduling library
-  console.log(`Scheduled recurring income for user ${userID}:`, {
-    parentIncomeID,
-    ...incomeData,
-  });
-
-  // In a real implementation, you'd use a job scheduler like node-cron or agenda
-  // to create new income entries at the appropriate times
 };
 
 // Fetch Income - Include recurring income information
@@ -249,9 +229,13 @@ const updateSingleIncome = async (incomeID, userID, data) => {
 
   const query = `
     UPDATE income
-    SET type = ?, title = ?, source = ?, date = ?, amount = ?, occurrence = ?
+    SET type = ?, title = ?, source = ?, date = ?, amount = ?, occurrence = ?, 
+        isRecurring = ?
     WHERE incomeID = ? AND userID = ?
   `;
+
+  // Update isRecurring flag based on occurrence
+  const isRecurring = occurrence !== "once";
 
   const result = await db.query(query, [
     type,
@@ -260,6 +244,7 @@ const updateSingleIncome = async (incomeID, userID, data) => {
     date,
     amount,
     occurrence || "once",
+    isRecurring,
     incomeID,
     userID,
   ]);

@@ -18,10 +18,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 
-// Note: Scheduler is commented out for serverless environment
-// In serverless, you'd use a separate cron service like Vercel Cron
-// const incomeScheduler = require('./services/incomeScheduler');
-// incomeScheduler.initialize();
+// Enable the income scheduler since we're not using serverless anymore
+const incomeScheduler = require('./services/incomeScheduler');
+incomeScheduler.initialize();
 
 const isAuthenticated = require("./middleware/isAuthenticated");
 
@@ -345,4 +344,3 @@ app.listen(PORT, () => {
   console.log(`Database host: ${process.env.DB_HOST}`);
   console.log(`Database name: ${process.env.DB_NAME}`);
 });
-
