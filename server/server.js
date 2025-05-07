@@ -2,11 +2,33 @@ const express = require("express");
 const path = require("path");
 const app = express();
 const cors = require("cors");
+const fs = require("fs");
 const db = require("./db");
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
+
+// Setup Google Cloud credentials from environment variable
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+  try {
+    // Create a temp directory if it doesn't exist
+    const credentialsDir = path.join(__dirname, 'temp');
+    if (!fs.existsSync(credentialsDir)) {
+      fs.mkdirSync(credentialsDir, { recursive: true });
+    }
+    
+    // Write the credentials to a file
+    const credentialsPath = path.join(credentialsDir, 'google-credentials.json');
+    fs.writeFileSync(credentialsPath, process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    
+    // Set the environment variable to point to this file
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
+    console.log("Google Cloud credentials configured from environment variable");
+  } catch (error) {
+    console.error("Error setting up Google credentials:", error);
+  }
+}
 
 // Import routes
 const passwordRoutes = require("./routes/passwordRoutes");
@@ -322,8 +344,13 @@ app.post("/add-admin", async (req, res) => {
   }
 });
 
+// Ensure the root route returns a 200 status for Render health checks
+app.get('/', (req, res) => {
+  res.status(200).send('BudgetBuddy API server running');
+});
+
 // Development vs Production server setup
-const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 10000) : 8080;
+const PORT = process.env.PORT || 8080;
 
 // Serve static files from the React app build directory for production
 if (process.env.NODE_ENV === 'production') {
@@ -338,7 +365,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Start the server regardless of environment
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
   
   // Log connection info to help with debugging
   console.log(`Database host: ${process.env.DB_HOST}`);
