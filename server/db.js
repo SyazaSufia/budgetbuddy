@@ -14,6 +14,9 @@ const pool = mysql.createPool({
   dateStrings: true,
   // Add connection retry options
   connectTimeout: 60000, // longer timeout
+  ssl: {
+    rejectUnauthorized: true,
+  },
 });
 
 // Add connection event listeners
