@@ -8,9 +8,9 @@ const Hero = ({user}) => {
   const navigate = useNavigate();
   const handleGetStarted = () => {
     if (user?.role === 'user') {
-      navigate('/profile'); // Redirect to sign-in page if not signed in
+      navigate('/dashboard'); // Proceed to dashboard if signed in
     } else {
-      navigate('/sign-in'); // Proceed to booking if signed in
+      navigate('/sign-in'); // Redirect to sign-in page if not signed in
     }
   };
 
