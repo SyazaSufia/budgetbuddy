@@ -41,7 +41,6 @@ const createNextRecurringIncome = async () => {
         
         // Skip if we already have an entry for this date
         if (existingResults[0].count > 0) {
-          console.log(`Entry already exists for income ID ${income.incomeID} on ${nextDate}`);
           continue;
         }
         
