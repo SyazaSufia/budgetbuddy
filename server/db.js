@@ -36,7 +36,6 @@ const query = async (sql, params) => {
   let connection;
   try {
     connection = await pool.getConnection();
-    console.log("Got database connection");
     const [results] = await connection.execute(sql, params);
     return results;
   } catch (error) {
@@ -48,7 +47,6 @@ const query = async (sql, params) => {
   } finally {
     if (connection) {
       connection.release();
-      console.log("Database connection released");
     }
   }
 };
