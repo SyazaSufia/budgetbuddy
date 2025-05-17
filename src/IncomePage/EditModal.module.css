@@ -85,3 +85,9 @@
   border: none;
   color: var(--primaryColor);
 }
+
+.checkboxLabel {
+  font-family: "Montserrat";
+  color: black;
+  gap: 8px;
+}

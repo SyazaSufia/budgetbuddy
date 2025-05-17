@@ -136,17 +136,25 @@ export default function IncomeList({
         credentials: "include", // Send session cookies
       });
 
+      const result = await response.json();
+
       if (response.ok) {
         fetchIncomes(); // Reload incomes after deletion
         setIsDeleteModalOpen(false);
         setSelectedIncomeId(null);
-        
+
         // Notify parent component of refresh
         if (onRefresh) {
           onRefresh();
         }
+      } else if (response.status === 400 && result.hasChildren) {
+        // If the income has children, show a message to the user
+        alert(
+          "This income has recurring instances. Please select 'Delete all recurrences' option."
+        );
+        // You could also set a state variable here to show a more elegant message in the UI
       } else {
-        console.error("Failed to delete income");
+        console.error("Failed to delete income:", result.error);
       }
     } catch (error) {
       console.error("Error deleting income:", error);
@@ -162,11 +170,14 @@ export default function IncomeList({
   };
 
   // Confirm income update
-  const handleUpdateIncome = async (updatedIncome, updateAllRecurrences = false) => {
+  const handleUpdateIncome = async (
+    updatedIncome,
+    updateAllRecurrences = false
+  ) => {
     try {
       await fetchIncomes(); // Auto-refresh after update
       setIsEditModalOpen(false);
-      
+
       // Notify parent component of refresh
       if (onRefresh) {
         onRefresh();
@@ -199,7 +210,7 @@ export default function IncomeList({
   // Render recurring income badge if needed
   const renderRecurringBadge = (item) => {
     if (!item.isRecurring) return null;
-    
+
     return (
       <div className={styles.recurringBadge}>
         {item.parentIncomeID ? "Part of recurring series" : "Recurring income"}
@@ -229,11 +240,6 @@ export default function IncomeList({
                       <span className={styles.occurrenceValue}>
                         {formatOccurrence(item.occurrence)}
                       </span>
-                      {item.recurrenceCount > 0 && (
-                        <span className={styles.recurrenceCount}>
-                          ({item.recurrenceCount} future entries)
-                        </span>
-                      )}
                     </p>
                   )}
 
@@ -267,10 +273,10 @@ export default function IncomeList({
           ))
         ) : (
           <div className={styles.emptyState}>
-            <img 
-              src="/empty-illustration.svg" 
-              alt="No income" 
-              className={styles.emptyIllustration} 
+            <img
+              src="/empty-illustration.svg"
+              alt="No income"
+              className={styles.emptyIllustration}
             />
             <p className={styles.noIncome}>
               No income entries found for this period.
