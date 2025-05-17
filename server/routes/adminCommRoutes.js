@@ -3,8 +3,6 @@ const router = express.Router();
 const adminCommControllers = require("../controllers/adminCommController");
 const isAuthenticated = require("../middleware/isAuthenticated");
 
-// Order matters! Search route needs to come before the dynamic :id route
-router.get("/posts/search", isAuthenticated, adminCommControllers.searchPosts);
 router.get("/posts", isAuthenticated, adminCommControllers.getAllPosts);
 router.get("/posts/:id", isAuthenticated, adminCommControllers.getPostById);
 router.put("/posts/:id/status", isAuthenticated, adminCommControllers.updatePostStatus);
