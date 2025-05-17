@@ -1,107 +1,156 @@
+/* PostTableRow.module.css */
 .tableRow {
-    border-width: 1px;
-    border-color: #dee2e6;
-    align-items: center;
-    width: 100%;
-    display: flex;
-  }
-  
-  .idCell {
-    color: #212529;
-    width: 110px;
-    height: 100%;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 24px;
-  }
-  @media (width<=640px) {
-    .idCell {
-      width: 80px;
-    }
-  }
-  
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-bottom: 1px solid #dee2e6;
+  transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.idCell {
+  color: #212529;
+  width: 110px;
+  height: 100%;
+  padding: 12px 16px;
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.contentCell {
+  color: #212529;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 300px;
+  padding: 12px 16px;
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 24px;
+  overflow: hidden;
+}
+
+.dateCell {
+  color: #212529;
+  width: 150px;
+  padding: 12px 16px;
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.statusCell {
+  display: flex;
+  align-items: center;
+  width: 200px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.statusWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.statusDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  width: 150px;
+  background-color: white;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* Show dropdown when active */
+.statusWrapper .statusDropdown:global(.visible) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.statusOption {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.statusOption:hover {
+  background-color: #f5f5f5;
+}
+
+.statusOption.active {
+  background-color: #f0f0f0;
+  font-weight: 500;
+}
+
+.actionCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  min-width: 100px;
+  height: 100%;
+  padding: 12px 16px;
+}
+
+.deleteButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s;
+}
+
+.deleteButton:hover {
+  transform: scale(1.1);
+}
+
+.deleteIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
   .contentCell {
-    color: #212529;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 300px;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 24px;
-    overflow: hidden;
-  }
-  @media (width<=991px) {
-    .contentCell {
-      width: 250px;
-    }
-  }
-  @media (width<=640px) {
-    .contentCell {
-      width: 120px;
-    }
-  }
-  
-  .dateCell {
-    color: #212529;
-    width: 150px;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 24px;
+    width: 250px;
   }
   
   .statusCell {
-    align-items: center;
-    width: 200px;
-    padding: 8px 16px;
-    display: flex;
+    width: 150px;
   }
-  @media (width<=991px) {
-    .statusCell {
-      width: 150px;
-    }
-  }
-  @media (width<=640px) {
-    .statusCell {
-      width: 100px;
-    }
+}
+
+@media (max-width: 640px) {
+  .idCell {
+    width: 80px;
   }
   
-  .statusWrapper {
-    flex: 1;
-    align-items: center;
-    display: flex;
+  .contentCell {
+    width: 120px;
   }
   
-  .actionCell {
-    justify-content: center;
-    align-items: center;
-    width: 81px;
-    height: 100%;
-    padding: 8px 16px;
-    display: flex;
+  .statusCell {
+    width: 100px;
   }
-  
-  .deleteButton {
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    width: 59px;
-    display: flex;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-  
-  .deleteIcon {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-  }
-  
+}

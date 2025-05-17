@@ -38,6 +38,7 @@ const receiptRoutes = require('./routes/receiptRoutes');
 const budgetRoutes = require("./routes/budgetRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const advertisementRoutes = require("./routes/advertisementRoutes");
+const adminCommRoutes = require("./routes/adminCommRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 
@@ -112,6 +113,7 @@ app.use("/admin", adminRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/community", communityRoutes);
 app.use("/advertisement", advertisementRoutes);
+app.use("/admin/community", adminCommRoutes);
 
 // Sign-up endpoint
 app.post("/sign-up", async (req, res) => {

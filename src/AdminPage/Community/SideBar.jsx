@@ -4,7 +4,7 @@ import styles from "./SideBar.module.css";
 import SignOutModal from "../../SignOut/SignOutModal";
 
 const menuItems = [
-  { id: "users", label: "Users", icon: "/profile-icon.svg", path: "/adminUsers"},
+  { id: "users", label: "Users", icon: "/profile-icon.svg", path: "/adminUser"},
   { id: "community", label: "Community", icon: "/community-icon.svg", path: "/adminCommunity", active: true},
   { id: "advertisement", label: "Advertisement", icon: "/ads-icon.svg", path: "/adminAds"}
 ];

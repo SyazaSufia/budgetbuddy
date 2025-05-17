@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./CommunityManagement.module.css";
-import SearchBar from "./SearchBar";
 import PostTable from "./PostTable";
 import SidebarNav from "./SideBar";
 
 function CommunityManagement() {
+  const [filteredPosts, setFilteredPosts] = useState(null);
+
   return (
     <main className={styles.container}>
       <SidebarNav />
@@ -12,10 +13,9 @@ function CommunityManagement() {
         <h1 className={styles.title}>Community Management</h1>
         <div className={styles.card}>
           <header className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>User Accounts</h2>
-            <SearchBar />
+            <h2 className={styles.cardTitle}>Community Posts</h2>
           </header>
-          <PostTable />
+          <PostTable initialPosts={filteredPosts} />
         </div>
       </section>
     </main>

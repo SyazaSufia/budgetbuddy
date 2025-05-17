@@ -1,11 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./PostTableRow.module.css";
 import StatusBadge from "./StatusBadge";
 
-function PostTableRow({ id, content, date, status }) {
+function PostTableRow({ id, content, date, status, onDelete, onUpdateStatus }) {
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
   const handleDelete = () => {
-    // Handle delete functionality
-    console.log(`Deleting post: ${id}`);
+    // Confirm before deletion
+    if (window.confirm(`Are you sure you want to delete post ${id}?`)) {
+      onDelete();
+    }
+  };
+
+  const handleStatusClick = () => {
+    setShowStatusDropdown(!showStatusDropdown);
+  };
+
+  const handleStatusChange = (newStatus) => {
+    onUpdateStatus(newStatus);
+    setShowStatusDropdown(false);
   };
 
   return (
@@ -14,8 +27,30 @@ function PostTableRow({ id, content, date, status }) {
       <div className={styles.contentCell}>{content}</div>
       <div className={styles.dateCell}>{date}</div>
       <div className={styles.statusCell}>
-        <div className={styles.statusWrapper}>
+        <div className={styles.statusWrapper} onClick={handleStatusClick}>
           <StatusBadge status={status} />
+          {showStatusDropdown && (
+            <div className={styles.statusDropdown}>
+              <div 
+                className={`${styles.statusOption} ${status === 'Pending' ? styles.active : ''}`}
+                onClick={() => handleStatusChange('Pending')}
+              >
+                Pending
+              </div>
+              <div 
+                className={`${styles.statusOption} ${status === 'Reviewed' ? styles.active : ''}`}
+                onClick={() => handleStatusChange('Reviewed')}
+              >
+                Reviewed
+              </div>
+              <div 
+                className={`${styles.statusOption} ${status === 'Violated' ? styles.active : ''}`}
+                onClick={() => handleStatusChange('Violated')}
+              >
+                Violated
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className={styles.actionCell}>
