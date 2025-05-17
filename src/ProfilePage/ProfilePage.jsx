@@ -16,6 +16,8 @@ const ProfilePage = () => {
     email: "",
     phoneNumber: "",
     profileImage: "",
+    incomeType: "",
+    scholarshipType: "",
   });
 
   const [isFormComplete, setIsFormComplete] = useState(false);
@@ -83,6 +85,8 @@ const ProfilePage = () => {
           email: userData.email || "",
           phoneNumber: userData.phoneNumber || "",
           profileImage: profileImage,
+          incomeType: userData.incomeType || "",
+          scholarshipType: userData.scholarshipType || "",
         });
       } else {
         console.error("No user data found");
@@ -131,6 +135,13 @@ const ProfilePage = () => {
         [field]: value, // Keep DOB exactly as entered (already in YYYY-MM-DD format)
         age: age.toString(),
       }));
+    } else if (field === "incomeType") {
+      // If changing income type and it's not "passive", clear scholarship type
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+        scholarshipType: value === "passive" ? prev.scholarshipType : ""
+      }));
     } else {
       // Handle other fields normally
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -147,7 +158,14 @@ const ProfilePage = () => {
       "email",
       "phoneNumber",
       "profileImage",
+      "incomeType"
     ];
+    
+    // Add scholarshipType to required fields only if incomeType is passive
+    if (formData.incomeType === "passive") {
+      requiredFields.push("scholarshipType");
+    }
+    
     const isComplete = requiredFields.every(
       (field) => formData[field] && formData[field].trim() !== ""
     );
@@ -294,6 +312,62 @@ const ProfilePage = () => {
                   )}
                 </div>
                 {/* Empty space to keep layout balanced */}
+                <div className={styles.formGroup}></div>
+              </div>
+            </InfoSection>
+
+            {/* New Financial Information Section */}
+            <InfoSection title="Financial Information" required>
+              <div className={styles.row}>
+                <div className={styles.formGroup}>
+                  <div className={styles.fieldContainer}>
+                    <div className={styles.labelContainer}>
+                      <label className={styles.label}>Income Type</label>
+                      <span className={styles.labelColon}>:</span>
+                    </div>
+                    <div className={styles.inputContainer}>
+                      <select 
+                        className={styles.select}
+                        value={formData.incomeType}
+                        onChange={(e) => handleInputChange("incomeType", e.target.value)}
+                      >
+                        <option value="">Select Income Type</option>
+                        <option value="active">Active</option>
+                        <option value="passive">Passive</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
+                {formData.incomeType === "passive" && (
+                  <div className={styles.formGroup}>
+                    <div className={styles.fieldContainer}>
+                      <div className={styles.labelContainer}>
+                        <label className={styles.label}>Scholarship Type</label>
+                        <span className={styles.labelColon}>:</span>
+                      </div>
+                      <div className={styles.inputContainer}>
+                        <select 
+                          className={styles.select}
+                          value={formData.scholarshipType}
+                          onChange={(e) => handleInputChange("scholarshipType", e.target.value)}
+                        >
+                          <option value="">Select Scholarship Type</option>
+                          <option value="JPA">Jabatan Perkhidmatan Awam (JPA)</option>
+                          <option value="MARA">Majlis Amanah Rakyat (MARA)</option>
+                          <option value="Yayasan">Yayasan Khazanah</option>
+                          <option value="Petronas">Petronas Education</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Empty div to keep layout balanced if scholarship not shown */}
+                {formData.incomeType !== "passive" && <div className={styles.formGroup}></div>}
+                
+                {/* Always add a third column for balance */}
                 <div className={styles.formGroup}></div>
               </div>
             </InfoSection>

@@ -251,7 +251,7 @@ app.get("/check-auth", (req, res) => {
   return res.json({ isAuthenticated: false });
 });
 
-// Fetch User Details Endpoint
+// Update the GET User Details Endpoint to include income information
 app.get("/get-user-details", isAuthenticated, async (req, res) => {
   try {
     const { id } = req.session.user;
@@ -263,7 +263,9 @@ app.get("/get-user-details", isAuthenticated, async (req, res) => {
         userEmail AS email, 
         DATE_FORMAT(userDOB, '%Y-%m-%d') AS userDOB, 
         userPhoneNumber AS phoneNumber, 
-        profileImage 
+        profileImage,
+        incomeType,
+        scholarshipType 
       FROM user 
       WHERE userID = ?`,
       [id]
@@ -285,10 +287,10 @@ app.get("/get-user-details", isAuthenticated, async (req, res) => {
   }
 });
 
-// Update Profile Endpoint
+// Update the Profile Update Endpoint to handle income information
 app.post("/update-profile", isAuthenticated, async (req, res) => {
   try {
-    const { id, name, email, dob, phoneNumber, profileImage } = req.body;
+    const { id, name, email, dob, phoneNumber, profileImage, incomeType, scholarshipType } = req.body;
     const userId = req.session.user.id;
 
     // Validation: ensure the ID matches the logged-in user
@@ -298,6 +300,9 @@ app.post("/update-profile", isAuthenticated, async (req, res) => {
         .json({ success: false, message: "Unauthorized action." });
     }
 
+    // Handle scholarshipType based on incomeType
+    const finalScholarshipType = incomeType === 'passive' ? scholarshipType : null;
+
     await db.query(
       `UPDATE user 
       SET 
@@ -305,9 +310,11 @@ app.post("/update-profile", isAuthenticated, async (req, res) => {
         userDOB = STR_TO_DATE(?, '%Y-%m-%d'), 
         userEmail = ?, 
         userPhoneNumber = ?, 
-        profileImage = ? 
+        profileImage = ?,
+        incomeType = ?,
+        scholarshipType = ?
       WHERE userID = ?`,
-      [name, dob, email, phoneNumber, profileImage, userId]
+      [name, dob, email, phoneNumber, profileImage, incomeType, finalScholarshipType, userId]
     );
     
     return res.json({
