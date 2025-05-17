@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./Expense.module.css";
 import SidebarNav from "./SideBar";
-import { DeleteModal } from "./DeleteModal";
 import { DeleteExpenseModal } from "./DeleteExpenseModal";
 import { AddExpenseModal } from "./AddExpenseModal";
 import { EditExpenseModal } from "./EditExpenseModal";
@@ -80,9 +79,6 @@ const CategoryItem = ({
       <div className={styles.actionButtons}>
         <button className={styles.iconButton} onClick={onAddExpense}>
           <img src="/add-icon.svg" alt="Add" />
-        </button>
-        <button className={styles.iconButton} onClick={onDelete}>
-          <img src="/delete-icon.svg" alt="Delete" />
         </button>
       </div>
     </div>
@@ -643,14 +639,6 @@ export default function Expense({ user }) {
             </section>
 
             {/* Modals */}
-            {isDeleteCategoryModalOpen && (
-              <DeleteModal
-                onCancel={() => setIsDeleteCategoryModalOpen(false)}
-                onConfirm={handleDeleteCategoryConfirm}
-                categoryName={selectedCategoryName}
-                hasExpenses={categoryHasExpenses}
-              />
-            )}
             {isDeleteExpenseModalOpen && (
               <DeleteExpenseModal
                 onCancel={() => setIsDeleteExpenseModalOpen(false)}
