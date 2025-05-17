@@ -99,32 +99,172 @@ const deleteIncome = async (req, res) => {
     const userID = req.session.user.id;
     const { deleteAllRecurrences } = req.query; // Optional query param to delete all instances
 
-    if (deleteAllRecurrences === "true") {
-      // First, delete all child recurrences
-      const deleteChildrenQuery = `
-        DELETE FROM income
-        WHERE parentIncomeID = ? AND userID = ?
-      `;
-      await db.query(deleteChildrenQuery, [incomeID, userID]);
+    // First, get information about this income entry
+    const getIncomeQuery = `
+      SELECT incomeID, parentIncomeID, isRecurring 
+      FROM income 
+      WHERE incomeID = ? AND userID = ?
+    `;
+    
+    const [incomeInfo] = await db.query(getIncomeQuery, [incomeID, userID]);
 
-      // Then delete the parent
-      await deleteParentIncome(incomeID, userID);
+    if (!incomeInfo) {
+      return res.status(404).json({ error: "Income record not found." });
+    }
+
+    // Check if this income is part of a recurring series (either a parent or has a parent)
+    const isPartOfRecurringSeries = incomeInfo.isRecurring || incomeInfo.parentIncomeID !== null;
+
+    // Check if it has child entries
+    const checkChildrenQuery = `
+      SELECT COUNT(*) as childCount
+      FROM income
+      WHERE parentIncomeID = ? AND userID = ?
+    `;
+    
+    const [childResult] = await db.query(checkChildrenQuery, [incomeID, userID]);
+    const hasChildren = childResult.childCount > 0;
+
+    // Handle deletion based on the type and options
+    if (deleteAllRecurrences === "true") {
+      // Case 1: Delete all recurrences
+
+      // If this is a child income in a series, we need to get the root parent first
+      let rootParentID = incomeID;
+      if (incomeInfo.parentIncomeID !== null) {
+        // Find the root parent
+        const getRootParentQuery = `
+          WITH RECURSIVE RecursiveParents AS (
+            SELECT incomeID, parentIncomeID
+            FROM income
+            WHERE incomeID = ?
+            
+            UNION ALL
+            
+            SELECT i.incomeID, i.parentIncomeID
+            FROM income i
+            JOIN RecursiveParents rp ON i.incomeID = rp.parentIncomeID
+          )
+          SELECT incomeID 
+          FROM RecursiveParents
+          WHERE parentIncomeID IS NULL
+          LIMIT 1
+        `;
+        
+        try {
+          // Try with CTE (Common Table Expression) for databases that support it
+          const [rootParent] = await db.query(getRootParentQuery, [incomeInfo.parentIncomeID]);
+          if (rootParent) {
+            rootParentID = rootParent.incomeID;
+          }
+        } catch (cteError) {
+          // If CTE is not supported, fall back to a simpler approach
+          console.log("CTE not supported, using fallback approach");
+          
+          // Simpler approach to find root parent
+          let currentParentID = incomeInfo.parentIncomeID;
+          let iterations = 0;
+          const MAX_ITERATIONS = 20; // Safety check to prevent infinite loops
+          
+          while (currentParentID !== null && iterations < MAX_ITERATIONS) {
+            const [parent] = await db.query(
+              'SELECT incomeID, parentIncomeID FROM income WHERE incomeID = ?', 
+              [currentParentID]
+            );
+            
+            if (!parent || parent.parentIncomeID === null) {
+              rootParentID = currentParentID;
+              break;
+            }
+            
+            currentParentID = parent.parentIncomeID;
+            iterations++;
+          }
+        }
+      }
+      
+      // Delete all children first (for all levels)
+      const deleteAllChildrenQuery = `
+        DELETE FROM income
+        WHERE (
+          parentIncomeID = ? 
+          OR parentIncomeID IN (
+            SELECT incomeID FROM (
+              SELECT incomeID FROM income WHERE parentIncomeID = ?
+            ) AS subquery
+          )
+        ) 
+        AND userID = ?
+      `;
+      
+      await db.query(deleteAllChildrenQuery, [rootParentID, rootParentID, userID]);
+      
+      // Then delete the root parent
+      const deleteRootQuery = `
+        DELETE FROM income
+        WHERE incomeID = ? AND userID = ?
+      `;
+      
+      await db.query(deleteRootQuery, [rootParentID, userID]);
+      
       res.status(200).json({
         message: "All recurring income instances deleted successfully!",
       });
     } else {
-      // Just delete the single income entry
-      const result = await deleteParentIncome(incomeID, userID);
-
-      if (result.affectedRows > 0) {
-        res.status(200).json({ message: "Income deleted successfully!" });
+      // Case 2: Delete single income
+      
+      // If it has children or is referenced, don't allow single deletion
+      if (hasChildren) {
+        return res.status(400).json({ 
+          error: "This income has recurring instances. Please select 'Delete all recurrences' option.", 
+          hasChildren: true 
+        });
+      }
+      
+      // If it's part of a recurring series, need to handle differently
+      if (isPartOfRecurringSeries && incomeInfo.parentIncomeID !== null) {
+        // This is a child in a series, we can delete it if it doesn't have its own children
+        const deleteQuery = `
+          DELETE FROM income
+          WHERE incomeID = ? AND userID = ? AND NOT EXISTS (
+            SELECT 1 FROM income WHERE parentIncomeID = ?
+          )
+        `;
+        
+        const result = await db.query(deleteQuery, [incomeID, userID, incomeID]);
+        
+        if (result.affectedRows > 0) {
+          res.status(200).json({ message: "Income deleted successfully!" });
+        } else {
+          res.status(400).json({ 
+            error: "Cannot delete this income. It might be referenced by other recurring incomes.",
+            hasChildren: true
+          });
+        }
       } else {
-        res.status(404).json({ error: "Income record not found." });
+        // Not part of a series or is the parent in a series with no children
+        const deleteQuery = `
+          DELETE FROM income
+          WHERE incomeID = ? AND userID = ? AND NOT EXISTS (
+            SELECT 1 FROM income WHERE parentIncomeID = ?
+          )
+        `;
+        
+        const result = await db.query(deleteQuery, [incomeID, userID, incomeID]);
+        
+        if (result.affectedRows > 0) {
+          res.status(200).json({ message: "Income deleted successfully!" });
+        } else {
+          res.status(400).json({ 
+            error: "Cannot delete this income. It might be referenced by other recurring incomes.",
+            hasChildren: true
+          });
+        }
       }
     }
   } catch (err) {
     console.error("Error deleting income:", err);
-    res.status(500).json({ error: "Failed to delete income." });
+    res.status(500).json({ error: "Failed to delete income: " + err.message });
   }
 };
 
