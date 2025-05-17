@@ -1,0 +1,396 @@
+/* Common layout styles */
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  position: relative;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: white;
+  color: white;
+  position: fixed;
+  height: 100vh;
+  transition: width 0.3s ease;
+  z-index: 10;
+}
+
+/* Style for collapsed sidebar */
+.sidebarCollapsed {
+  width: 60px; /* Width when collapsed */
+}
+
+.content {
+  background: #f5f5f5;
+  flex: 1;
+  min-height: 100vh;
+  position: relative;
+  margin-left: 250px; /* Match the width of the sidebar */
+  padding: 48px 32px;
+  transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
+  overflow-y: auto;
+}
+
+/* Content width adjustment when sidebar is collapsed */
+.sidebarCollapsed + .content {
+  margin-left: 60px; /* Match the width of collapsed sidebar */
+}
+
+/* Common styling for the advertisement management component */
+.div16 {
+  width: 100%;
+}
+
+/* Header section */
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.heading {
+  font-size: 24px;
+  color: #1a202c;
+  margin: 0;
+  font-family: "montserrat";
+}
+
+.addButton {
+  background-color: var(--secondaryColor);
+  color: var(--primaryColor);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Form styles */
+.formContainer {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.formTitle {
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 24px;
+  color: #1a202c;
+  font-weight: 600;
+  font-family: "montserrat";
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formGroupFull {
+  margin-bottom: 16px;
+  grid-column: 1 / -1;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #4a5568;
+  font-family: "montserrat";
+}
+
+.required {
+  color: #e53e3e;
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  color: black;
+  font-family: "montserrat";
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  border-color: #4299e1;
+  outline: none;
+}
+
+.inputError {
+  border-color: #e53e3e;
+}
+
+.errorText {
+  color: #e53e3e;
+  font-size: 12px;
+  font-family: "montserrat";
+  margin-top: 4px;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  background-color: white;
+}
+
+.fileInput {
+  margin-bottom: 8px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.checkbox {
+  margin-right: 8px;
+}
+
+.imageCell {
+  width: 80px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.thumbnailImage {
+  width: 70px;
+  height: 50px;
+  object-fit: cover; /* This maintains aspect ratio while filling the space */
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Optional hover effect */
+.thumbnailImage:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.imagePreviewContainer {
+  margin-top: 12px;
+  max-width: 300px;
+}
+
+.imagePreview {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.imageNote {
+  font-size: 12px;
+  font-family: "montserrat";
+  color: #718096;
+  margin-top: 4px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cancelButton {
+  padding: 10px 16px;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  color: #4a5568;
+  font-weight: 600;
+  font-family: "montserrat";
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: #f7fafc;
+}
+
+.submitButton {
+  padding: 10px 16px;
+  background-color: var(--secondaryColor);
+  border: none;
+  border-radius: 4px;
+  color: var(--primaryColor);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Table styles */
+.tableContainer {
+  font-family: "montserrat";
+  color: black;
+  background-color: var(--backgroundColor);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: white;
+  border-radius: 4px;
+  padding: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.th, .td {
+  padding: 12px 16px;
+  text-align: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.th {
+  background-color: #f7fafc;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  font-family: "montserrat";
+}
+
+.tr2, .tr4, .tr6 {
+  background-color: #f7fafc;
+}
+
+.tr3, .tr5, .tr7 {
+  background-color: white;
+}
+
+.loading, .emptyState {
+  padding: 40px;
+  text-align: center;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.emptyState h3 {
+  margin-top: 0;
+  color: #1a202c;
+}
+
+.emptyState p {
+  color: #718096;
+}
+
+/* Ad specific styles */
+.adThumbnail {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.imgContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.noImage {
+  width: 70px;
+  height: 50px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px dashed #ccc;
+}
+
+.positionBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #edf2f7;
+  color: #4a5568;
+  font-size: 12px;
+  text-transform: capitalize;
+  font-family: "montserrat";
+}
+
+/* Status styling */
+.statusActive, .statusScheduled, .statusExpired, .statusInactive {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: "montserrat";
+}
+
+.statusActive {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+
+.statusScheduled {
+  background-color: #bee3f8;
+  color: #2a4365;
+}
+
+.statusExpired {
+  background-color: #fed7d7;
+  color: #822727;
+}
+
+.statusInactive {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+/* Action buttons */
+.editButton,
+.deleteButton {
+  font-family: "montserrat";
+  font-size: 13px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.editButton {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+.deleteButton {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+.editButton:hover {
+  color: #3182ce;
+}
+
+.deleteButton:hover {
+  color: #e53e3e;
+}

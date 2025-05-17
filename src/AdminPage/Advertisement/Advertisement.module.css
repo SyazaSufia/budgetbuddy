@@ -1,0 +1,143 @@
+/* Container styles */
+.ad-container {
+  width: 100%;
+  margin: 0.5rem 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Different positions */
+.ad-sidebar {
+  max-width: 300px;
+}
+
+.ad-banner {
+  width: 100%;
+  max-width: 728px;
+  margin: 1rem auto;
+}
+
+.ad-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.ad-popup-container {
+  position: relative;
+  max-width: 500px;
+  width: 90%;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.ad-popup-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+  z-index: 1;
+}
+
+/* Item styles */
+.ad-item {
+  position: relative;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: white;
+  margin-bottom: 0.5rem;
+}
+
+.ad-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.6rem;
+  border-bottom-left-radius: 4px;
+}
+
+/* Content styles */
+.ad-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.ad-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.ad-text {
+  padding: 0.5rem;
+}
+
+.ad-title {
+  margin: 0 0 0.3rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.ad-description {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Loading state */
+.ad-loading {
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Placeholder styles */
+.ad-placeholder {
+  background-color: #f5f5f5;
+  border: 1px dashed #ccc;
+}
+
+.ad-placeholder-image {
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #eaeaea;
+  color: #999;
+  font-size: 1rem;
+  font-style: italic;
+}
+
+.ad-placeholder .ad-title {
+  color: #666;
+}
+
+.ad-placeholder .ad-description {
+  color: #888;
+}

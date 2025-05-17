@@ -37,6 +37,7 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const receiptRoutes = require('./routes/receiptRoutes');
 const budgetRoutes = require("./routes/budgetRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const advertisementRoutes = require("./routes/advertisementRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 
@@ -87,6 +88,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static files - IMPORTANT for serving uploaded images
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Simple request logger
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
@@ -107,6 +111,7 @@ app.use("/budget", budgetRoutes);
 app.use("/admin", adminRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/community", communityRoutes);
+app.use("/advertisement", advertisementRoutes);
 
 // Sign-up endpoint
 app.post("/sign-up", async (req, res) => {
@@ -363,11 +368,47 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Path to check
+const publicDir = path.join(__dirname, 'public');
+const uploadsDir = path.join(__dirname, 'public', 'uploads', 'ads');
+
+// Check if directories exist
+console.log(`Checking if public directory exists: ${publicDir}`);
+console.log(`Public directory exists: ${fs.existsSync(publicDir)}`);
+
+console.log(`Checking if uploads directory exists: ${uploadsDir}`);
+console.log(`Uploads directory exists: ${fs.existsSync(uploadsDir)}`);
+
+// List files in uploads/ads directory if it exists
+if (fs.existsSync(uploadsDir)) {
+  console.log('Files in uploads/ads directory:');
+  const files = fs.readdirSync(uploadsDir);
+  files.forEach(file => {
+    console.log(`- ${file}`);
+  });
+}
+
+// Simple route to test static file serving
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Image Path Checker</h1>
+    <p>Public directory: ${publicDir}</p>
+    <p>Public directory exists: ${fs.existsSync(publicDir)}</p>
+    <p>Uploads directory: ${uploadsDir}</p>
+    <p>Uploads directory exists: ${fs.existsSync(uploadsDir)}</p>
+    <h2>Files in uploads/ads:</h2>
+    <ul>
+      ${fs.existsSync(uploadsDir) 
+        ? fs.readdirSync(uploadsDir).map(file => `<li>${file} (<a href="/uploads/ads/${file}" target="_blank">view</a>)</li>`).join('') 
+        : 'Directory does not exist'}
+    </ul>
+  `);
+});
+
+// Serve static files - important for image display
+app.use(express.static(publicDir));
+
 // Start the server regardless of environment
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-  
-  // Log connection info to help with debugging
-  console.log(`Database host: ${process.env.DB_HOST}`);
-  console.log(`Database name: ${process.env.DB_NAME}`);
 });

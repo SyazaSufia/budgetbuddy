@@ -26,6 +26,7 @@ import AddPostPage from './CommunityPage/AddPostPage/InputDesign';
 import CommunityDetails from './CommunityPage/PostDetailsPage/PostDetail';
 import AdminUserPage from './AdminPage/Users/InputDesign';
 import AdminCommunityPage from './AdminPage/Community/CommunityManagement';
+import AdminAdsPage from './AdminPage/Advertisement/AdsPage';
 import './App.css';
 
 const App = () => {
@@ -42,7 +43,7 @@ const App = () => {
 
   const handleSignIn = (userData) => {
     login(userData);
-    navigate(userData.role === 'admin' ? '/adminUser' : '/profile');
+    navigate(userData.role === 'admin' ? '/adminUser' : '/dashboard');
   };
 
   const handleSignUp = () => navigate('/sign-in');
@@ -82,6 +83,7 @@ const App = () => {
             <Route path="/postdetails/:postId" element={<CommunityDetails user={user} />} />
             <Route path="/adminUser" element={<AdminUserPage />} />
             <Route path="/adminCommunity" element={<AdminCommunityPage />} />
+            <Route path="/adminAds" element={<AdminAdsPage />} />
           </Route>
 
           {/* Redirect unknown routes */}
