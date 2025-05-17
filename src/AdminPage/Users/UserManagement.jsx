@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import styles from "./InputDesign.module.css";
-import SearchInput from "./SearchInput";
 import UserTable from "./UserTable";
 
 const UserManagement = () => {
@@ -39,7 +38,6 @@ const UserManagement = () => {
       <article className={styles.div3}>
         <header className={styles.div4}>
           <h2 className={styles.div5}>User Accounts</h2>
-          <SearchInput />
         </header>
         {loading ? (
           <div className={styles.loading}>Loading users...</div>
