@@ -5,9 +5,8 @@ import SignOutModal from "../../SignOut/SignOutModal";
 
 const menuItems = [
   { id: "users", label: "Users", icon: "/profile-icon.svg", path: "/adminUser"},
-  { id: "community", label: "Community", icon: "/community-icon.svg", path: "/adminCommunity" },
-  { id: "advertisement", label: "Advertisement", icon: "/ads-icon.svg", path: "/adminAds", active: true },
-  { id: "statistic", label: "Statistic", icon: "/stats-icon.svg", path: "/adminStats"}
+  { id: "community", label: "Community", icon: "/community-icon.svg", path: "/adminCommunity", active: true},
+  { id: "advertisement", label: "Advertisement", icon: "/ads-icon.svg", path: "/adminAds"}
 ];
 
 export function SideBar({ onSignOut, onToggleCollapse }) {
@@ -54,7 +53,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
     } catch (error) {
       console.error("Sign out failed:", error);
     }
-  };
+  };  
 
   return (
     <>
