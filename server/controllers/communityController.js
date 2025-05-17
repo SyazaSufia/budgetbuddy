@@ -64,6 +64,7 @@ const cleanContent = (htmlContent) => {
 // Get all community posts
 const getAllPosts = async (req, res) => {
   try {
+    console.log("getAllPosts called");
     // Pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -81,8 +82,7 @@ const getAllPosts = async (req, res) => {
         p.postID, 
         p.subject, 
         p.content, 
-        p.createdAt, 
-        p.updatedAt,
+        p.createdAt,
         u.userID,
         u.username, 
         u.profileImage,
@@ -109,7 +109,6 @@ const getAllPosts = async (req, res) => {
       return {
         ...post,
         createdAt: new Date(post.createdAt).toISOString(),
-        updatedAt: new Date(post.updatedAt).toISOString(),
       };
     });
 
@@ -128,7 +127,7 @@ const getAllPosts = async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching posts:", err);
-    res.status(500).json({ error: "Failed to fetch posts" });
+    res.status(500).json({ error: "Failed to fetch posts", details: err.message });
   }
 };
 
@@ -143,8 +142,7 @@ const getPostById = async (req, res) => {
         p.postID, 
         p.subject, 
         p.content, 
-        p.createdAt, 
-        p.updatedAt,
+        p.createdAt,
         u.userID,
         u.username, 
         u.profileImage
@@ -191,7 +189,6 @@ const getPostById = async (req, res) => {
     const formattedPost = {
       ...post,
       createdAt: new Date(post.createdAt).toISOString(),
-      updatedAt: new Date(post.updatedAt).toISOString(),
       comments: comments.map((comment) => ({
         ...comment,
         createdAt: new Date(comment.createdAt).toISOString(),
@@ -204,7 +201,7 @@ const getPostById = async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching post:", err);
-    res.status(500).json({ error: "Failed to fetch post" });
+    res.status(500).json({ error: "Failed to fetch post", details: err.message });
   }
 };
 
@@ -230,14 +227,13 @@ const createPost = async (req, res) => {
       subject,
       content: cleanedContent, // Use the cleaned content
       createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     // Insert post into database
     const query = `
       INSERT INTO community_posts 
-      (userID, subject, content, createdAt, updatedAt) 
-      VALUES (?, ?, ?, ?, ?)
+      (userID, subject, content, createdAt) 
+      VALUES (?, ?, ?, ?)
     `;
 
     const result = await db.query(query, [
@@ -245,7 +241,6 @@ const createPost = async (req, res) => {
       postData.subject,
       postData.content,
       postData.createdAt,
-      postData.updatedAt,
     ]);
 
     // Return success with post ID
@@ -258,7 +253,7 @@ const createPost = async (req, res) => {
     });
   } catch (err) {
     console.error("Error creating post:", err);
-    res.status(500).json({ error: "Failed to create post" });
+    res.status(500).json({ error: "Failed to create post", details: err.message });
   }
 };
 
@@ -319,7 +314,7 @@ const addComment = async (req, res) => {
     });
   } catch (err) {
     console.error("Error adding comment:", err);
-    res.status(500).json({ error: "Failed to add comment" });
+    res.status(500).json({ error: "Failed to add comment", details: err.message });
   }
 };
 
@@ -368,7 +363,7 @@ const deletePost = async (req, res) => {
     });
   } catch (err) {
     console.error("Error deleting post:", err);
-    res.status(500).json({ error: "Failed to delete post" });
+    res.status(500).json({ error: "Failed to delete post", details: err.message });
   }
 };
 

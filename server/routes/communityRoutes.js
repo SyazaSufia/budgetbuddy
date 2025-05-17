@@ -4,10 +4,10 @@ const communityController = require("../controllers/communityController");
 const isAuthenticated = require("../middleware/isAuthenticated");
 
 // Get all posts (paginated)
-router.get("/posts", isAuthenticated, communityController.getAllPosts);
+router.get("/posts", communityController.getAllPosts);
 
 // Get a specific post with comments
-router.get("/posts/:id", isAuthenticated, communityController.getPostById);
+router.get("/posts/:id", communityController.getPostById);
 
 // Create a new post
 router.post("/posts", isAuthenticated, communityController.createPost);
