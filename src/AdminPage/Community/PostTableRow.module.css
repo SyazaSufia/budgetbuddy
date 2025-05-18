@@ -1,49 +1,56 @@
 .tableRow {
-  display: flex;
-  border-bottom: 1px solid #e0e0e0;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px 100px;
   padding: 12px 16px;
-  transition: background-color 0.2s;
+  border-bottom: 1px solid #e1e5e9;
+  align-items: center;
 }
 
 .tableRow:hover {
-  background-color: #f5f5f5;
+  background-color: #f8fafc;
 }
 
 .idCell {
-  width: 15%;
+  font-size: 14px;
+  color: #64748b;
   font-weight: 500;
-  color: #555;
 }
 
 .contentCell {
-  width: 50%;
-  color: #333;
+  font-size: 14px;
+  color: #334155;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-right: 16px;
 }
 
 .dateCell {
-  width: 15%;
-  color: #666;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.statusCell {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .actionCell {
-  width: 20%;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
-.viewButton, .deleteButton {
+.viewButton,
+.deleteButton {
   background: none;
   border: none;
   cursor: pointer;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
   border-radius: 4px;
   transition: background-color 0.2s;
 }
@@ -56,12 +63,7 @@
   background-color: rgba(192, 31, 31, 0.1);
 }
 
-.viewIcon {
-  width: 20px;
-  height: 20px;
-}
-
+.viewIcon,
 .deleteIcon {
-  width: 21px;
-  height: 20px;
+  display: block;
 }

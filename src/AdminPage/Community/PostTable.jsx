@@ -147,6 +147,7 @@ function PostTable({ initialPosts }) {
           <div className={styles.idHeader}>Post ID</div>
           <div className={styles.contentHeader}>Content Preview</div>
           <div className={styles.dateHeader}>Post Date</div>
+          <div className={styles.statusHeader}>Status</div>
           <div className={styles.actionHeader}>Actions</div>
         </div>
 
@@ -157,6 +158,7 @@ function PostTable({ initialPosts }) {
               id={post.postID}
               content={post.content}
               date={post.date}
+              status={post.status}
               onDelete={() => handleDeletePost(post.postID)}
               onView={() => handleViewPost(post.postID)}
             />

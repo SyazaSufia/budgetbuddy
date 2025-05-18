@@ -1,65 +1,52 @@
 .tableContainer {
-  border: 1px solid #e0e0e0;
+  width: 100%;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  overflow: hidden;
   background-color: white;
 }
 
 .tableContent {
-  width: 100%;
+  min-width: 700px;
 }
 
 .tableHeader {
-  display: flex;
-  background-color: #f5f5f5;
-  font-weight: 600;
+  display: grid;
+  grid-template-columns: 80px 1fr 120px 100px 100px;
   padding: 12px 16px;
-  border-bottom: 2px solid #e0e0e0;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e1e5e9;
+  font-weight: 600;
+  color: #334155;
 }
 
-.idHeader {
-  width: 15%;
-  color: black;
-  font-family: "montserrat";
-}
-
-.contentHeader {
-  width: 50%;
-  color: black;
-  font-family: "montserrat";
-}
-
-.dateHeader {
-  width: 15%;
-  color: black;
-  font-family: "montserrat";
+.idHeader,
+.contentHeader,
+.dateHeader,
+.statusHeader,
+.actionHeader {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .actionHeader {
-  width: 20%;
   text-align: right;
-  color: black;
-  font-family: "montserrat";
 }
 
-.loading {
-  padding: 20px;
+.loading,
+.error,
+.noData {
+  padding: 32px;
   text-align: center;
-  color: #666;
-  font-style: italic;
+  color: #64748b;
 }
 
 .error {
-  padding: 20px;
-  text-align: center;
-  color: #d32f2f;
-  background-color: #ffebee;
-  border-radius: 4px;
+  color: #dc2626;
 }
 
 .noData {
-  padding: 40px 20px;
-  text-align: center;
-  color: #666;
+  color: #94a3b8;
   font-style: italic;
 }

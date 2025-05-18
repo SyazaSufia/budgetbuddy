@@ -1,7 +1,8 @@
 import React from "react";
 import styles from "./PostTableRow.module.css";
+import StatusBadge from "./StatusBadge";
 
-function PostTableRow({ id, content, date, onDelete, onView }) {
+function PostTableRow({ id, content, date, status, onDelete, onView }) {
   const handleDelete = () => {
     // Confirm before deletion
     if (window.confirm(`Are you sure you want to delete post ${id}?`)) {
@@ -14,6 +15,9 @@ function PostTableRow({ id, content, date, onDelete, onView }) {
       <div className={styles.idCell}>{id}</div>
       <div className={styles.contentCell}>{content}</div>
       <div className={styles.dateCell}>{date}</div>
+      <div className={styles.statusCell}>
+        <StatusBadge status={status} />
+      </div>
       <div className={styles.actionCell}>
         <button className={styles.viewButton} onClick={onView}>
           <div

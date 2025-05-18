@@ -3,13 +3,30 @@ const db = require('../db');
 // Get all community posts
 const getAllPosts = async (req, res) => {
   try {
-    const query = `
-      SELECT p.postID, p.userID, p.subject, p.content, p.createdAt, u.username
+    const searchTerm = req.query.search ? `%${req.query.search}%` : null;
+    
+    let query = `
+      SELECT p.postID, p.userID, p.subject, p.content, p.createdAt, p.status, u.username
       FROM community_posts p
       LEFT JOIN user u ON p.userID = u.userID
-      ORDER BY p.createdAt DESC
     `;
-    const posts = await db.query(query);
+    
+    let params = [];
+    
+    // If search term is provided, add WHERE clause
+    if (searchTerm) {
+      query += `
+        WHERE p.subject LIKE ? 
+        OR p.content LIKE ?
+        OR u.username LIKE ?
+      `;
+      params = [searchTerm, searchTerm, searchTerm];
+    }
+    
+    // Add order by clause
+    query += ` ORDER BY p.createdAt DESC`;
+    
+    const posts = await db.query(query, params);
     
     // Format posts to include a content preview
     const formattedPosts = posts.map(post => {
@@ -50,7 +67,12 @@ const getPostById = async (req, res) => {
     const posts = await db.query(query, [id]);
     
     if (posts.length > 0) {
-      res.json({ success: true, data: posts[0] });
+      // Ensure post has a status
+      const post = {
+        ...posts[0],
+        status: posts[0].status || 'Pending' // Default status if not present
+      };
+      res.json({ success: true, data: post });
     } else {
       res.status(404).json({ success: false, error: "Post not found" });
     }
@@ -84,7 +106,6 @@ const updatePostStatus = async (req, res) => {
     }
     
     // Update the post status
-    // Note: Assuming we're adding a status column to the community_posts table
     const updateQuery = `
       UPDATE community_posts
       SET status = ?
