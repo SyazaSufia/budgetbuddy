@@ -48,7 +48,10 @@ const getAllAdvertisements = async (req, res) => {
 // Create a new advertisement
 const createAdvertisement = async (req, res) => {
   try {
-    const { title, description, linkURL, startDate, endDate, isActive } = req.body;
+    const { title, description, linkURL, startDate, endDate } = req.body;
+    
+    // Fix: Convert string 'true'/'false' to boolean integer (1/0)
+    const isActive = req.body.isActive === 'true' ? 1 : 0;
     
     let imageURL = null;
     
@@ -72,7 +75,7 @@ const createAdvertisement = async (req, res) => {
       startDate, 
       endDate, 
       'banner', // Always set to "banner"
-      isActive === undefined ? true : isActive
+      isActive
     ]);
     
     if (result.affectedRows > 0) {
@@ -94,7 +97,10 @@ const createAdvertisement = async (req, res) => {
 const updateAdvertisement = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, linkURL, startDate, endDate, isActive } = req.body;
+    const { title, description, linkURL, startDate, endDate } = req.body;
+    
+    // Fix: Convert string 'true'/'false' to boolean integer (1/0)
+    const isActive = req.body.isActive === 'true' ? 1 : 0;
     
     // First, check if the ad exists
     const checkQuery = "SELECT * FROM advertisements WHERE adID = ?";
@@ -141,7 +147,7 @@ const updateAdvertisement = async (req, res) => {
       startDate,
       endDate,
       'banner', // Always set to "banner"
-      isActive === undefined ? existingAd.isActive : isActive,
+      isActive, // Use our converted value
       id
     ]);
     
