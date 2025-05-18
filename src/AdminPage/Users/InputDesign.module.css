@@ -46,29 +46,6 @@
     display: flex;
     overflow-x: auto;
   }
-  .div4 {
-    border-width: 1px solid #00000021;
-    align-items: center;
-    gap: 24px;
-    width: 100%;
-    padding: 6px 16px;
-    display: flex;
-  }
-  .div5 {
-    color: #212529;
-    flex: 1;
-    font-family: Montserrat;
-    font-size: 18px;
-    font-weight: 600;
-  }
-  .div6 {
-    background-color: #fff;
-    align-items: center;
-    gap: 8px;
-    width: 375px;
-    padding: 8px 16px;
-    display: flex;
-  }
   @media (width<=991px) {
     .div6 {
       width: 300px;
@@ -78,285 +55,6 @@
     .div6 {
       width: 100%;
     }
-  }
-  .div7 {
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    display: flex;
-  }
-  .div8 {
-    align-items: flex-start;
-    width: 100%;
-    display: flex;
-  }
-  .div9 {
-    align-items: flex-start;
-    width: 100%;
-    display: flex;
-    position: relative;
-  }
-  .div10 {
-    align-items: flex-start;
-    gap: 10px;
-    width: 100%;
-    height: 24px;
-    display: flex;
-  }
-  .div11 {
-    border-width: 1px solid #e0e0e0;
-    background-color: #fff;
-    border-radius: 4px;
-    flex: 1;
-    height: 100%;
-  }
-  .div12 {
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 0 8px;
-    display: flex;
-    position: absolute;
-    top: 0;
-  }
-  .div13 {
-    justify-content: center;
-    align-items: center;
-    width: 20px;
-    height: 20px;
-    display: flex;
-  }
-  .div14 {
-    flex: 1;
-    align-items: flex-start;
-    padding: 2px 0;
-    display: flex;
-  }
-  .div15 {
-    color: #757575;
-    gap: 2px;
-    font-family: Montserrat;
-    font-size: 14px;
-    line-height: 20px;
-  }
-  .div16 {
-    width: 100%;
-    overflow-x: auto;
-  }
-  .table {
-    width: 100%;
-    min-width: 1000px;
-  }
-  .tr {
-    border-width: 2px solid #dee2e6;
-  }
-  .th {
-    text-align: left;
-    color: #212529;
-    width: 110px;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .th2 {
-    text-align: left;
-    color: #212529;
-    width: 150px;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .th3,
-  .th4,
-  .th5 {
-    text-align: left;
-    color: #212529;
-    width: 200px;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .th6 {
-    text-align: left;
-    color: #212529;
-    width: 184px;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .th7 {
-    text-align: left;
-    color: #212529;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .tr2 {
-    border-width: 1px solid #dee2e6;
-  }
-  .td {
-    color: #212529;
-    padding: 8px 16px;
-    font-family: Montserrat;
-    font-size: 12px;
-  }
-  .td2 {
-    padding: 8px 16px;
-  }
-  .div17 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td3 {
-    padding: 8px 16px;
-  }
-  .div18 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td4 {
-    padding: 8px 16px;
-  }
-  .div19 {
-    justify-content: center;
-    display: flex;
-  }
-  .tr3 {
-    border-width: 1px solid #dee2e6;
-  }
-  .td5 {
-    padding: 8px 16px;
-  }
-  .div20 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td6 {
-    padding: 8px 16px;
-  }
-  .div21 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td7 {
-    padding: 8px 16px;
-  }
-  .div22 {
-    justify-content: center;
-    display: flex;
-  }
-  .tr4 {
-    border-width: 1px solid #dee2e6;
-  }
-  .td8 {
-    padding: 8px 16px;
-  }
-  .div23 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td9 {
-    padding: 8px 16px;
-  }
-  .div24 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td10 {
-    padding: 8px 16px;
-  }
-  .div25 {
-    justify-content: center;
-    display: flex;
-  }
-  .tr5 {
-    border-width: 1px solid #dee2e6;
-  }
-  .td11 {
-    padding: 8px 16px;
-  }
-  .div26 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td12 {
-    padding: 8px 16px;
-  }
-  .div27 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td13 {
-    padding: 8px 16px;
-  }
-  .div28 {
-    justify-content: center;
-    display: flex;
-  }
-  .tr6 {
-    border-width: 1px solid #dee2e6;
-  }
-  .td14 {
-    padding: 8px 16px;
-  }
-  .div29 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td15 {
-    padding: 8px 16px;
-  }
-  .div30 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td16 {
-    padding: 8px 16px;
-  }
-  .div31 {
-    justify-content: center;
-    display: flex;
-  }
-  .tr7 {
-    border-width: 1px solid #dee2e6;
-  }
-  .td17 {
-    padding: 8px 16px;
-  }
-  .div32 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td18 {
-    padding: 8px 16px;
-  }
-  .div33 {
-    color: #0a0a0a;
-    font-family: Montserrat;
-    font-size: 14px;
-  }
-  .td19 {
-    padding: 8px 16px;
-  }
-  .div34 {
-    justify-content: center;
-    display: flex;
   }
 
   .container {
@@ -373,19 +71,194 @@
     align-items: flex-start; /* Align to the left */
   }
 
-  /* Add this to ensure table text is black */
-.td {
-  color: black;  /* This ensures text color is black */
+/* Table Container */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* You can also explicitly set the color for specific parts, e.g., for header or cells */
-.th, .td {
-  color: black;
+/* Modern Table */
+.modernTable {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
-/* If any specific row or cell has a different color, you can override it here */
-.tr2, .tr3, .tr4, .tr5, .tr6, .tr7 {
-  color: black;  /* Make sure the rows' text is black */
+/* Table Header */
+.modernTable thead tr {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
 }
 
-  
+.modernTable th {
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 1;
+  border-bottom: 2px solid #e9ecef;
+  transition: background-color 0.2s;
+}
+
+/* Table Body */
+.modernTable tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.modernTable tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.modernTable tbody tr:nth-child(even) {
+  background-color: #fcfcfc;
+}
+
+.modernTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Table Cells */
+.modernTable td {
+  padding: 14px 16px;
+  color: #333;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* Role Badge */
+.roleBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.roleAdmin {
+  background-color: #e6f7ff;
+  color: #0070f3;
+  border: 1px solid #b3e0ff;
+}
+
+.roleUser {
+  background-color: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #d9f7be;
+}
+
+.roleManager {
+  background-color: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffe7ba;
+}
+
+.roleEditor {
+  background-color: #e6f4ff;
+  color: #1890ff;
+  border: 1px solid #bae7ff;
+}
+
+.roleGuest {
+  background-color: #f9f0ff;
+  color: #722ed1;
+  border: 1px solid #efdbff;
+}
+
+/* Default for any other role */
+.roleBadge:not(.roleAdmin):not(.roleUser):not(.roleManager):not(.roleEditor):not(.roleGuest) {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #d9d9d9;
+}
+
+/* Delete Button */
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #ff4d4f;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.deleteButton:hover {
+  background-color: #fff1f0;
+  color: #ff7875;
+}
+
+.deleteButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+/* No Data Row */
+.noDataRow td {
+  text-align: center;
+  padding: 24px 16px;
+  color: #8c8c8c;
+  font-style: italic;
+}
+
+/* Loading and Error Messages */
+.loading, .error {
+  padding: 24px;
+  text-align: center;
+  color: #595959;
+  font-size: 14px;
+}
+
+.error {
+  color: #ff4d4f;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .modernTable {
+    min-width: 800px;
+  }
+}
+
+/* Add this to your existing styles to include animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modernTable tbody tr {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Improve toast notifications */
+:global(.Toastify__toast) {
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 8px;
+}
+
+:global(.Toastify__toast--success) {
+  background-color: #f6ffed;
+  color: #52c41a;
+  border-left: 4px solid #52c41a;
+}
+
+:global(.Toastify__toast--error) {
+  background-color: #fff1f0;
+  color: #ff4d4f;
+  border-left: 4px solid #ff4d4f;
+}  

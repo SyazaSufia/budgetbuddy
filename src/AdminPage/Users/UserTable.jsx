@@ -36,16 +36,12 @@ const UserTable = ({ users, setUsers }) => {
       })
       .then((data) => {
         console.log(`User with ID ${selectedUser} deleted successfully`);
-        // Update the users state to remove the deleted user
         setUsers(users.filter((user) => user.userID !== selectedUser));
         setIsModalOpen(false);
-        
-        // Show success toast notification
         toast.success(`User ${userName} was successfully deleted!`);
       })
       .catch((err) => {
         console.error("Error deleting user:", err);
-        // Show error toast notification
         toast.error(`Error deleting user: ${err.message || "Unknown error"}`);
       });
   };
@@ -54,9 +50,15 @@ const UserTable = ({ users, setUsers }) => {
     setIsModalOpen(false);
   };
 
+  // Format date if it exists
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
   return (
-    <div className={styles.div16}>
-      {/* Add ToastContainer component */}
+    <div className={styles.tableContainer}>
       <ToastContainer 
         position="top-right"
         autoClose={3000}
@@ -70,87 +72,60 @@ const UserTable = ({ users, setUsers }) => {
         theme="light"
       />
       
-      <table className={styles.table}>
+      <table className={styles.modernTable}>
         <thead>
-          <tr className={styles.tr}>
-            <th className={styles.th}>Name</th>
-            <th className={styles.th2}>Email</th>
-            <th className={styles.th3}>Date of Birth</th>
-            <th className={styles.th4}>Role</th>
-            <th className={styles.th5}>Phone Number</th>
-            <th className={styles.th6}>Action</th>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Date of Birth</th>
+            <th>Role</th>
+            <th>Phone Number</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {users.map((user, index) => {
-            // Style variations for zebra-striping and unique rows
-            const rowStyle = [
-              styles.tr2,
-              styles.tr3,
-              styles.tr4,
-              styles.tr5,
-              styles.tr6,
-              styles.tr7,
-            ][index % 6];
-
-            const actionCellStyle = [
-              styles.td4,
-              styles.td7,
-              styles.td10,
-              styles.td13,
-              styles.td16,
-              styles.td19,
-            ][index % 6];
-
-            const actionContainerStyle = [
-              styles.div19,
-              styles.div22,
-              styles.div25,
-              styles.div28,
-              styles.div31,
-              styles.div34,
-            ][index % 6];
-
-            // Format date if it exists
-            const formatDate = (dateString) => {
-              if (!dateString) return "";
-              const date = new Date(dateString);
-              return date.toLocaleDateString();
-            };
-
-            return (
-              <tr key={user.userID} className={rowStyle}>
-                <td className={styles.td}>{user.userName}</td>
-                <td className={styles.td}>{user.userEmail}</td>
-                <td className={styles.td}>{formatDate(user.userDOB)}</td>
-                <td className={styles.td}>{user.userRole}</td>
-                <td className={styles.td}>{user.userPhoneNumber}</td>
-                <td className={actionCellStyle}>
-                  <div className={actionContainerStyle}>
-                    <button
-                      onClick={() => openModal(user.userID)}
-                      aria-label={`Delete user ${user.userName}`}
-                    >
-                      <img
-                        src="/delete-icon.svg"
-                        alt="Delete"
-                        width="20"
-                        height="20"
-                      />
-                    </button>
-                  </div>
+          {users.length === 0 ? (
+            <tr className={styles.noDataRow}>
+              <td colSpan="6">No users found</td>
+            </tr>
+          ) : (
+            users.map((user) => (
+              <tr key={user.userID}>
+                <td>{user.userName}</td>
+                <td>{user.userEmail}</td>
+                <td>{formatDate(user.userDOB)}</td>
+                <td>
+                  <span className={`${styles.roleBadge} ${styles[`role${user.userRole}`]}`}>
+                    {user.userRole}
+                  </span>
+                </td>
+                <td>{user.userPhoneNumber}</td>
+                <td>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => openModal(user.userID)}
+                    aria-label={`Delete user ${user.userName}`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2 4H3.33333H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.7239 1.72386C5.97398 1.47381 6.31311 1.33334 6.66668 1.33334H9.33334C9.68691 1.33334 10.026 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2762C12.026 14.5262 11.6869 14.6667 11.3333 14.6667H4.66668C4.31311 14.6667 3.97398 14.5262 3.7239 14.2762C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4H12.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6.66666 7.33334V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M9.33334 7.33334V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
                 </td>
               </tr>
-            );
-          })}
+            ))
+          )}
         </tbody>
       </table>
-      {/* Include DeleteModal */}
+      
       {isModalOpen && (
         <DeleteModal 
-        onCancel={cancelDelete} 
-        onConfirm={handleDelete} 
-        userName={users.find((user) => user.userID === selectedUser)?.userName}/>
+          onCancel={cancelDelete} 
+          onConfirm={handleDelete} 
+          userName={users.find((user) => user.userID === selectedUser)?.userName}
+        />
       )}
     </div>
   );
