@@ -5,17 +5,14 @@ export const ExpenseCategory = ({ color, category, percentage, amount }) => {
   // Make sure we have a valid color - fallback to a default if not
   const validColor = (color && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color)) 
     ? color 
-    : "#CCCCCC"; // Default grey if no valid color provided
-  
-  // For debugging
-  console.log(`Expense category "${category}" color: ${color} -> ${validColor}`);
+    : "#8898aa"; // Default grey if no valid color provided
   
   return (
     <div className={styles.expenseItem}>
       <div className={styles.colorIndicator}>
         <div 
           className={styles.colorDot} 
-          style={{ backgroundColor: validColor }} // Use validated color
+          style={{ backgroundColor: validColor }}
         />
       </div>
       <div className={styles.expenseDetails}>

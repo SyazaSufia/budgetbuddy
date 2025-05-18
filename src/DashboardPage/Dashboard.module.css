@@ -1,22 +1,23 @@
 .dashboard {
-  background: #f5f5f5;
+  background: #f8f9fa;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .content {
-  background: #f5f5f5;
+  background: #f8f9fa;
   display: flex;
   width: 100%;
   min-height: 100vh;
-  position: relative; /* Add position relative for child positioning */
+  position: relative;
 }
 
 /* Main content area - adjusted to work with fixed SideBar component */
 .mainContent {
   flex: 1;
-  padding: 48px 32px;
+  padding: 32px 40px 48px;
   min-width: 240px;
   margin-left: 245px; /* Match the width of the sidebar */
   transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
@@ -32,12 +33,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .welcomeText {
-  color: #101828;
-  font: 600 30px Montserrat, sans-serif;
+  font: 600 32px "Montserrat";
+  background: black;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Period selector */
@@ -48,56 +54,130 @@
 
 .periodButtons {
   display: flex;
-  border: 1px solid #eceff2;
-  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .periodButton {
   border: none;
   background: #fff;
-  padding: 8px 16px;
+  padding: 10px 18px;
   color: #516778;
-  font: 14px Inter, sans-serif;
+  font: 500 14px Montserrat, sans-serif;
   cursor: pointer;
-  border-right: 1px solid #eceff2;
+  border-right: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
 }
 
 .periodButton:last-child {
   border-right: none;
 }
 
-.periodButton.active {
-  background: #eff6ff;
-  color: #155eef;
+.periodButton:hover:not(.active) {
+  background: #f5f7fa;
 }
 
-/* Card sections */
-.cardSection {
+.periodButton.active {
+  background: #4b6cb7;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Ad banner container */
+.adBannerContainer {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ef 100%);
+  border-radius: 16px;
+  margin: 24px 0 32px;
+  min-height: 120px;
   display: flex;
-  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+  border: 1px dashed #ccd5e0;
+}
+
+.adBannerText {
+  color: #8898aa;
+  font: 500 18px Montserrat, sans-serif;
+  opacity: 0.7;
+}
+
+/* Card sections with improved spacing */
+.cardSection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
   margin-bottom: 32px;
 }
 
-/* Dashboard card styling */
+/* Dashboard card styling with colored tops */
 .dashboardCard {
   background: #fff;
-  border-radius: 8px;
-  border: 1px solid #eceff2;
-  padding: 16px;
-  flex: 1;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.dashboardCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .cardContent {
   display: flex;
   align-items: center;
   gap: 16px;
+  padding: 24px 20px;
+}
+
+/* Add colored tops to cards */
+.dashboardCard:nth-child(1)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #4b6cb7;
+  border-radius: 6px 6px 0 0;
+}
+
+.dashboardCard:nth-child(2)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #41b883;
+  border-radius: 6px 6px 0 0;
+}
+
+.dashboardCard:nth-child(3)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #ff6b6b;
+  border-radius: 6px 6px 0 0;
 }
 
 .cardIcon {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
+  background: #f5f7fa;
+  padding: 10px;
+  border-radius: 12px;
 }
 
 .cardDetails {
@@ -105,24 +185,27 @@
 }
 
 .cardTitle {
-  color: #8d8d8d;
-  font: 600 12px Montserrat, sans-serif;
+  color: #8898aa;
+  font: 600 13px Montserrat, sans-serif;
   text-transform: uppercase;
-  margin: 0px;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.5px;
 }
 
 .cardAmount {
   display: flex;
   gap: 4px;
-  color: #000;
-  font: 600 27px Montserrat, sans-serif;
-  margin: 0px;
+  color: #2c3e50;
+  font: 600 28px "Montserrat";
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
 /* Action section */
 .actionSection {
-  display: flex;
-  gap: 32px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
   margin-bottom: 32px;
 }
 
@@ -130,40 +213,39 @@
 .actionCard {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
   background: #fff;
-  border-radius: 12px;
-  border: 1px solid #eceff2;
-  padding: 20px;
-  flex: 1;
+  border-radius: 16px;
+  padding: 24px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 /* Scale up effect on hover */
 .actionCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-/* Different glow effects based on card variant */
-.income:hover {
-  transform: translateY(-2px); /* Slight upward movement */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Different styles based on card variant */
+.income {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fffa 100%);
+  border-left: 5px solid #41b883;
 }
 
-.expense:hover {
-  transform: translateY(-2px); /* Slight upward movement */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.expense {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9f9 100%);
+  border-left: 5px solid #ff6b6b;
 }
 
-/* Action icon animation */
+/* Action icon styling */
 .actionIcon {
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,62 +256,36 @@
   transform: scale(1.1);
 }
 
-/* Subtle background interaction */
-.actionCard::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.actionCard:hover::after {
-  opacity: 0.5;
-}
-
-.actionIcon {
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .income .actionIcon {
   background: #dcfae6;
+  box-shadow: 0 4px 12px rgba(65, 184, 131, 0.15);
 }
 
 .expense .actionIcon {
   background: #fee4e2;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
 }
 
 .actionImg {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
 }
 
 .actionText {
   flex: 1;
-  align-items: center;
 }
 
 .actionTitle {
-  color: #000;
-  font: 600 14px Montserrat, sans-serif;
-  margin: 0px;
+  color: #2c3e50;
+  font: 600 18px Montserrat, sans-serif;
+  margin: 0 0 4px 0;
 }
 
 .actionDescription {
-  color: #8d8d8d;
+  color: #8898aa;
   font: 400 14px Montserrat, sans-serif;
-  margin: 0px;
+  margin: 0;
 }
 
 /* Expense section */
@@ -237,76 +293,127 @@
   margin-bottom: 32px;
 }
 
-/* New container for side-by-side display of expense chart and budget cards */
+/* Container for side-by-side display of expense chart and budget cards */
 .expenseBudgetContainer {
-  display: flex;
-  gap: 32px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
   width: 100%;
 }
 
 .expenseChart {
   background: #fff;
-  border-radius: 12px;
-  border: 1px solid #eceff2;
+  border-radius: 16px;
   padding: 28px;
-  flex: 2; /* Takes up 2/3 of the container */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.expenseChart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #4b6cb7;
+  border-radius: 6px 6px 0 0;
 }
 
 /* Budget section */
 .budgetSection {
   background: #fff;
-  border-radius: 12px;
-  border: 1px solid #eceff2;
+  border-radius: 16px;
   padding: 28px;
-  flex: 1; /* Takes up 1/3 of the container */
   display: flex;
   flex-direction: column;
-  max-height: 450px; /* Fits the height of expense chart */
-  overflow-y: auto; /* Allows scrolling if there are multiple budget cards */
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #d4d4d4 #f5f5f5; /* Firefox: thumb and track color */
+  max-height: 450px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 #f5f5f5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  position: relative;
 }
 
-/* Webkit-based browsers (Chrome, Safari, Edge) scrollbar styling */
+.budgetSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #2c9c6f;
+  border-radius: 6px 6px 0 0;
+}
+
+/* Webkit-based browsers scrollbar styling */
 .budgetSection::-webkit-scrollbar {
-  width: 8px; /* Width of the scrollbar */
+  width: 6px;
 }
 
 .budgetSection::-webkit-scrollbar-track {
-  background: #f5f5f5; /* Color of the track */
+  background: #f5f5f5;
   border-radius: 10px;
 }
 
 .budgetSection::-webkit-scrollbar-thumb {
-  background: #d4d4d4; /* Color of the scroll thumb */
+  background: #d4d4d4;
   border-radius: 10px;
   transition: background 0.3s ease;
 }
 
 .budgetSection::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8; /* Color of the scroll thumb on hover */
+  background: #a8a8a8;
 }
 
 .budgetTitle {
-  color: #000;
-  font: 600 24px Montserrat, sans-serif;
+  color: #2c3e50;
+  font: 600 22px Montserrat, sans-serif;
   text-align: center;
-  margin-bottom: 16px;
-  margin-top: 0px;
+  margin-bottom: 20px;
+  margin-top: 6px;
+  position: relative;
+}
+
+.budgetTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #41b883;
+  border-radius: 2px;
 }
 
 .budgetList {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-top: 10px;
 }
 
 .expenseTitle {
-  color: #000;
-  font: 600 24px Montserrat, sans-serif;
+  color: #2c3e50;
+  font: 600 22px Montserrat, sans-serif;
   text-align: center;
-  margin-bottom: 16px;
-  margin-top: 0px;
+  margin-bottom: 20px;
+  margin-top: 6px;
+  position: relative;
+}
+
+.expenseTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #4b6cb7;
+  border-radius: 2px;
 }
 
 .chartContent {
@@ -314,6 +421,7 @@
   gap: 32px;
   align-items: center;
   justify-content: center;
+  padding-top: 10px;
 }
 
 .chartImage {
@@ -324,52 +432,115 @@
 
 .expenseList {
   flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 #f5f5f5;
+  padding-right: 8px;
+}
+
+/* Webkit-based browsers scrollbar styling for expense list */
+.expenseList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.expenseList::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.expenseList::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 10px;
+}
+
+.expenseList::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .expenseItem {
   display: flex;
   align-items: center;
-  padding: 12px 8px;
+  padding: 14px 10px;
   border-bottom: 1px solid #eceff2;
+  transition: background 0.2s ease;
+}
+
+.expenseItem:hover {
+  background: #f9fafc;
+}
+
+.expenseItem:last-child {
+  border-bottom: none;
+}
+
+.colorIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .colorDot {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .expenseDetails {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: 1;
   margin: 0 16px;
 }
 
 .expenseCategory {
-  color: #000;
-  font: 500 16px Montserrat, sans-serif;
+  color: #2c3e50;
+  font: 500 15px Montserrat, sans-serif;
+  margin: 0;
 }
 
 .expensePercentage {
-  color: #8d8d8d;
-  font: 400 16px Montserrat, sans-serif;
+  color: #8898aa;
+  font: 500 14px Montserrat, sans-serif;
+  display: flex;
+  gap: 2px;
+  background: #f5f7fa;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.expenseAmount {
+  color: #2c3e50;
+  font: 600 15px Montserrat, sans-serif;
   display: flex;
   gap: 2px;
 }
 
-.expenseAmount {
-  color: #8d8d8d;
-  font: 400 16px Montserrat, sans-serif;
-  display: flex;
-  gap: 2px;
+/* Loading indicator */
+.loadingIndicator {
+  text-align: center;
+  padding: 40px;
+  color: #8898aa;
+  font: 500 16px Montserrat, sans-serif;
+}
+
+/* Error message */
+.errorMessage {
+  text-align: center;
+  padding: 40px;
+  color: #ff6b6b;
+  font: 500 16px Montserrat, sans-serif;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 /* Media queries for responsiveness */
 @media (max-width: 1200px) {
   .expenseBudgetContainer {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
   
   .budgetSection {
@@ -387,9 +558,12 @@
     padding: 80px 24px 48px; /* Add top padding to account for mobile sidebar */
   }
   
-  .cardSection,
+  .cardSection {
+    grid-template-columns: 1fr;
+  }
+  
   .actionSection {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
   
   .chartContent {
@@ -399,5 +573,26 @@
   .chartImage {
     width: 100%;
     max-width: 300px;
+  }
+}
+
+@media (max-width: 767px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .welcomeText {
+    font-size: 28px;
+  }
+  
+  .periodSelector {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .periodButtons {
+    min-width: 480px;
   }
 }

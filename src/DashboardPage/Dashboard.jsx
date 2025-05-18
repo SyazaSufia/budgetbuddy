@@ -29,8 +29,8 @@ export const Dashboard = ({ user }) => {
 
   // Define a color map based on category names
   const categoryColorMap = {
-    "Housing": "#FF6B6B",
-    "Food & Groceries": "#4ECDC4",
+    "Housing": "#4b6cb7",
+    "Food & Groceries": "#41b883",
     "Shopping": "#FFD166",
     "Transportation": "#6A0572",
     "Entertainment": "#1A535C",
@@ -38,14 +38,14 @@ export const Dashboard = ({ user }) => {
     "Education": "#247BA0", 
     "Utilities": "#70C1B3",
     "Travel": "#B2DBBF",
-    "Other": "#F3FFBD"
+    "Other": "#8898aa"
   };
 
   // Default colors for categories that don't match the map
   const defaultColors = [
-    "#FF6B6B", "#4ECDC4", "#FFD166", "#6A0572", 
+    "#4b6cb7", "#41b883", "#FFD166", "#6A0572", 
     "#1A535C", "#F25F5C", "#247BA0", "#70C1B3", 
-    "#B2DBBF", "#F3FFBD"
+    "#B2DBBF", "#8898aa"
   ];
 
   // Handle sidebar collapse state changes
@@ -107,10 +107,6 @@ export const Dashboard = ({ user }) => {
   useEffect(() => {
     fetchDashboardData(activePeriod);
   }, []);
-
-  // Debug: log when dashboard data changes
-  useEffect(() => {
-  }, [dashboardData]);
 
   // Dashboard card data
   const dashboardCards = [
@@ -179,6 +175,11 @@ export const Dashboard = ({ user }) => {
               </div>
             </div>
           </header>
+
+          {/* Ad Banner Container */}
+          <div className={styles.adBannerContainer}>
+            <p className={styles.adBannerText}>Advertisement Banner</p>
+          </div>
 
           {isLoading ? (
             <div className={styles.loadingIndicator}>Loading dashboard data...</div>
