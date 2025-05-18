@@ -4,10 +4,10 @@ import styles from "./SideBar.module.css";
 import SignOutModal from "../../SignOut/SignOutModal";
 
 const menuItems = [
+  { id: "statistic", label: "Statistic", icon: "/stats-icon.svg", path: "/adminStats"},
   { id: "users", label: "Users", icon: "/profile-icon.svg", path: "/adminUser"},
   { id: "community", label: "Community", icon: "/community-icon.svg", path: "/adminCommunity" },
-  { id: "advertisement", label: "Advertisement", icon: "/ads-icon.svg", path: "/adminAds", active: true },
-  { id: "statistic", label: "Statistic", icon: "/stats-icon.svg", path: "/adminStats"}
+  { id: "advertisement", label: "Advertisement", icon: "/ads-icon.svg", path: "/adminAds", active: true }
 ];
 
 export function SideBar({ onSignOut, onToggleCollapse }) {
