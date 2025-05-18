@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styles from "./PostTable.module.css";
 import PostTableRow from "./PostTableRow";
+import PostModal from "./PostModal";
 
 function PostTable({ initialPosts }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   useEffect(() => {
@@ -61,12 +63,42 @@ function PostTable({ initialPosts }) {
       if (data.success) {
         // Remove the deleted post from state
         setPosts(posts.filter(post => post.postID !== postId));
+        // Close modal if the deleted post was selected
+        if (selectedPost && selectedPost.postID === postId) {
+          setSelectedPost(null);
+        }
       } else {
         alert("Failed to delete post");
       }
     } catch (err) {
       console.error("Error deleting post:", err);
       alert("Failed to delete post. Please try again later.");
+    }
+  };
+
+  const handleViewPost = async (postId) => {
+    try {
+      const response = await fetch(`${apiUrl}/admin/community/posts/${postId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSelectedPost({
+          ...data.data,
+          fullContent: data.data.content, // Store the full content
+        });
+      } else {
+        alert("Failed to load post details");
+      }
+    } catch (err) {
+      console.error("Error fetching post details:", err);
+      alert("Failed to load post details. Please try again later.");
     }
   };
 
@@ -88,6 +120,9 @@ function PostTable({ initialPosts }) {
         setPosts(posts.map(post => 
           post.postID === postId ? { ...post, status: newStatus } : post
         ));
+        
+        // Close the modal after updating
+        setSelectedPost(null);
       } else {
         alert("Failed to update post status");
       }
@@ -110,10 +145,9 @@ function PostTable({ initialPosts }) {
       <div className={styles.tableContent}>
         <div className={styles.tableHeader}>
           <div className={styles.idHeader}>Post ID</div>
-          <div className={styles.contentHeader}>Content</div>
+          <div className={styles.contentHeader}>Content Preview</div>
           <div className={styles.dateHeader}>Post Date</div>
-          <div className={styles.statusHeader}>Status</div>
-          <div className={styles.actionHeader}>Action</div>
+          <div className={styles.actionHeader}>Actions</div>
         </div>
 
         {posts.length > 0 ? (
@@ -123,15 +157,23 @@ function PostTable({ initialPosts }) {
               id={post.postID}
               content={post.content}
               date={post.date}
-              status={post.status || "Pending"}
               onDelete={() => handleDeletePost(post.postID)}
-              onUpdateStatus={(newStatus) => handleUpdateStatus(post.postID, newStatus)}
+              onView={() => handleViewPost(post.postID)}
             />
           ))
         ) : (
           <div className={styles.noData}>No posts found</div>
         )}
       </div>
+
+      {selectedPost && (
+        <PostModal
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          onReview={() => handleUpdateStatus(selectedPost.postID, 'Reviewed')}
+          onViolated={() => handleUpdateStatus(selectedPost.postID, 'Violated')}
+        />
+      )}
     </div>
   );
 }
