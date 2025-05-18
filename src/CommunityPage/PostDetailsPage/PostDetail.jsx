@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./PostDetail.module.css";
-import { format } from "date-fns";
 import RichTextEditor from "../AddPostPage/RichTextEditor";
 import SidebarNav from "../SideBar";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { formatStandardDate } from '../../utils/dateUtils';
 
 function PostDetail({ user }) {
   const { postId } = useParams();
@@ -16,6 +16,9 @@ function PostDetail({ user }) {
   const [commentText, setCommentText] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
@@ -130,9 +133,122 @@ function PostDetail({ user }) {
     }
   };
 
-  // Format the date nicely
+  // Handle like/unlike post
+  const handleToggleLike = async () => {
+    if (!user) {
+      toast.error("Please log in to like posts", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+      return;
+    }
+
+    setIsLiking(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/community/posts/${postId}/like`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle like status");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update post state with new like status
+        setPost((prevPost) => ({
+          ...prevPost,
+          likes: {
+            ...prevPost.likes,
+            count: data.data.liked 
+              ? prevPost.likes.count + 1 
+              : prevPost.likes.count - 1,
+            userLiked: data.data.liked,
+          },
+        }));
+
+        // Show success toast notification
+        toast.success(
+          data.data.liked ? "Post liked!" : "Post unliked",
+          {
+            position: "top-right",
+            autoClose: 3000,
+          }
+        );
+      } else {
+        throw new Error(data.error || "Unknown error occurred");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to like post. Please try again.", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  // Handle edit post
+  const handleEditPost = () => {
+    // Navigate to add post page with post ID for editing
+    navigate(`/addpost?edit=${postId}`);
+  };
+
+  // Handle delete post
+  const handleDeletePost = async () => {
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/community/posts/${postId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete post");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Post deleted successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        
+        // Navigate back to community page
+        navigate("/community");
+      } else {
+        throw new Error(data.error || "Unknown error occurred");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to delete post. Please try again.", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  // Check if current user is the author of the post
+  const isPostAuthor = () => {
+    if (!user || !post) return false;
+    return user.id === post.userID;
+  };
+
+  // Format the date using the utility function
   const formatDate = (dateString) => {
-    return format(new Date(dateString), "MMMM d, yyyy h:mm a");
+    return formatStandardDate(dateString);
   };
 
   return (
@@ -171,6 +287,27 @@ function PostDetail({ user }) {
               <div className={styles.postWrapper}>
                 <div className={styles.postHeader}>
                   <h1 className={styles.postTitle}>{post.subject}</h1>
+                  
+                  {/* Author actions section (conditionally rendered) */}
+                  {isPostAuthor() && (
+                    <div className={styles.authorActions}>
+                      <button 
+                        className={styles.editButton}
+                        onClick={handleEditPost}
+                      >
+                        <img src="/edit-icon.svg" alt="Edit" width="16" height="16" />
+                        Edit
+                      </button>
+                      <button 
+                        className={styles.deleteButton}
+                        onClick={() => setShowDeleteConfirm(true)}
+                      >
+                        <img src="/delete-icon.svg" alt="Delete" width="16" height="16" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                  
                   <div className={styles.postInfo}>
                     <div className={styles.postAuthorContainer}>
                       {post.profileImage ? (
@@ -204,6 +341,25 @@ function PostDetail({ user }) {
                   className={styles.postContent}
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
+
+                {/* Like section */}
+                <div className={styles.likeSection}>
+                  <button
+                    className={`${styles.likeButton} ${post.likes?.userLiked ? styles.liked : ""}`}
+                    onClick={handleToggleLike}
+                    disabled={isLiking}
+                  >
+                    {post.likes?.userLiked ? (
+                      <img src="/heart-filled.svg" alt="Unlike" width="20" height="20" />
+                    ) : (
+                      <img src="/heart-outline.svg" alt="Like" width="20" height="20" />
+                    )}
+                    <span>{post.likes?.userLiked ? "Liked" : "Like"}</span>
+                  </button>
+                  <span className={styles.likeCount}>
+                    {post.likes?.count} {post.likes?.count === 1 ? "like" : "likes"}
+                  </span>
+                </div>
 
                 <div className={styles.commentSection}>
                   <h2 className={styles.commentSectionHeader}>
@@ -289,6 +445,33 @@ function PostDetail({ user }) {
           </div>
         </section>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.confirmModal}>
+            <h3>Delete Post</h3>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div className={styles.modalButtons}>
+              <button 
+                className={styles.cancelButton}
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.confirmDeleteButton}
+                onClick={handleDeletePost}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Add ToastContainer to display toast notifications */}
       <ToastContainer
         position="top-right"

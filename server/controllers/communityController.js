@@ -53,11 +53,6 @@ const cleanContent = (htmlContent) => {
     ALLOWED_ATTR: ["href", "target"],
   });
 
-  // 6. Log the before and after sizes to confirm cleaning is working
-  console.log(
-    `Content cleaning: ${htmlContent.length} -> ${cleaned.length} chars (${Math.round(((htmlContent.length - cleaned.length) / htmlContent.length) * 100)}% reduction)`
-  );
-
   return cleaned.trim();
 };
 
@@ -76,7 +71,7 @@ const getAllPosts = async (req, res) => {
       FROM community_posts
     `;
 
-    // Query to get paginated posts with user info
+    // Updated query to get paginated posts with user info, comment count AND like count
     const postsQuery = `
       SELECT 
         p.postID, 
@@ -86,7 +81,8 @@ const getAllPosts = async (req, res) => {
         u.userID,
         u.username, 
         u.profileImage,
-        (SELECT COUNT(*) FROM community_comments WHERE postID = p.postID) as commentCount
+        (SELECT COUNT(*) FROM community_comments WHERE postID = p.postID) as commentCount,
+        (SELECT COUNT(*) FROM post_likes WHERE postID = p.postID) as likeCount
       FROM 
         community_posts p
       JOIN 
@@ -131,81 +127,7 @@ const getAllPosts = async (req, res) => {
   }
 };
 
-// Get a specific post with comments
-const getPostById = async (req, res) => {
-  try {
-    const postID = req.params.id;
-
-    // Query to get post details
-    const postQuery = `
-      SELECT 
-        p.postID, 
-        p.subject, 
-        p.content, 
-        p.createdAt,
-        u.userID,
-        u.username, 
-        u.profileImage
-      FROM 
-        community_posts p
-      JOIN 
-        user u ON p.userID = u.userID
-      WHERE 
-        p.postID = ?
-    `;
-
-    // Query to get comments for the post
-    const commentsQuery = `
-      SELECT 
-        c.commentID, 
-        c.content, 
-        c.createdAt,
-        u.userID, 
-        u.username, 
-        u.profileImage
-      FROM 
-        community_comments c
-      JOIN 
-        user u ON c.userID = u.userID
-      WHERE 
-        c.postID = ?
-      ORDER BY 
-        c.createdAt ASC
-    `;
-
-    // Execute post query
-    const posts = await db.query(postQuery, [postID]);
-
-    if (posts.length === 0) {
-      return res.status(404).json({ error: "Post not found" });
-    }
-
-    const post = posts[0];
-
-    // Execute comments query
-    const comments = await db.query(commentsQuery, [postID]);
-
-    // Format dates for post and comments
-    const formattedPost = {
-      ...post,
-      createdAt: new Date(post.createdAt).toISOString(),
-      comments: comments.map((comment) => ({
-        ...comment,
-        createdAt: new Date(comment.createdAt).toISOString(),
-      })),
-    };
-
-    res.json({
-      success: true,
-      data: formattedPost,
-    });
-  } catch (err) {
-    console.error("Error fetching post:", err);
-    res.status(500).json({ error: "Failed to fetch post", details: err.message });
-  }
-};
-
-// Create a new post
+// Create a new post with ISO date format
 const createPost = async (req, res) => {
   try {
     const userID = req.session.user.id;
@@ -221,12 +143,15 @@ const createPost = async (req, res) => {
     // Clean content before storing in the database
     const cleanedContent = cleanContent(content);
 
+    // Use ISO string format for dates (ensures consistent timezone handling)
+    const now = new Date().toISOString();
+
     // Prepare post data
     const postData = {
       userID,
       subject,
-      content: cleanedContent, // Use the cleaned content
-      createdAt: new Date(),
+      content: cleanedContent,
+      createdAt: now,
     };
 
     // Insert post into database
@@ -257,7 +182,7 @@ const createPost = async (req, res) => {
   }
 };
 
-// Add a comment to a post
+// Add a comment with ISO date format
 const addComment = async (req, res) => {
   try {
     const userID = req.session.user.id;
@@ -282,12 +207,15 @@ const addComment = async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
+    // Use ISO string format for dates (ensures consistent timezone handling)
+    const now = new Date().toISOString();
+
     // Prepare comment data
     const commentData = {
       postID,
       userID,
-      content: cleanedContent, // Use the cleaned content
-      createdAt: new Date(),
+      content: cleanedContent,
+      createdAt: now,
     };
 
     // Insert comment into database
@@ -367,10 +295,282 @@ const deletePost = async (req, res) => {
   }
 };
 
+const toggleLike = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const postID = req.params.id;
+
+    // Check if post exists
+    const checkPostQuery = "SELECT postID FROM community_posts WHERE postID = ?";
+    const posts = await db.query(checkPostQuery, [postID]);
+
+    if (posts.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Check if user already liked the post
+    const checkLikeQuery = `
+      SELECT likeID FROM post_likes 
+      WHERE postID = ? AND userID = ?
+    `;
+    
+    const likes = await db.query(checkLikeQuery, [postID, userID]);
+    
+    if (likes.length > 0) {
+      // User already liked the post, so unlike it
+      const unlikeQuery = `
+        DELETE FROM post_likes 
+        WHERE postID = ? AND userID = ?
+      `;
+      
+      await db.query(unlikeQuery, [postID, userID]);
+      
+      res.json({
+        success: true,
+        data: {
+          liked: false,
+          message: "Post unliked successfully"
+        }
+      });
+    } else {
+      // User hasn't liked the post, so like it
+      const likeQuery = `
+        INSERT INTO post_likes 
+        (postID, userID, createdAt) 
+        VALUES (?, ?, ?)
+      `;
+      
+      await db.query(likeQuery, [postID, userID, new Date()]);
+      
+      res.json({
+        success: true,
+        data: {
+          liked: true,
+          message: "Post liked successfully"
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error toggling like:", err);
+    res.status(500).json({ error: "Failed to toggle like status", details: err.message });
+  }
+};
+
+// Get likes count for a post
+const getLikes = async (req, res) => {
+  try {
+    const postID = req.params.id;
+    const userID = req.session.user ? req.session.user.id : null;
+
+    // Check if post exists
+    const checkPostQuery = "SELECT postID FROM community_posts WHERE postID = ?";
+    const posts = await db.query(checkPostQuery, [postID]);
+
+    if (posts.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Get like count
+    const countQuery = `
+      SELECT COUNT(*) as likeCount FROM post_likes 
+      WHERE postID = ?
+    `;
+    
+    const countResult = await db.query(countQuery, [postID]);
+    const likeCount = countResult[0].likeCount;
+
+    // Check if current user liked the post
+    let userLiked = false;
+    
+    if (userID) {
+      const userLikeQuery = `
+        SELECT 1 FROM post_likes 
+        WHERE postID = ? AND userID = ?
+      `;
+      
+      const userLikes = await db.query(userLikeQuery, [postID, userID]);
+      userLiked = userLikes.length > 0;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        likeCount,
+        userLiked
+      }
+    });
+  } catch (err) {
+    console.error("Error getting likes:", err);
+    res.status(500).json({ error: "Failed to get likes", details: err.message });
+  }
+};
+
+// Modify the existing getPostById to include like information
+const getPostById = async (req, res) => {
+  try {
+    const postID = req.params.id;
+    const userID = req.session.user ? req.session.user.id : null;
+
+    // Query to get post details
+    const postQuery = `
+      SELECT 
+        p.postID, 
+        p.subject, 
+        p.content, 
+        p.createdAt,
+        u.userID,
+        u.username, 
+        u.profileImage
+      FROM 
+        community_posts p
+      JOIN 
+        user u ON p.userID = u.userID
+      WHERE 
+        p.postID = ?
+    `;
+
+    // Query to get comments for the post
+    const commentsQuery = `
+      SELECT 
+        c.commentID, 
+        c.content, 
+        c.createdAt,
+        u.userID, 
+        u.username, 
+        u.profileImage
+      FROM 
+        community_comments c
+      JOIN 
+        user u ON c.userID = u.userID
+      WHERE 
+        c.postID = ?
+      ORDER BY 
+        c.createdAt ASC
+    `;
+
+    // Query to get like count
+    const likesQuery = `
+      SELECT COUNT(*) as likeCount 
+      FROM post_likes 
+      WHERE postID = ?
+    `;
+
+    // Query to check if current user liked the post
+    const userLikedQuery = `
+      SELECT 1 FROM post_likes 
+      WHERE postID = ? AND userID = ?
+    `;
+
+    // Execute post query
+    const posts = await db.query(postQuery, [postID]);
+
+    if (posts.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const post = posts[0];
+
+    // Execute comments query
+    const comments = await db.query(commentsQuery, [postID]);
+
+    // Execute likes query
+    const likesResult = await db.query(likesQuery, [postID]);
+    const likeCount = likesResult[0].likeCount;
+
+    // Check if user liked the post
+    let userLiked = false;
+    if (userID) {
+      const userLikedResult = await db.query(userLikedQuery, [postID, userID]);
+      userLiked = userLikedResult.length > 0;
+    }
+
+    // Format dates for post and comments
+    const formattedPost = {
+      ...post,
+      createdAt: new Date(post.createdAt).toISOString(),
+      comments: comments.map((comment) => ({
+        ...comment,
+        createdAt: new Date(comment.createdAt).toISOString(),
+      })),
+      likes: {
+        count: likeCount,
+        userLiked
+      }
+    };
+
+    res.json({
+      success: true,
+      data: formattedPost,
+    });
+  } catch (err) {
+    console.error("Error fetching post:", err);
+    res.status(500).json({ error: "Failed to fetch post", details: err.message });
+  }
+};
+
+// Update an existing post
+const updatePost = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const postID = req.params.id;
+    const { subject, content } = req.body;
+
+    // Validate input
+    if (!subject || !content) {
+      return res
+        .status(400)
+        .json({ error: "Subject and content are required" });
+    }
+
+    // Check if user owns the post
+    const checkOwnershipQuery = `
+      SELECT userID FROM community_posts WHERE postID = ?
+    `;
+
+    const posts = await db.query(checkOwnershipQuery, [postID]);
+
+    if (posts.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    if (posts[0].userID !== userID) {
+      return res
+        .status(403)
+        .json({ error: "You don't have permission to update this post" });
+    }
+
+    // Clean content before storing in the database
+    const cleanedContent = cleanContent(content);
+
+    // Update post in database
+    const query = `
+      UPDATE community_posts 
+      SET subject = ?, content = ?
+      WHERE postID = ?
+    `;
+
+    await db.query(query, [subject, cleanedContent, postID]);
+
+    // Return success
+    res.json({
+      success: true,
+      data: {
+        message: "Post updated successfully",
+      },
+    });
+  } catch (err) {
+    console.error("Error updating post:", err);
+    res.status(500).json({ error: "Failed to update post", details: err.message });
+  }
+};
+
 module.exports = {
   getAllPosts,
   getPostById,
   createPost,
   addComment,
   deletePost,
+  toggleLike,
+  getLikes,
+  updatePost
 };

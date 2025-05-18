@@ -1,22 +1,22 @@
 import React from "react";
 import styles from "./PostCard.module.css";
-import { formatDistanceToNow } from 'date-fns'; // For formatting dates
+import { formatRelativeTime } from '../utils/dateUtils';
 
-function PostCard({ post, title, description, commentCount, date }) {
+function PostCard({ post, title, description, commentCount, likeCount, date }) {
   // If post object is provided, use its data, otherwise use direct props
   const usePost = post !== undefined;
   
   // Extract data from post object or use direct props
   const postTitle = usePost ? post.subject : title;
   const postCommentCount = usePost ? (post.commentCount || 0) : commentCount;
+  const postLikeCount = usePost ? (post.likeCount || 0) : likeCount || 0;
   const username = usePost ? post.username : null;
   const profileImage = usePost ? post.profileImage : null;
   
-  // Format date
+  // Format date using utility function
   let formattedDate;
   if (usePost) {
-    // Format date from post object using date-fns
-    formattedDate = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true });
+    formattedDate = formatRelativeTime(post.createdAt);
   } else {
     // Use the date prop directly
     formattedDate = date;
@@ -67,6 +67,13 @@ function PostCard({ post, title, description, commentCount, date }) {
               <img src="/chatGrey.svg" alt="Comments" width="20" height="15" />
               <span className={styles.metaText}>{postCommentCount}</span>
             </div>
+            
+            {/* Like count section */}
+            <div className={styles.likeCount}>
+              <img src="/heart-outline.svg" alt="Likes" width="16" height="16" />
+              <span className={styles.metaText}>{postLikeCount}</span>
+            </div>
+            
             <div className={styles.postDate}>
               <img src="/calendarGrey.svg" alt="Date" width="14" height="14" />
               <span className={styles.metaText}>{formattedDate}</span>
