@@ -3,8 +3,9 @@ import { DashboardCard } from './DashboardCard';
 import { ActionCard } from './ActionCard';
 import { ExpenseCategory } from './ExpenseCategory';
 import { SideBar } from './SideBar';
-import ExpensePieChart from './ExpensePieChart'; // Your pie chart component
-import BudgetCard from '../BudgetPage/BudgetCard'; // Import BudgetCard component
+import ExpensePieChart from './ExpensePieChart';
+import BudgetCard from '../BudgetPage/BudgetCard';
+import AdvertisementBanner from './AdvertisementBanner'; // Import the new component
 import styles from './Dashboard.module.css';
 
 export const Dashboard = ({ user }) => {
@@ -176,10 +177,8 @@ export const Dashboard = ({ user }) => {
             </div>
           </header>
 
-          {/* Ad Banner Container */}
-          <div className={styles.adBannerContainer}>
-            <p className={styles.adBannerText}>Advertisement Banner</p>
-          </div>
+          {/* Replace the old ad banner with our new component */}
+          <AdvertisementBanner limit={3} showPlaceholder={true} />
 
           {isLoading ? (
             <div className={styles.loadingIndicator}>Loading dashboard data...</div>

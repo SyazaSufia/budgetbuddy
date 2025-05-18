@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const advertisementController = require('../controllers/advertisementController');
+const isAuthenticated = require('../middleware/isAuthenticated');
 
-// Route to get active advertisements for user-facing pages
+// Public route to get active advertisements for user-facing pages
 router.get('/active', advertisementController.getActiveAdvertisements);
 
+// Admin routes for advertisement management
+// These routes need authentication and admin privileges
+router.get('/all', isAuthenticated, advertisementController.getAllAdvertisements);
+router.post('/create', isAuthenticated, advertisementController.createAdvertisement);
+router.put('/update/:adID', isAuthenticated, advertisementController.updateAdvertisement);
+router.delete('/delete/:adID', isAuthenticated, advertisementController.deleteAdvertisement);
+
 // Route to check if image exists
-router.get('/check-image', (req, res) => {
+router.get('/check-image', isAuthenticated, (req, res) => {
   const { imagePath } = req.query;
   
   if (!imagePath) {
