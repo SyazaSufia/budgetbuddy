@@ -39,6 +39,7 @@ const budgetRoutes = require("./routes/budgetRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const advertisementRoutes = require("./routes/advertisementRoutes");
 const adminCommRoutes = require("./routes/adminCommRoutes");
+const adminStatsRoutes = require("./routes/adminStatsRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 
@@ -56,7 +57,7 @@ const corsOptions = {
     "https://www.budgetbuddy.space"
   ],
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", 'X-Dev-Bypass-Auth'],
   credentials: true,
 };
 
@@ -114,6 +115,7 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/community", communityRoutes);
 app.use("/advertisement", advertisementRoutes);
 app.use("/admin/community", adminCommRoutes);
+app.use("/admin/stats", adminStatsRoutes);
 
 // Sign-up endpoint
 app.post("/sign-up", async (req, res) => {
@@ -389,8 +391,7 @@ console.log(`Checking if uploads directory exists: ${uploadsDir}`);
 console.log(`Uploads directory exists: ${fs.existsSync(uploadsDir)}`);
 
 // List files in uploads/ads directory if it exists
-if (fs.existsSync(uploadsDir)) {
-  console.log('Files in uploads/ads directory:');
+if (fs.existsSync(uploadsDir)) {;
   const files = fs.readdirSync(uploadsDir);
   files.forEach(file => {
     console.log(`- ${file}`);

@@ -1,0 +1,97 @@
+.summaryCard {
+  background-color: white;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  border-top: 4px solid #4299e1;
+}
+
+.iconContainer {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #4299e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.icon {
+  color: white;
+  font-size: 24px;
+}
+
+.cardContent {
+  flex: 1;
+}
+
+.cardTitle {
+  font-size: 14px;
+  color: #718096;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.statsRow {
+  display: flex;
+  align-items: center;
+}
+
+.value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+  margin-right: 12px;
+}
+
+.percentage {
+  font-size: 16px;
+  color: #4a5568;
+  margin: 0;
+  margin-right: 12px;
+}
+
+.positiveChange,
+.negativeChange {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 16px;
+}
+
+.positiveChange {
+  background-color: #e6fffa;
+  color: #319795;
+}
+
+.negativeChange {
+  background-color: #fed7d7;
+  color: #e53e3e;
+}
+
+.changeIcon {
+  margin-right: 2px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .value {
+    font-size: 20px;
+  }
+  
+  .iconContainer {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .icon {
+    font-size: 20px;
+  }
+}
