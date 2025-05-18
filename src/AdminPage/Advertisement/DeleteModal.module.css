@@ -24,6 +24,7 @@
     text-align: center;
     font: 600 24px/2 Montserrat, sans-serif;
     margin-top: 0px;
+    margin-bottom: 0px;
   }
   
   .modalText {
@@ -31,6 +32,7 @@
     color: #000;
     text-align: center;
     font: 500 14px/20px Montserrat, sans-serif;
+    margin-top: 16px;
   }
   
   .modalActions {
