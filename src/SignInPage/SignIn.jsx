@@ -34,7 +34,7 @@ const SignIn = ({ onSignIn }) => {
         if (role === "user") {
           navigate("/", { state: { userID: id } });
         } else if (role === "admin") {
-          navigate("/adminUser");
+          navigate("/adminStats");
         }
       } else {
         setError(data.message);
