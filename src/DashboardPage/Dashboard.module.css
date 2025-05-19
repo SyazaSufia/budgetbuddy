@@ -200,35 +200,6 @@
   letter-spacing: -0.5px;
 }
 
-/* Action section */
-.actionSection {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-/* Action card section */
-.actionCard {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-/* Scale up effect on hover */
-.actionCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
 /* Different styles based on card variant */
 .income {
   background: linear-gradient(135deg, #ffffff 0%, #f7fffa 100%);
@@ -238,53 +209,6 @@
 .expense {
   background: linear-gradient(135deg, #ffffff 0%, #fff9f9 100%);
   border-left: 5px solid #ff6b6b;
-}
-
-/* Action icon styling */
-.actionIcon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.actionCard:hover .actionIcon {
-  transform: scale(1.1);
-}
-
-.income .actionIcon {
-  background: #dcfae6;
-  box-shadow: 0 4px 12px rgba(65, 184, 131, 0.15);
-}
-
-.expense .actionIcon {
-  background: #fee4e2;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
-}
-
-.actionImg {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-}
-
-.actionText {
-  flex: 1;
-}
-
-.actionTitle {
-  color: #2c3e50;
-  font: 600 18px Montserrat, sans-serif;
-  margin: 0 0 4px 0;
-}
-
-.actionDescription {
-  color: #8898aa;
-  font: 400 14px Montserrat, sans-serif;
-  margin: 0;
 }
 
 /* Expense section */
@@ -558,10 +482,6 @@
   }
   
   .cardSection {
-    grid-template-columns: 1fr;
-  }
-  
-  .actionSection {
     grid-template-columns: 1fr;
   }
   

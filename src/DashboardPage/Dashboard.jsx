@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
-import { ActionCard } from './ActionCard';
 import { ExpenseCategory } from './ExpenseCategory';
 import { SideBar } from './SideBar';
 import ExpensePieChart from './ExpensePieChart';
@@ -128,22 +127,6 @@ export const Dashboard = ({ user }) => {
     }
   ];
 
-  // Action card data
-  const actionCards = [
-    {
-      icon: '/add-income-icon.svg',
-      title: 'Add income',
-      description: 'Add an income manually',
-      variant: 'income'
-    },
-    {
-      icon: '/add-expense-icon.svg',
-      title: 'Add expenses',
-      description: 'Add an expense manually',
-      variant: 'expense'
-    }
-  ];
-
   // Handle period change
   const handlePeriodChange = (period) => {
     fetchDashboardData(period);
@@ -189,12 +172,6 @@ export const Dashboard = ({ user }) => {
               <section className={styles.cardSection}>
                 {dashboardCards.map((card, index) => (
                   <DashboardCard key={index} {...card} />
-                ))}
-              </section>
-
-              <section className={styles.actionSection}>
-                {actionCards.map((card, index) => (
-                  <ActionCard key={index} {...card} />
                 ))}
               </section>
 
