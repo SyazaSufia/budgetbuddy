@@ -1,7 +1,7 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: #f6f8fa;
 }
 
 .content {
@@ -10,33 +10,32 @@
 }
 
 .title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #333;
+  margin-top: 0;
   margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .card {
-  background-color: white;
+  background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 .cardHeader {
-  padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f9f9f9;
+  padding: 12px 12px;
+  border-bottom: 1px solid #e1e4e8;
+  background-color: #f6f8fa;
 }
 
 .cardTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
   margin: 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .searchForm {
@@ -46,37 +45,38 @@
 
 .searchInput {
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e1e4e8;
   border-radius: 4px;
-  min-width: 240px;
-  color: black;
-  font-family: "montserrat";
+  font-size: 14px;
+  min-width: 200px;
 }
 
 .searchButton {
-  padding: 8px 16px;
-  background-color: #0077B6;
+  background-color: #0366d6;
   color: white;
   border: none;
   border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .searchButton:hover {
-  background-color: #005f8b;
+  background-color: #0255b7;
 }
 
 .clearButton {
-  padding: 8px 16px;
-  background-color: #f5f5f5;
-  color: #555;
-  border: 1px solid #e0e0e0;
+  background-color: #e1e4e8;
+  color: #24292e;
+  border: none;
   border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .clearButton:hover {
-  background-color: #e0e0e0;
+  background-color: #d1d5da;
 }

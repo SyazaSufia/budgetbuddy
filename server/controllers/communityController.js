@@ -8,11 +8,25 @@ const window = new JSDOM("").window;
 const DOMPurify = createDOMPurify(window);
 
 // Enhanced function to clean HTML content
+// This is the key issue in your cleanContent function in communityController.js
+
 const cleanContent = (htmlContent) => {
   if (!htmlContent) return "";
 
+  // *** CRITICAL FIX #1: Check if content is already escaped ***
+  // If HTML is coming in with &lt; instead of <, we need to unescape it first
+  let workingContent = htmlContent;
+  if (htmlContent.includes('&lt;') || htmlContent.includes('&gt;')) {
+    workingContent = workingContent
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  }
+
   // 1. Remove Figma metadata and other comments
-  let cleaned = htmlContent.replace(/<!--\(figmeta\).*?\/figmeta\)-->/gs, "");
+  let cleaned = workingContent.replace(/<!--\(figmeta\).*?\/figmeta\)-->/gs, "");
   cleaned = cleaned.replace(/<!--\(figma\).*?\/figma\)-->/gs, "");
   cleaned = cleaned.replace(/<!--.*?-->/gs, "");
 
@@ -31,27 +45,19 @@ const cleanContent = (htmlContent) => {
   // 5. Sanitize HTML to remove potentially malicious content
   cleaned = DOMPurify.sanitize(cleaned, {
     ALLOWED_TAGS: [
-      "p",
-      "br",
-      "b",
-      "i",
-      "em",
-      "strong",
-      "u",
-      "ol",
-      "ul",
-      "li",
-      "a",
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "blockquote",
+      "p", "br", "b", "i", "em", "strong", "u", "ol", "ul", "li",
+      "a", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote",
     ],
     ALLOWED_ATTR: ["href", "target"],
+    ADD_ATTR: ['target'],
+    ALLOW_DATA_ATTR: true, // Allow all data-* attributes
   });
+
+  // *** CRITICAL FIX #2: Ensure we're not returning HTML-escaped content ***
+  // Make sure we're not returning content with escaped HTML entities
+  if (cleaned.includes('&lt;') || cleaned.includes('&gt;')) {
+    console.log("Warning: Content still contains escaped HTML entities after cleaning");
+  }
 
   return cleaned.trim();
 };
@@ -59,7 +65,6 @@ const cleanContent = (htmlContent) => {
 // Get all community posts
 const getAllPosts = async (req, res) => {
   try {
-    console.log("getAllPosts called");
     // Pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -141,7 +146,13 @@ const createPost = async (req, res) => {
     }
 
     // Clean content before storing in the database
+    // Important: Make sure we're not double-escaping HTML
     const cleanedContent = cleanContent(content);
+    
+    // If there's a significant difference in length, something might be wrong
+    if (Math.abs(content.length - cleanedContent.length) > content.length * 0.5) {
+      console.log("WARNING: Large difference between original and cleaned content!");
+    }
 
     // Use ISO string format for dates (ensures consistent timezone handling)
     const now = new Date().toISOString();
@@ -160,6 +171,9 @@ const createPost = async (req, res) => {
       (userID, subject, content, createdAt) 
       VALUES (?, ?, ?, ?)
     `;
+
+    // IMPORTANT: Log the actual content being saved to the database
+    console.log("Content being saved to database:", cleanedContent);
 
     const result = await db.query(query, [
       postData.userID,

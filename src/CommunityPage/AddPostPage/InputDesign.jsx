@@ -120,7 +120,9 @@ const PostForm = ({ onSubmit, isSubmitting, initialData, isEditMode }) => {
   return (
     <form className={styles.formContainer} onSubmit={handleSubmit}>
       <div className={styles.formContent}>
-        <h1 className={styles.formTitle}>{isEditMode ? "Edit Post" : "New Post"}</h1>
+        <h1 className={styles.formTitle}>
+          {isEditMode ? "Edit Post" : "New Post"}
+        </h1>
 
         <FormField
           label="Subject"
@@ -158,9 +160,13 @@ const PostForm = ({ onSubmit, isSubmitting, initialData, isEditMode }) => {
             disabled={isSubmitting || !isFormValid}
             type="submit"
           >
-            {isSubmitting 
-              ? (isEditMode ? "Updating..." : "Posting...") 
-              : (isEditMode ? "Update" : "Add")}
+            {isSubmitting
+              ? isEditMode
+                ? "Updating..."
+                : "Posting..."
+              : isEditMode
+                ? "Update"
+                : "Add"}
           </button>
         </div>
       </div>
@@ -177,7 +183,7 @@ function InputDesign({ user }) {
   const [postId, setPostId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [initialPostData, setInitialPostData] = useState(null);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -185,19 +191,19 @@ function InputDesign({ user }) {
   const handleSidebarToggle = (isCollapsed) => {
     setIsSidebarCollapsed(isCollapsed);
   };
-  
+
   // Check if we're in edit mode and fetch post data if needed
   useEffect(() => {
     const checkEditMode = async () => {
       // Parse query parameters
       const queryParams = new URLSearchParams(location.search);
       const editPostId = queryParams.get("edit");
-      
+
       if (editPostId) {
         setIsEditMode(true);
         setPostId(editPostId);
         setIsLoading(true);
-        
+
         try {
           // Fetch the post data for editing
           const response = await fetch(
@@ -206,13 +212,13 @@ function InputDesign({ user }) {
               credentials: "include",
             }
           );
-          
+
           if (!response.ok) {
             throw new Error("Failed to fetch post");
           }
-          
+
           const data = await response.json();
-          
+
           if (data.success) {
             // Check if current user is the author
             if (user && user.id === data.data.userID) {
@@ -236,7 +242,7 @@ function InputDesign({ user }) {
         }
       }
     };
-    
+
     checkEditMode();
   }, [location.search, navigate, user]);
 
@@ -248,14 +254,17 @@ function InputDesign({ user }) {
     try {
       // Determine if creating or updating
       const isUpdate = isEditMode && postId;
-      
+
       // Set up the API endpoint and method
-      const url = isUpdate 
+      const url = isUpdate
         ? `http://localhost:8080/community/posts/${postId}`
         : "http://localhost:8080/community/posts";
-      
+
       const method = isUpdate ? "PUT" : "POST";
-      
+
+      // Log the content before sending to API (for debugging)
+      console.log("Submitting content to API:", formData.content);
+
       // Call the API endpoint
       const response = await fetch(url, {
         method: method,
@@ -273,28 +282,42 @@ function InputDesign({ user }) {
 
       if (response.ok && data.success) {
         // Success message and redirect
-        const successMessage = isUpdate 
-          ? "Post updated successfully!" 
+        const successMessage = isUpdate
+          ? "Post updated successfully!"
           : "Post created successfully!";
-          
-        // If editing, go back to the post detail page
+
+        // *** FIX: If editing, go back to the post detail page with correct URL ***
         if (isUpdate) {
-          navigate(`/community/post/${postId}?toast=success&message=${successMessage}`);
+          // The URL pattern should match your router configuration
+          navigate(`/community/post/${postId}`);
+
+          // Display success toast here instead of passing it in URL parameters
+          toast.success(successMessage, {
+            position: "top-right",
+            autoClose: 5000,
+          });
         } else {
           // For new posts, go to community page with success toast
           navigate(`/community?toast=success&message=${successMessage}`);
         }
       } else {
         // Error handling
-        setError(data.error || `Failed to ${isUpdate ? 'update' : 'create'} post. Please try again.`);
-        toast.error(data.error || `Failed to ${isUpdate ? 'update' : 'create'} post. Please try again.`, {
-          position: "top-right",
-          autoClose: 5000,
-        });
+        setError(
+          data.error ||
+            `Failed to ${isUpdate ? "update" : "create"} post. Please try again.`
+        );
+        toast.error(
+          data.error ||
+            `Failed to ${isUpdate ? "update" : "create"} post. Please try again.`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
       }
     } catch (err) {
-      console.error(`Error ${isEditMode ? 'updating' : 'creating'} post:`, err);
-      const errorMessage = `An error occurred while ${isEditMode ? 'updating' : 'creating'} your post. Please try again.`;
+      console.error(`Error ${isEditMode ? "updating" : "creating"} post:`, err);
+      const errorMessage = `An error occurred while ${isEditMode ? "updating" : "creating"} your post. Please try again.`;
       setError(errorMessage);
       toast.error(errorMessage, {
         position: "top-right",
@@ -322,15 +345,15 @@ function InputDesign({ user }) {
               <AlertIcon /> {error}
             </div>
           )}
-          
+
           {isLoading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
               <p>Loading post...</p>
             </div>
           ) : (
-            <PostForm 
-              onSubmit={handleSubmit} 
+            <PostForm
+              onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
               initialData={initialPostData}
               isEditMode={isEditMode}

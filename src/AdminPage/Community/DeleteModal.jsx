@@ -5,7 +5,7 @@ export const DeleteModal = ({ onCancel, onConfirm, userName }) => {
   return (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true">
       <div className={styles.modalContent}>
-        <h2 className={styles.modalTitle}>Delete User?</h2>
+        <h2 className={styles.modalTitle}>Delete Post?</h2>
         <p className={styles.modalText}>
           Are you sure you want to delete <strong>{userName}</strong>? This action cannot be undone.
         </p>
@@ -14,10 +14,12 @@ export const DeleteModal = ({ onCancel, onConfirm, userName }) => {
             Cancel
           </button>
           <button onClick={onConfirm} className={styles.confirmButton}>
-            Confirm
+            Delete
           </button>
         </div>
       </div>
     </div>
   );
 };
+
+export default DeleteModal;

@@ -4,132 +4,158 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
 .modalContent {
-  background-color: white;
+  background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   width: 90%;
-  max-width: 700px;
+  max-width: 800px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .modalHeader {
-  padding: 16px 24px;
-  border-bottom: 1px solid #e1e5e9;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e4e8;
 }
 
 .modalTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
   margin: 0;
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .closeButton {
-  background: none;
+  background: transparent;
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #64748b;
+  color: #586069;
 }
 
 .closeButton:hover {
-  color: #1e293b;
+  color: #24292e;
 }
 
 .modalBody {
-  padding: 24px;
+  padding: 20px;
   overflow-y: auto;
-  flex: 1;
 }
 
 .postMeta {
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e1e4e8;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e1e5e9;
 }
 
 .metaItem {
   display: flex;
-  margin-bottom: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .metaLabel {
   font-weight: 600;
-  color: #1e293b;
-  width: 80px;
-  flex-shrink: 0;
+  color: #586069;
+  font-size: 14px;
 }
 
 .metaValue {
-  color: #334155;
+  font-size: 16px;
+  color: black;
+  font-family: "montserrat";
 }
 
 .postContent {
-  margin-bottom: 24px;
+  margin-top: 16px;
 }
 
 .contentTitle {
+  margin-top: 0;
+  margin-bottom: 12px;
   font-size: 18px;
   font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 16px 0;
+  color: black;
+  font-family: "montserrat";
 }
 
 .contentText {
-  color: #334155;
   line-height: 1.5;
-  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  color: black;
+  font-family: "montserrat";
 }
 
 .modalFooter {
-  padding: 16px 24px;
-  border-top: 1px solid #e1e5e9;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-.reviewButton,
-.violationButton,
-.cancelButton {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
+  padding: 16px 20px;
+  border-top: 1px solid #e1e4e8;
+  background-color: #f6f8fa;
 }
 
 .reviewButton {
-  background-color: #0ea5e9;
+  background-color: #0366d6;
   color: white;
   border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .reviewButton:hover {
-  background-color: #0284c7;
+  background-color: #0255b7;
+}
+
+.reviewButton:disabled {
+  background-color: #c1c8cf;
+  cursor: not-allowed;
 }
 
 .violationButton {
-  background-color: #ef4444;
+  background-color: #d73a49;
   color: white;
   border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .violationButton:hover {
-  background-color: #dc2626;
+  background-color: #cb2431;
+}
+
+.violationButton:disabled {
+  background-color: #c1c8cf;
+  cursor: not-allowed;
+}
+
+.statusBadge {
+  display: inline-block;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  color: black;
+  font-family: "montserrat";
 }

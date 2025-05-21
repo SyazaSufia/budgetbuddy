@@ -1,179 +1,247 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./PostTable.module.css";
-import PostTableRow from "./PostTableRow";
 import PostModal from "./PostModal";
+import { DeleteModal } from "./DeleteModal";
 
 function PostTable({ initialPosts }) {
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [postToDelete, setPostToDelete] = useState(null);
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+  // Fetch posts from API if no initialPosts provided
   useEffect(() => {
-    // If initialPosts is provided (from search), use that data
     if (initialPosts) {
       setPosts(initialPosts);
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
-    
-    // Otherwise fetch posts when component mounts
-    fetchPosts();
-  }, [initialPosts]);
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${apiUrl}/admin/community/posts`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include' // Include cookies for authentication
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setPosts(data.data);
-      } else {
-        setError("Failed to load posts");
-      }
-    } catch (err) {
-      console.error("Error fetching posts:", err);
-      setError("Failed to load posts. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeletePost = async (postId) => {
-    try {
-      const response = await fetch(`${apiUrl}/admin/community/posts/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        // Remove the deleted post from state
-        setPosts(posts.filter(post => post.postID !== postId));
-        // Close modal if the deleted post was selected
-        if (selectedPost && selectedPost.postID === postId) {
-          setSelectedPost(null);
-        }
-      } else {
-        alert("Failed to delete post");
-      }
-    } catch (err) {
-      console.error("Error deleting post:", err);
-      alert("Failed to delete post. Please try again later.");
-    }
-  };
-
-  const handleViewPost = async (postId) => {
-    try {
-      const response = await fetch(`${apiUrl}/admin/community/posts/${postId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setSelectedPost({
-          ...data.data,
-          fullContent: data.data.content, // Store the full content
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${apiUrl}/admin/community/posts`, {
+          credentials: 'include'
         });
-      } else {
-        alert("Failed to load post details");
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          // Ensure each post has content property even if it's empty
+          const processedPosts = data.data.map(post => ({
+            ...post,
+            content: post.content || ""
+          }));
+          setPosts(processedPosts);
+        } else {
+          throw new Error(data.error || 'Unknown error occurred');
+        }
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching post details:", err);
-      alert("Failed to load post details. Please try again later.");
-    }
+    };
+
+    fetchPosts();
+  }, [initialPosts, apiUrl]);
+
+  // Handle view post details
+  const handleViewPost = (post) => {
+    setSelectedPost(post);
   };
 
-  const handleUpdateStatus = async (postId, newStatus) => {
+  // Handle close post modal
+  const handleCloseModal = () => {
+    setSelectedPost(null);
+  };
+
+  // Handle update post status - Mark as Reviewed
+  const handleMarkAsReviewed = async () => {
+    if (!selectedPost) return;
+    
     try {
-      const response = await fetch(`${apiUrl}/admin/community/posts/${postId}/status`, {
+      const response = await fetch(`${apiUrl}/admin/community/posts/${selectedPost.postID}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status: 'Reviewed' })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
-        // Update the post status in state
+        // Update the post status in our local state
         setPosts(posts.map(post => 
-          post.postID === postId ? { ...post, status: newStatus } : post
+          post.postID === selectedPost.postID ? { ...post, status: 'Reviewed' } : post
         ));
-        
-        // Close the modal after updating
-        setSelectedPost(null);
+        // Update the selected post status
+        setSelectedPost({...selectedPost, status: 'Reviewed'});
       } else {
         alert("Failed to update post status");
       }
-    } catch (err) {
-      console.error("Error updating post status:", err);
+    } catch (error) {
+      console.error("Error updating post status:", error);
       alert("Failed to update post status. Please try again later.");
     }
   };
 
-  if (loading) {
-    return <div className={styles.loading}>Loading posts...</div>;
+  // Handle update post status - Mark as Violated
+  const handleMarkAsViolated = async () => {
+    if (!selectedPost) return;
+    
+    try {
+      const response = await fetch(`${apiUrl}/admin/community/posts/${selectedPost.postID}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'Violated' })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the post status in our local state
+        setPosts(posts.map(post => 
+          post.postID === selectedPost.postID ? { ...post, status: 'Violated' } : post
+        ));
+        // Update the selected post status
+        setSelectedPost({...selectedPost, status: 'Violated'});
+      } else {
+        alert("Failed to update post status");
+      }
+    } catch (error) {
+      console.error("Error updating post status:", error);
+      alert("Failed to update post status. Please try again later.");
+    }
+  };
+
+  // Handle show delete confirmation modal
+  const handleShowDeleteModal = (post) => {
+    setPostToDelete(post);
+  };
+
+  // Handle cancel delete
+  const handleCancelDelete = () => {
+    setPostToDelete(null);
+  };
+
+  // Handle confirm delete post
+  const handleConfirmDelete = async () => {
+    if (!postToDelete) return;
+    
+    try {
+      const response = await fetch(`${apiUrl}/admin/community/posts/${postToDelete.postID}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remove the post from our local state
+        setPosts(posts.filter(post => post.postID !== postToDelete.postID));
+        // Close the delete modal
+        setPostToDelete(null);
+      } else {
+        alert("Failed to delete post");
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete post. Please try again later.");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p>Loading posts...</p>
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
+  if (posts.length === 0) {
+    return (
+      <div className={styles.emptyState}>
+        <p>No posts found.</p>
+      </div>
+    );
   }
 
   return (
-    <div className={styles.tableContainer}>
-      <div className={styles.tableContent}>
-        <div className={styles.tableHeader}>
-          <div className={styles.idHeader}>Post ID</div>
-          <div className={styles.contentHeader}>Content Preview</div>
-          <div className={styles.dateHeader}>Post Date</div>
-          <div className={styles.statusHeader}>Status</div>
-          <div className={styles.actionHeader}>Actions</div>
-        </div>
-
-        {posts.length > 0 ? (
-          posts.map((post) => (
-            <PostTableRow
-              key={post.postID}
-              id={post.postID}
-              content={post.content}
-              date={post.date}
-              status={post.status}
-              onDelete={() => handleDeletePost(post.postID)}
-              onView={() => handleViewPost(post.postID)}
-            />
-          ))
-        ) : (
-          <div className={styles.noData}>No posts found</div>
-        )}
-      </div>
-
+    <div className={styles.tableWrapper}>
+      <table className={styles.postsTable}>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map(post => (
+            <tr key={post.postID}>
+              <td>{post.postID}</td>
+              <td className={styles.titleColumn} title={post.subject}>
+                {post.subject || "[No title]"}
+              </td>
+              <td>{new Date(post.createdAt).toLocaleDateString()}</td>
+              <td>
+                <div className={`${styles.statusBadge} ${styles[post.status?.toLowerCase() || 'pending']}`}>
+                  {post.status || 'Pending'}
+                </div>
+              </td>
+              <td>
+                <div className={styles.actionsCell}>
+                  <button 
+                    className={`${styles.actionButton} ${styles.viewButton}`}
+                    onClick={() => handleViewPost(post)}
+                    aria-label="View post"
+                  >
+                    <img src="/view-icon.svg" alt="View" width="20" height="20" />
+                  </button>
+                  <button 
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                    onClick={() => handleShowDeleteModal(post)}
+                    aria-label="Delete post"
+                  >
+                    <img src="/delete-icon.svg" alt="Delete" width="20" height="20" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      {/* Post Modal */}
       {selectedPost && (
-        <PostModal
+        <PostModal 
           post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-          onReview={() => handleUpdateStatus(selectedPost.postID, 'Reviewed')}
-          onViolated={() => handleUpdateStatus(selectedPost.postID, 'Violated')}
+          onClose={handleCloseModal}
+          onReview={handleMarkAsReviewed}
+          onViolated={handleMarkAsViolated}
+        />
+      )}
+      
+      {/* Delete Confirmation Modal */}
+      {postToDelete && (
+        <DeleteModal 
+          onCancel={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          userName={postToDelete.subject || `Post #${postToDelete.postID}`}
         />
       )}
     </div>
