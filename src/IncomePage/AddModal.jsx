@@ -5,6 +5,7 @@ import styles from "./AddModal.module.css";
 export const AddIncomeModal = ({ onClose, onAddIncome }) => {
   const [incomeType, setIncomeType] = useState("");
   const [scholarship, setScholarship] = useState("");
+  const [customScholarship, setCustomScholarship] = useState(""); // New state for custom scholarship title
   const [amount, setAmount] = useState("");
   const [title, setTitle] = useState("");
   const [occurrence, setOccurrence] = useState("once"); // Default to one-time payment
@@ -29,13 +30,32 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Determine the title based on income type and selections
+    let finalTitle = "";
+    let finalSource = null;
+
+    if (incomeType === "Passive") {
+      if (scholarship === "Other") {
+        // For custom scholarships
+        finalTitle = customScholarship.trim();
+        finalSource = "Other";
+      } else {
+        // For predefined scholarships
+        finalTitle = scholarship;
+        finalSource = scholarship;
+      }
+    } else {
+      // For Active income
+      finalTitle = title;
+    }
+
     const incomeData = {
       type: incomeType,
-      title: incomeType === "Passive" ? scholarship || "Custom Income" : title,
-      source: incomeType === "Passive" ? scholarship || null : null,
+      title: finalTitle,
+      source: finalSource,
       date: startDate,
       amount,
-      occurrence, // Add occurrence type
+      occurrence,
     };
 
     try {
@@ -130,6 +150,22 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
             </div>
           )}
 
+          {/* New custom scholarship input field */}
+          {incomeType === "Passive" && scholarship === "Other" && (
+            <div className={styles.formGroup}>
+              <label htmlFor="customScholarship" className={styles.label}>Custom Scholarship Title:</label>
+              <input
+                id="customScholarship"
+                type="text"
+                className={styles.input}
+                placeholder="Enter custom scholarship title"
+                value={customScholarship}
+                onChange={(e) => setCustomScholarship(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           {incomeType === "Active" && (
             <div className={styles.formGroup}>
               <label htmlFor="title" className={styles.label}>Title:</label>
@@ -201,6 +237,7 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
                 !amount || 
                 !startDate || 
                 (incomeType === "Passive" && !scholarship) || 
+                (incomeType === "Passive" && scholarship === "Other" && !customScholarship) ||
                 (incomeType === "Active" && !title)
               }
             >

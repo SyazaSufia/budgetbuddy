@@ -14,7 +14,7 @@
 .modalContent {
   border-radius: 16px;
   background-color: #fff;
-  width: 500px;
+  width: 600px;
   padding: 24px;
   border: 1px solid var(--borderColor);
   position: relative;
@@ -24,41 +24,56 @@
 .modalTitle {
   font-size: 24px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   margin-top: 4px;
   font-family: 'Montserrat';
   text-align: center;
+  line-height: 1.3;
+  min-height: 50px; /* Accommodate two lines if needed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .formGroup {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  width: 100%;
 }
 
 .label {
   color: var(--textColor);
-  min-width: 100px;
+  width: 250px;
   text-align: left;
   font-weight: 600;
   font-family: 'Montserrat';
+  padding-top: 12px;
+  padding-right: 10px;
+  line-height: 1.3;
+}
+
+.inputWrapper {
+  flex: 1;
+  width: 100%;
 }
 
 .input {
-  flex: 1;
+  width: 100%;
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
   background-color: #fff;
   color: var(--textColor);
   font-family: "montserrat";
+  box-sizing: border-box;
+  height: 46px;
 }
 
 .modalActions {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 28px;
   width: 100%;
   gap: 16px;
 }
@@ -70,6 +85,8 @@
   cursor: pointer;
   font-weight: 600;
   flex: 1;
+  height: 46px;
+  text-align: center;
 }
 
 .cancelButton {
@@ -82,6 +99,11 @@
   background-color: var(--secondaryColor);
   border: none;
   color: var(--primaryColor);
+}
+
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 form, input, button {
