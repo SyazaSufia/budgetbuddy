@@ -253,7 +253,7 @@ app.get("/check-auth", (req, res) => {
   return res.json({ isAuthenticated: false });
 });
 
-// Update the GET User Details Endpoint to include income information
+// Update the GET User Details Endpoint to ensure consistent capitalization
 app.get("/get-user-details", isAuthenticated, async (req, res) => {
   try {
     const { id } = req.session.user;
@@ -280,6 +280,21 @@ app.get("/get-user-details", isAuthenticated, async (req, res) => {
     }
 
     const user = users[0];
+    
+    // Ensure consistent capitalization for incomeType if it exists
+    if (user.incomeType) {
+      if (user.incomeType.toLowerCase() === "passive") {
+        user.incomeType = "Passive";
+      } else if (user.incomeType.toLowerCase() === "active") {
+        user.incomeType = "Active";
+      }
+    }
+    
+    console.log("Retrieved user with:", {
+      incomeType: user.incomeType,
+      scholarshipType: user.scholarshipType
+    });
+    
     return res.json({ success: true, user });
   } catch (error) {
     console.error("Error fetching user details:", error);
@@ -289,7 +304,7 @@ app.get("/get-user-details", isAuthenticated, async (req, res) => {
   }
 });
 
-// Update the Profile Update Endpoint to handle income information
+// Update the Profile Update Endpoint to properly capitalize incomeType
 app.post("/update-profile", isAuthenticated, async (req, res) => {
   try {
     const { id, name, email, dob, phoneNumber, profileImage, incomeType, scholarshipType } = req.body;
@@ -302,8 +317,26 @@ app.post("/update-profile", isAuthenticated, async (req, res) => {
         .json({ success: false, message: "Unauthorized action." });
     }
 
+    // Properly capitalize incomeType
+    let formattedIncomeType = null;
+    if (incomeType) {
+      if (incomeType.toLowerCase() === "passive") {
+        formattedIncomeType = "Passive";
+      } else if (incomeType.toLowerCase() === "active") {
+        formattedIncomeType = "Active";
+      } else {
+        formattedIncomeType = incomeType; // Keep as is if it's something else
+      }
+    }
+
     // Handle scholarshipType based on incomeType
-    const finalScholarshipType = incomeType === 'passive' ? scholarshipType : null;
+    // If incomeType is not Passive, set scholarshipType to null
+    const finalScholarshipType = formattedIncomeType === 'Passive' ? scholarshipType : null;
+
+    console.log("Saving profile with:", {
+      incomeType: formattedIncomeType,
+      scholarshipType: finalScholarshipType
+    });
 
     await db.query(
       `UPDATE user 
@@ -316,7 +349,7 @@ app.post("/update-profile", isAuthenticated, async (req, res) => {
         incomeType = ?,
         scholarshipType = ?
       WHERE userID = ?`,
-      [name, dob, email, phoneNumber, profileImage, incomeType, finalScholarshipType, userId]
+      [name, dob, email, phoneNumber, profileImage, formattedIncomeType, finalScholarshipType, userId]
     );
     
     return res.json({
@@ -330,6 +363,8 @@ app.post("/update-profile", isAuthenticated, async (req, res) => {
       .json({ success: false, message: "Error updating profile." });
   }
 });
+
+//---------------------------ADMIN ENDPOINTS---------------------------//
 
 // Add Admin endpoint
 app.post("/add-admin", async (req, res) => {

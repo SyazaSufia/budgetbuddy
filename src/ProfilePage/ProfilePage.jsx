@@ -18,6 +18,7 @@ const ProfilePage = () => {
     profileImage: "",
     incomeType: "",
     scholarshipType: "",
+    scholarshipTitle: "", // Added new field for custom scholarship title
   });
 
   const [isFormComplete, setIsFormComplete] = useState(false);
@@ -27,6 +28,7 @@ const ProfilePage = () => {
     age: "",
     email: "",
     phoneNumber: "",
+    scholarshipTitle: "", // Added new error field
   });
 
   // Get avatar name from path
@@ -76,6 +78,21 @@ const ProfilePage = () => {
         // Set default avatar if none is set
         let profileImage = userData.profileImage || "/avatars/Default.svg";
         
+        // Handle scholarship type and title
+        const predefinedTypes = ["JPA", "MARA", "Yayasan", "Petronas"];
+        let scholarshipType = userData.scholarshipType || "";
+        let scholarshipTitle = "";
+        
+        // If scholarshipType is not one of the predefined types and not empty,
+        // consider it as a custom scholarship
+        if (scholarshipType && !predefinedTypes.includes(scholarshipType)) {
+          scholarshipTitle = scholarshipType; // The title is the full value
+          scholarshipType = "other";
+        }
+        
+        // The backend now ensures proper capitalization
+        const incomeType = userData.incomeType || "";
+        
         // Set form data with all user details
         setFormData({
           id: userData.id,
@@ -85,8 +102,15 @@ const ProfilePage = () => {
           email: userData.email || "",
           phoneNumber: userData.phoneNumber || "",
           profileImage: profileImage,
-          incomeType: userData.incomeType || "",
-          scholarshipType: userData.scholarshipType || "",
+          incomeType: incomeType,
+          scholarshipType: scholarshipType,
+          scholarshipTitle: scholarshipTitle,
+        });
+        
+        console.log("Loaded user data:", {
+          incomeType: incomeType,
+          scholarshipType: scholarshipType,
+          scholarshipTitle: scholarshipTitle
         });
       } else {
         console.error("No user data found");
@@ -123,6 +147,12 @@ const ProfilePage = () => {
         ? "Phone number must contain only numbers"
         : "";
     }
+    
+    if (field === "scholarshipTitle") {
+      updatedErrors.scholarshipTitle = value.trim() === "" 
+        ? "Scholarship name is required" 
+        : "";
+    }
 
     // If the field is DOB, we should also update age
     if (field === "dob") {
@@ -136,11 +166,19 @@ const ProfilePage = () => {
         age: age.toString(),
       }));
     } else if (field === "incomeType") {
-      // If changing income type and it's not "passive", clear scholarship type
+      // If changing income type and it's not "Passive", clear scholarship type and title
       setFormData((prev) => ({
         ...prev,
         [field]: value,
-        scholarshipType: value === "passive" ? prev.scholarshipType : ""
+        scholarshipType: value === "Passive" ? prev.scholarshipType : "",
+        scholarshipTitle: value === "Passive" ? prev.scholarshipTitle : ""
+      }));
+    } else if (field === "scholarshipType") {
+      // If changing scholarship type and it's not "other", clear scholarship title
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+        scholarshipTitle: value === "other" ? prev.scholarshipTitle : ""
       }));
     } else {
       // Handle other fields normally
@@ -161,9 +199,14 @@ const ProfilePage = () => {
       "incomeType"
     ];
     
-    // Add scholarshipType to required fields only if incomeType is passive
-    if (formData.incomeType === "passive") {
+    // Add scholarshipType to required fields only if incomeType is Passive
+    if (formData.incomeType === "Passive") {
       requiredFields.push("scholarshipType");
+      
+      // Add scholarshipTitle to required fields only if scholarshipType is other
+      if (formData.scholarshipType === "other") {
+        requiredFields.push("scholarshipTitle");
+      }
     }
     
     const isComplete = requiredFields.every(
@@ -190,6 +233,13 @@ const ProfilePage = () => {
     try {
       // Create a copy of form data for submission
       const formDataToSubmit = { ...formData };
+      
+      // If "other" is selected, use the scholarshipTitle directly as the scholarshipType value
+      if (formData.incomeType === "Passive" && formData.scholarshipType === "other" && formData.scholarshipTitle) {
+        formDataToSubmit.scholarshipType = formData.scholarshipTitle.trim();
+      }
+
+      console.log("Submitting profile data:", formDataToSubmit);
 
       // Now update the profile with the selected avatar path
       const response = await fetch("http://localhost:8080/update-profile", {
@@ -201,7 +251,7 @@ const ProfilePage = () => {
 
       if (response.ok) {
         toast.success("Profile updated successfully!");
-        fetchUserData();
+        fetchUserData(); // Reload the user data after successful update
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Failed to update profile.");
@@ -332,14 +382,14 @@ const ProfilePage = () => {
                         onChange={(e) => handleInputChange("incomeType", e.target.value)}
                       >
                         <option value="">Select Income Type</option>
-                        <option value="active">Active</option>
-                        <option value="passive">Passive</option>
+                        <option value="Active">Active</option>
+                        <option value="Passive">Passive</option>
                       </select>
                     </div>
                   </div>
                 </div>
                 
-                {formData.incomeType === "passive" && (
+                {formData.incomeType === "Passive" && (
                   <div className={styles.formGroup}>
                     <div className={styles.fieldContainer}>
                       <div className={styles.labelContainer}>
@@ -364,11 +414,23 @@ const ProfilePage = () => {
                   </div>
                 )}
                 
-                {/* Empty div to keep layout balanced if scholarship not shown */}
-                {formData.incomeType !== "passive" && <div className={styles.formGroup}></div>}
+                {formData.incomeType === "Passive" && formData.scholarshipType === "other" && (
+                  <div className={styles.formGroup}>
+                    <FormField
+                      label="Scholarship Name"
+                      placeholder="Enter scholarship name"
+                      value={formData.scholarshipTitle}
+                      onChange={(e) => handleInputChange("scholarshipTitle", e)}
+                    />
+                    {errors.scholarshipTitle && (
+                      <p className={styles.errorText}>{errors.scholarshipTitle}</p>
+                    )}
+                  </div>
+                )}
                 
-                {/* Always add a third column for balance */}
-                <div className={styles.formGroup}></div>
+                {/* Empty div to keep layout balanced if not all fields are shown */}
+                {!(formData.incomeType === "Passive" && formData.scholarshipType === "other") && 
+                 (formData.incomeType !== "Passive" || <div className={styles.formGroup}></div>)}
               </div>
             </InfoSection>
           </div>
