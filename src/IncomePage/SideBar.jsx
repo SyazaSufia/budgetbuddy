@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api"; // Adjust path to your api.js file
 import styles from "./SideBar.module.css";
 import SignOutModal from "../SignOut/SignOutModal";
 
@@ -38,11 +39,8 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
 
   const handleSignOut = async () => {
     try {
-      // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
+      // Use the API method instead of direct fetch
+      await authAPI.signOut();
   
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");

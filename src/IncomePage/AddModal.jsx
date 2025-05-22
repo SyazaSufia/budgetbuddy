@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { incomeAPI } from "../services/api";
 import styles from "./AddModal.module.css";
 
 export const AddIncomeModal = ({ onClose, onAddIncome }) => {
@@ -9,14 +10,16 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
   const [amount, setAmount] = useState("");
   const [title, setTitle] = useState("");
   const [occurrence, setOccurrence] = useState("once"); // Default to one-time payment
-  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]); // Default to today
+  const [startDate, setStartDate] = useState(
+    new Date().toISOString().split("T")[0]
+  ); // Default to today
 
   const scholarshipOptions = [
     "Jabatan Perkhidmatan Awam (JPA)",
     "Majlis Amanah Rakyat (MARA)",
     "Yayasan Khazanah",
     "Petronas Education",
-    "Other"
+    "Other",
   ];
 
   const occurrenceOptions = [
@@ -24,7 +27,7 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
     { value: "daily", label: "Daily" },
     { value: "weekly", label: "Weekly" },
     { value: "monthly", label: "Monthly" },
-    { value: "yearly", label: "Yearly" }
+    { value: "yearly", label: "Yearly" },
   ];
 
   const handleSubmit = async (e) => {
@@ -54,53 +57,32 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
       title: finalTitle,
       source: finalSource,
       date: startDate,
-      amount,
+      amount: parseFloat(amount), // Ensure amount is a number, not a string
       occurrence,
     };
 
     try {
-      const response = await fetch("http://localhost:43210/income/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(incomeData),
-        credentials: "include",
+      const result = await incomeAPI.addIncome(incomeData);
+
+      toast.success(result.message || "Income added successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.success(result.message || "Income added successfully!", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "light",
-        });
-        
-        // Call the onAddIncome callback after successful addition
-        if (onAddIncome) {
-          onAddIncome();
-        }
-        
-        onClose(); // Close the modal after successful submission
-      } else {
-        toast.error(result.error || "Failed to add income.", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "light",
-        });
+      // Call the onAddIncome callback after successful addition
+      if (onAddIncome) {
+        onAddIncome();
       }
+
+      onClose(); // Close the modal after successful submission
     } catch (error) {
       console.error("Error adding income:", error);
-      toast.error("Something went wrong. Please try again.", {
+      toast.error(error.message || "Failed to add income.", {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -118,7 +100,9 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
         <h2 className={styles.modalTitle}>Add Income</h2>
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
-            <label htmlFor="incomeType" className={styles.label}>Type:</label>
+            <label htmlFor="incomeType" className={styles.label}>
+              Type:
+            </label>
             <select
               id="incomeType"
               className={styles.input}
@@ -126,7 +110,9 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
               onChange={(e) => setIncomeType(e.target.value)}
               required
             >
-              <option value="" disabled>Select type</option>
+              <option value="" disabled>
+                Select type
+              </option>
               <option value="Passive">Passive</option>
               <option value="Active">Active</option>
             </select>
@@ -134,7 +120,9 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
 
           {incomeType === "Passive" && (
             <div className={styles.formGroup}>
-              <label htmlFor="scholarship" className={styles.label}>Scholarship:</label>
+              <label htmlFor="scholarship" className={styles.label}>
+                Scholarship:
+              </label>
               <select
                 id="scholarship"
                 className={styles.input}
@@ -142,9 +130,13 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
                 onChange={(e) => setScholarship(e.target.value)}
                 required
               >
-                <option value="" disabled>Select scholarship</option>
+                <option value="" disabled>
+                  Select scholarship
+                </option>
                 {scholarshipOptions.map((option, index) => (
-                  <option key={index} value={option}>{option}</option>
+                  <option key={index} value={option}>
+                    {option}
+                  </option>
                 ))}
               </select>
             </div>
@@ -153,7 +145,9 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
           {/* New custom scholarship input field */}
           {incomeType === "Passive" && scholarship === "Other" && (
             <div className={styles.formGroup}>
-              <label htmlFor="customScholarship" className={styles.label}>Custom Scholarship Title:</label>
+              <label htmlFor="customScholarship" className={styles.label}>
+                Custom Scholarship Title:
+              </label>
               <input
                 id="customScholarship"
                 type="text"
@@ -168,7 +162,9 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
 
           {incomeType === "Active" && (
             <div className={styles.formGroup}>
-              <label htmlFor="title" className={styles.label}>Title:</label>
+              <label htmlFor="title" className={styles.label}>
+                Title:
+              </label>
               <input
                 id="title"
                 type="text"
@@ -184,7 +180,9 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
           {incomeType && (
             <>
               <div className={styles.formGroup}>
-                <label htmlFor="amount" className={styles.label}>Amount:</label>
+                <label htmlFor="amount" className={styles.label}>
+                  Amount:
+                </label>
                 <input
                   id="amount"
                   type="number"
@@ -195,9 +193,11 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
                   required
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="startDate" className={styles.label}>Start Date:</label>
+                <label htmlFor="startDate" className={styles.label}>
+                  Start Date:
+                </label>
                 <input
                   id="startDate"
                   type="date"
@@ -207,9 +207,11 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
                   required
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="occurrence" className={styles.label}>Occurrence:</label>
+                <label htmlFor="occurrence" className={styles.label}>
+                  Occurrence:
+                </label>
                 <select
                   id="occurrence"
                   className={styles.input}
@@ -228,16 +230,24 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
           )}
 
           <div className={styles.modalActions}>
-            <button type="button" className={styles.cancelButton} onClick={onClose}>Cancel</button>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={onClose}
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               className={styles.confirmButton}
               disabled={
-                !incomeType || 
-                !amount || 
-                !startDate || 
-                (incomeType === "Passive" && !scholarship) || 
-                (incomeType === "Passive" && scholarship === "Other" && !customScholarship) ||
+                !incomeType ||
+                !amount ||
+                !startDate ||
+                (incomeType === "Passive" && !scholarship) ||
+                (incomeType === "Passive" &&
+                  scholarship === "Other" &&
+                  !customScholarship) ||
                 (incomeType === "Active" && !title)
               }
             >

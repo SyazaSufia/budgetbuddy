@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { incomeAPI } from "../services/api"; // Adjust path to your api.js file
 import styles from "./Income.module.css";
 import { AddIncomeModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";
@@ -20,36 +21,29 @@ export default function IncomeList({
   const [isRecurringIncome, setIsRecurringIncome] = useState(false);
   const [updateAllRecurrences, setUpdateAllRecurrences] = useState(false);
 
-  // Fetch incomes from the backend
+  // Fetch incomes from the backend using API
   const fetchIncomes = async () => {
     try {
-      const response = await fetch("http://localhost:43210/income", {
-        credentials: "include", // Send session cookies
+      const incomes = await incomeAPI.getIncome();
+
+      // Format dates properly to avoid timezone issues
+      const formattedIncomes = incomes.map((item) => {
+        // Parse the date into year, month, day components
+        const dateParts = item.date.split("T")[0].split("-");
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1; // JS months are 0-indexed
+        const day = parseInt(dateParts[2]);
+
+        // Create a date object that preserves the exact date regardless of timezone
+        const fixedDate = new Date(year, month, day);
+
+        return {
+          ...item,
+          date: item.date.split("T")[0], // Keep formatted date string for display
+          dateObj: fixedDate, // Add proper date object for filtering
+        };
       });
-      const incomes = await response.json();
-
-      if (response.ok) {
-        // Format dates properly to avoid timezone issues
-        const formattedIncomes = incomes.map((item) => {
-          // Parse the date into year, month, day components
-          const dateParts = item.date.split("T")[0].split("-");
-          const year = parseInt(dateParts[0]);
-          const month = parseInt(dateParts[1]) - 1; // JS months are 0-indexed
-          const day = parseInt(dateParts[2]);
-
-          // Create a date object that preserves the exact date regardless of timezone
-          const fixedDate = new Date(year, month, day);
-
-          return {
-            ...item,
-            date: item.date.split("T")[0], // Keep formatted date string for display
-            dateObj: fixedDate, // Add proper date object for filtering
-          };
-        });
-        setIncomeItems(formattedIncomes); // Populate the income list
-      } else {
-        console.error("Failed to fetch incomes:", incomes.error);
-      }
+      setIncomeItems(formattedIncomes); // Populate the income list
     } catch (error) {
       console.error("Error fetching incomes:", error);
     }
@@ -121,43 +115,29 @@ export default function IncomeList({
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm income deletion
+  // Confirm income deletion using API
   const handleDeleteConfirm = async (deleteAllRecurrences = false) => {
     try {
-      let url = `http://localhost:43210/income/delete/${selectedIncomeId}`;
+      // Use the API method instead of direct fetch
+      await incomeAPI.deleteIncome(selectedIncomeId);
+      
+      fetchIncomes(); // Reload incomes after deletion
+      setIsDeleteModalOpen(false);
+      setSelectedIncomeId(null);
 
-      // Add query parameter if deleting all recurrences
-      if (deleteAllRecurrences) {
-        url += "?deleteAllRecurrences=true";
-      }
-
-      const response = await fetch(url, {
-        method: "DELETE",
-        credentials: "include", // Send session cookies
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        fetchIncomes(); // Reload incomes after deletion
-        setIsDeleteModalOpen(false);
-        setSelectedIncomeId(null);
-
-        // Notify parent component of refresh
-        if (onRefresh) {
-          onRefresh();
-        }
-      } else if (response.status === 400 && result.hasChildren) {
-        // If the income has children, show a message to the user
-        alert(
-          "This income has recurring instances. Please select 'Delete all recurrences' option."
-        );
-        // You could also set a state variable here to show a more elegant message in the UI
-      } else {
-        console.error("Failed to delete income:", result.error);
+      // Notify parent component of refresh
+      if (onRefresh) {
+        onRefresh();
       }
     } catch (error) {
       console.error("Error deleting income:", error);
+      
+      // Handle specific error cases
+      if (error.message.includes("has children") || error.message.includes("recurring")) {
+        alert(
+          "This income has recurring instances. Please select 'Delete all recurrences' option."
+        );
+      }
     }
   };
 

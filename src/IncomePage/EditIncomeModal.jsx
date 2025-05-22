@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { incomeAPI } from "../services/api"; // Adjust path to your api.js file
 import styles from "./EditModal.module.css";
 
 export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
@@ -21,40 +22,26 @@ export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
     };
 
     try {
-      const response = await fetch(
-        `http://localhost:43210/income/update/${income.incomeID}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedIncome),
-          credentials: "include",
-        }
-      );
+      const result = await incomeAPI.updateIncome(income.incomeID, updatedIncome);
 
-      const result = await response.json();
-
-      if (response.ok) {
-        // Show different toast messages based on what was updated
-        if (amount && occurrence !== income.occurrence) {
-          toast.success("Amount and occurrence updated successfully!");
-        } else if (amount) {
-          toast.success("Amount updated successfully!");
-        } else if (occurrence !== income.occurrence) {
-          toast.success("Occurrence updated successfully!");
-        } else if (updateAllRecurrences) {
-          toast.success("Future occurrences updated successfully!");
-        } else {
-          toast.success("Income updated successfully!");
-        }
-        
-        onUpdate(updatedIncome); // Update income in parent component
-        onClose();
+      // Show different toast messages based on what was updated
+      if (amount && occurrence !== income.occurrence) {
+        toast.success("Amount and occurrence updated successfully!");
+      } else if (amount) {
+        toast.success("Amount updated successfully!");
+      } else if (occurrence !== income.occurrence) {
+        toast.success("Occurrence updated successfully!");
+      } else if (updateAllRecurrences) {
+        toast.success("Future occurrences updated successfully!");
       } else {
-        toast.error(result.error || "Failed to update income.");
+        toast.success("Income updated successfully!");
       }
+      
+      onUpdate(updatedIncome); // Update income in parent component
+      onClose();
     } catch (error) {
       console.error("Error updating income:", error);
-      toast.error("Something went wrong!");
+      toast.error(error.message || "Failed to update income.");
     }
   };
 

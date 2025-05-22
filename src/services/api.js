@@ -197,21 +197,43 @@ export const categoryAPI = {
 
 // Income API methods
 export const incomeAPI = {
+  // Get all income entries
   getIncome: () => apiRequest("/income"),
+
+  // Add a new income entry
   addIncome: (incomeData) =>
-    apiRequest("/income", {
+    apiRequest("/income/add", {
       method: "POST",
       body: JSON.stringify(incomeData),
     }),
+
+  // Update an existing income entry
   updateIncome: (id, incomeData) =>
-    apiRequest(`/income/${id}`, {
+    apiRequest(`/income/update/${id}`, {
       method: "PUT",
       body: JSON.stringify(incomeData),
     }),
-  deleteIncome: (id) =>
-    apiRequest(`/income/${id}`, {
+
+  // Delete an income entry (with optional recurring parameter)
+  deleteIncome: (id, deleteAllRecurrences = false) => {
+    const queryParams = deleteAllRecurrences
+      ? "?deleteAllRecurrences=true"
+      : "";
+    return apiRequest(`/income/delete/${id}${queryParams}`, {
       method: "DELETE",
-    }),
+    });
+  },
+
+  // Get income statistics for dashboard
+  getIncomeStats: (period = "month") =>
+    apiRequest(`/income/stats?period=${period}`),
+
+  // Get income by type (Active/Passive)
+  getIncomeByType: (type) => apiRequest(`/income/type/${type}`),
+
+  // Get recurring income series
+  getRecurringIncomeSeries: (parentId) =>
+    apiRequest(`/income/recurring/${parentId}`),
 };
 
 // Expense API methods
