@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styles from "./CreateModal.module.css";
 import { toast } from "react-toastify";
+import { budgetAPI } from "../services/api";
 
 export const CreateBudgetModal = ({ onClose, onAdd }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,46 +55,51 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
           ? customCategoryName.trim()
           : selectedCategory.name;
 
-      // First create budget - keeping the budget type aligned with the selected category
-      const budgetResponse = await fetch("http://localhost:43210/budget/budgets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          budgetName,
-          icon: selectedCategory.icon,
-          targetAmount: parseFloat(targetAmount)
-        }),
-      });
+      // First create budget using your centralized API
+      const budgetData = {
+        budgetName,
+        icon: selectedCategory.icon,
+        targetAmount: parseFloat(targetAmount)
+      };
 
-      const budgetResult = await budgetResponse.json();
+      const budgetResult = await budgetAPI.addBudget(budgetData);
 
-      if (budgetResponse.ok && budgetResult.success) {
+      if (budgetResult.success) {
         // Create the initial category that matches the budget
-        const categoryResponse = await fetch("http://localhost:43210/budget/categories", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            categoryName: budgetName,
-            icon: selectedCategory.icon,
-            budgetID: budgetResult.data.budgetID
-          }),
-        });
+        // You'll need to add categoryAPI to your main API file or extend budgetAPI
+        const categoryData = {
+          categoryName: budgetName,
+          icon: selectedCategory.icon,
+          budgetID: budgetResult.data.budgetID
+        };
 
-        const categoryResult = await categoryResponse.json();
+        try {
+          // For now, using direct fetch for category creation since it's not in your main API
+          // You should add categoryAPI to your main API file
+          const categoryResponse = await fetch("http://localhost:43210/budget/categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(categoryData),
+          });
 
-        if (categoryResponse.ok && categoryResult.success) {
-          // Successfully created both budget and initial category
-          const updatedBudgetData = {
-            ...budgetResult.data,
-            categories: [categoryResult.data]
-          };
-          
-          onAdd(updatedBudgetData);
-          toast.success("Budget created successfully!");
-          onClose();
-        } else {
+          const categoryResult = await categoryResponse.json();
+
+          if (categoryResponse.ok && categoryResult.success) {
+            // Successfully created both budget and initial category
+            const updatedBudgetData = {
+              ...budgetResult.data,
+              categories: [categoryResult.data]
+            };
+            
+            onAdd(updatedBudgetData);
+            toast.success("Budget created successfully!");
+            onClose();
+          } else {
+            setError("Budget created but failed to create category.");
+          }
+        } catch (categoryErr) {
+          console.error("Error creating category:", categoryErr);
           setError("Budget created but failed to create category.");
         }
       } else {
@@ -101,7 +107,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
       }
     } catch (err) {
       console.error("Error creating budget:", err);
-      setError("An error occurred. Please try again.");
+      setError(err.message || "An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

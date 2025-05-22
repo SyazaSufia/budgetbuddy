@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../SignOut/SignOutModal";
+import { authAPI } from "../services/api";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: "/dashboard-icon.svg", path: "/dashboard" },
@@ -15,6 +16,7 @@ const menuItems = [
 export function SideBar({ onSignOut, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const navigate = useNavigate();
 
   // When collapse state changes, notify parent component
@@ -37,12 +39,11 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
   };
 
   const handleSignOut = async () => {
+    setIsSigningOut(true);
+    
     try {
-      // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
+      // Use your centralized authAPI for sign out
+      await authAPI.signOut();
   
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");
@@ -50,11 +51,20 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
       // Close the modal
       setIsSignOutModalOpen(false);
       
+      // Call the onSignOut prop if provided
+      if (onSignOut) {
+        onSignOut();
+      }
+      
       // Redirect to homepage and refresh
       navigate("/");
       window.location.reload(); // Forces a full page refresh
     } catch (error) {
       console.error("Sign out failed:", error);
+      // You might want to show an error toast here
+      // toast.error("Failed to sign out. Please try again.");
+    } finally {
+      setIsSigningOut(false);
     }
   };  
 
@@ -86,9 +96,10 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
               role="button" 
               tabIndex={0} 
               onClick={openSignOutModal}
+              style={{ opacity: isSigningOut ? 0.6 : 1 }}
             >
               <img src="/signout-icon.svg" className={styles.menuIcon} alt="Sign Out icon" />
-              {!isCollapsed && <div>Sign Out</div>}
+              {!isCollapsed && <div>{isSigningOut ? "Signing Out..." : "Sign Out"}</div>}
             </div>
           </div>
         </div>
@@ -108,6 +119,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
         isOpen={isSignOutModalOpen}
         onClose={closeSignOutModal}
         onConfirm={handleSignOut}
+        isLoading={isSigningOut}
       />
     </>
   );

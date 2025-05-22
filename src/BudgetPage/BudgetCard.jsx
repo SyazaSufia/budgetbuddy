@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { CreateBudgetModal } from "./CreateModal";
 import { useNavigate } from "react-router-dom";
 import BudgetIndicator from "./BudgetIndicator";
+import { budgetAPI } from "../services/api";
 
 function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,72 +14,60 @@ function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const fetchBudgets = (timeFilter) => {
+  const fetchBudgets = async (timeFilter) => {
     setIsLoading(true);
-    // Add the timeFilter to the API request
-    fetch(`http://localhost:43210/budget/budgets?timeFilter=${timeFilter}`, {
-      credentials: "include", // Send cookies/session info
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          // Ensure default values if properties are missing
-          const processedBudgets = data.data.map((budget) => ({
-            ...budget,
-            targetAmount: budget.targetAmount || 2000,
-          }));
-          setBudgets(processedBudgets);
-          
-          // Fetch detailed information for each budget
-          processedBudgets.forEach(budget => {
-            fetchBudgetDetails(budget.budgetID);
-          });
-        } else {
-          console.error("Failed to load budgets:", data.message);
-          setError("Failed to load budgets");
-        }
-      })
-      .catch((err) => {
-        console.error("Error loading budgets:", err);
-        setError("Error loading budgets. Please try again later.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    setError(null);
+    
+    try {
+      // Use your centralized budgetAPI - you might need to extend it to support timeFilter
+      const data = await budgetAPI.getBudgets(timeFilter);
+      
+      if (data.success) {
+        // Ensure default values if properties are missing
+        const processedBudgets = data.data.map((budget) => ({
+          ...budget,
+          targetAmount: budget.targetAmount || 2000,
+        }));
+        setBudgets(processedBudgets);
+        
+        // Fetch detailed information for each budget
+        processedBudgets.forEach(budget => {
+          fetchBudgetDetails(budget.budgetID);
+        });
+      } else {
+        console.error("Failed to load budgets:", data.message);
+        setError("Failed to load budgets");
+      }
+    } catch (err) {
+      console.error("Error loading budgets:", err);
+      setError(err.message || "Error loading budgets. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Fetch detailed budget information including categories
-  const fetchBudgetDetails = (budgetID) => {
-    fetch(`http://localhost:43210/budget/budgets/${budgetID}`, {
-      credentials: "include"
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        if (data.success) {
-          // Calculate total expenses for this budget from its categories
-          const totalSpent = data.data.categories.reduce(
-            (sum, category) => sum + parseFloat(category.categoryAmount || 0), 
-            0
-          );
-          
-          // Update budget expenses state with the calculated total
-          setBudgetExpenses(prev => ({
-            ...prev,
-            [budgetID]: totalSpent
-          }));
-        }
-      })
-      .catch(err => {
-        console.error(`Error fetching details for budget ${budgetID}:`, err);
-      });
+  const fetchBudgetDetails = async (budgetID) => {
+    try {
+      // You'll need to add this method to your budgetAPI
+      const data = await budgetAPI.getBudgetDetails(budgetID);
+      
+      if (data.success) {
+        // Calculate total expenses for this budget from its categories
+        const totalSpent = data.data.categories.reduce(
+          (sum, category) => sum + parseFloat(category.categoryAmount || 0), 
+          0
+        );
+        
+        // Update budget expenses state with the calculated total
+        setBudgetExpenses(prev => ({
+          ...prev,
+          [budgetID]: totalSpent
+        }));
+      }
+    } catch (err) {
+      console.error(`Error fetching details for budget ${budgetID}:`, err);
+    }
   }; 
 
   useEffect(() => {

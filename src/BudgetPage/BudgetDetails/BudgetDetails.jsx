@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from "react-toastify";
 import styles from "./BudgetDetails.module.css";
 import Sidebar from "../SideBar";
 import BreadcrumbNav from "./BreadCrumbNav";
 import { DeleteModal } from "./DeleteModal";
 import BudgetIndicator from "../BudgetIndicator";
+import { budgetAPI, expenseAPI } from "../../services/api";
 
 function BudgetDetails() {
   const { budgetID } = useParams();
@@ -16,7 +17,7 @@ function BudgetDetails() {
       budgetName: "",
       targetAmount: 2000,
     },
-    categories: []
+    categories: [],
   });
   const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,11 +30,6 @@ function BudgetDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // API endpoints
-  const API_BASE_URL = "http://localhost:43210";
-  const BUDGET_DETAILS_URL = `${API_BASE_URL}/budget/budgets/${budgetID}`;
-  const CATEGORY_EXPENSES_URL = (categoryId) => `${API_BASE_URL}/expense/categories/${categoryId}/expenses`;
-
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
@@ -41,8 +37,10 @@ function BudgetDetails() {
 
   // Calculate total amount spent across all categories
   const calculateTotalSpent = () => {
-    return budgetDetails.categories.reduce((total, category) => 
-      total + parseFloat(category.categoryAmount || 0), 0);
+    return budgetDetails.categories.reduce(
+      (total, category) => total + parseFloat(category.categoryAmount || 0),
+      0
+    );
   };
 
   useEffect(() => {
@@ -64,84 +62,88 @@ function BudgetDetails() {
       setTargetAmount(location.state.budget.targetAmount || 2000);
     }
 
-    // Fetch complete budget details including categories
-    fetch(BUDGET_DETAILS_URL, {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          // Format the data properly
-          const processedData = {
-            budget: {
-              ...data.data.budget,
-              targetAmount: parseFloat(data.data.budget.targetAmount || 2000),
-            },
-            categories: data.data.categories || [],
-          };
-          setBudgetDetails(processedData);
-          setTargetAmount(processedData.budget.targetAmount);
-          
-          // After loading categories, fetch expenses for each category
-          fetchAllExpensesForBudget(data.data.categories || []);
-        } else {
-          setError(data.message || "Failed to load budget details");
-        }
-      })
-      .catch((err) => {
-        setError(`Error loading budget details: ${err.message}`);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    // Fetch complete budget details including categories using centralized API
+    loadBudgetDetails();
   }, [budgetID, location.state, navigate]);
+
+  // Load budget details using centralized API
+  const loadBudgetDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await budgetAPI.getBudgetDetails(budgetID);
+
+      if (response.success) {
+        // Format the data properly
+        const processedData = {
+          budget: {
+            ...response.data.budget,
+            targetAmount: parseFloat(response.data.budget.targetAmount || 2000),
+          },
+          categories: response.data.categories || [],
+        };
+        setBudgetDetails(processedData);
+        setTargetAmount(processedData.budget.targetAmount);
+
+        // After loading categories, fetch expenses for each category
+        await fetchAllExpensesForBudget(response.data.categories || []);
+      } else {
+        setError(response.message || "Failed to load budget details");
+      }
+    } catch (err) {
+      console.error("Error loading budget details:", err);
+      setError(`Error loading budget details: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Fetch expenses for all categories in this budget
   const fetchAllExpensesForBudget = async (categories) => {
     if (!categories || categories.length === 0) return;
-    
+
     setIsLoadingExpenses(true);
     try {
       // Create an array of promises for fetching expenses for each category
-      const expensePromises = categories.map(category => 
-        fetch(CATEGORY_EXPENSES_URL(category.categoryID), {
-          credentials: "include"
-        })
-        .then(res => {
-          if (!res.ok) throw new Error(`Error fetching expenses for ${category.categoryName}`);
-          return res.json();
-        })
-        .then(data => {
+      const expensePromises = categories.map(async (category) => {
+        try {
+          const response = await expenseAPI.getCategoryExpenses(category.categoryID);
+          
+          if (!response.ok)
+            throw new Error(
+              `Error fetching expenses for ${category.categoryName}`
+            );
+
+          const data = await response.json();
+
           if (data.success) {
             // Return expenses with category info added
-            return data.data.map(expense => ({
+            return data.data.map((expense) => ({
               ...expense,
               categoryName: category.categoryName,
-              categoryIcon: category.icon
+              categoryIcon: category.icon,
             }));
           }
           return [];
-        })
-        .catch(err => {
-          console.error(`Error fetching expenses for category ${category.categoryID}:`, err);
+        } catch (err) {
+          console.error(
+            `Error fetching expenses for category ${category.categoryID}:`,
+            err
+          );
           return [];
-        })
-      );
+        }
+      });
 
       // Wait for all expense fetch promises to resolve
       const allCategoryExpenses = await Promise.all(expensePromises);
-      
+
       // Flatten the array of arrays into a single array of expenses
       const allExpenses = allCategoryExpenses.flat();
-      
+
       // Sort expenses by date (newest first)
       allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
+
       setExpenses(allExpenses);
     } catch (err) {
       console.error("Error fetching expenses:", err);
@@ -155,21 +157,11 @@ function BudgetDetails() {
 
     setIsSubmittingGoal(true);
     try {
-      const response = await fetch(
-        BUDGET_DETAILS_URL,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ targetAmount: parseFloat(targetAmount) }),
-        }
-      );
+      const response = await budgetAPI.updateBudget(budgetID, {
+        targetAmount: parseFloat(targetAmount),
+      });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         // Update local state with new target amount
         setBudgetDetails((prev) => ({
           ...prev,
@@ -181,8 +173,8 @@ function BudgetDetails() {
         setGoalExpanded(false);
         toast.success("Budget goal updated successfully!");
       } else {
-        setError(data.message || "Failed to update target amount");
-        toast.error(data.message || "Failed to update target amount");
+        setError(response.message || "Failed to update target amount");
+        toast.error(response.message || "Failed to update target amount");
       }
     } catch (err) {
       console.error("Error updating target amount:", err);
@@ -198,27 +190,17 @@ function BudgetDetails() {
     try {
       // Check if budget has categories
       if (budgetDetails.categories && budgetDetails.categories.length > 0) {
-        toast.error("Cannot delete budget with associated categories. Delete categories first.");
+        toast.error(
+          "Cannot delete budget with associated categories. Delete categories first."
+        );
         setShowDeleteModal(false);
         setIsDeleting(false);
         return;
       }
 
-      const response = await fetch(
-        BUDGET_DETAILS_URL,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const response = await budgetAPI.deleteBudget(budgetID);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         // Show toast notification for successful deletion
         toast.success("Budget deleted successfully");
 
@@ -227,8 +209,8 @@ function BudgetDetails() {
           state: { message: "Budget deleted successfully" },
         });
       } else {
-        setError(data.message || "Failed to delete budget");
-        toast.error(data.message || "Failed to delete budget");
+        setError(response.message || "Failed to delete budget");
+        toast.error(response.message || "Failed to delete budget");
         setShowDeleteModal(false);
       }
     } catch (err) {
@@ -244,10 +226,10 @@ function BudgetDetails() {
   // Format date to more readable format
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-MY', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+    return date.toLocaleDateString("en-MY", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -281,16 +263,19 @@ function BudgetDetails() {
   }
 
   return (
-    <section className={`${styles.container} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+    <section
+      className={`${styles.container} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}
+    >
       <ToastContainer position="top-right" autoClose={3000} />
-      <Sidebar className={styles.sidebar} onToggleCollapse={handleSidebarToggle} />
+      <Sidebar
+        className={styles.sidebar}
+        onToggleCollapse={handleSidebarToggle}
+      />
       <div className={styles.content}>
         {/* Breadcrumb Nav Only */}
         <div className={styles.topNavSection}>
           <div className={styles.topNav}>
-            <BreadcrumbNav
-              budgetName={budget.budgetName || "Budget Details"}
-            />
+            <BreadcrumbNav budgetName={budget.budgetName || "Budget Details"} />
           </div>
         </div>
 
@@ -307,9 +292,9 @@ function BudgetDetails() {
 
         {/* Add BudgetIndicator at the top of the budget details */}
         <div className={styles.budgetIndicatorContainer}>
-          <BudgetIndicator 
-            currentAmount={totalSpent} 
-            targetAmount={budget.targetAmount} 
+          <BudgetIndicator
+            currentAmount={totalSpent}
+            targetAmount={budget.targetAmount}
           />
         </div>
 
@@ -318,7 +303,8 @@ function BudgetDetails() {
           <div className={styles.budgetLabel}>
             Budget{" "}
             <span className={styles.budgetAmount}>
-              RM {totalSpent.toLocaleString()} / RM {budget.targetAmount.toLocaleString()}
+              RM {totalSpent.toLocaleString()} / RM{" "}
+              {budget.targetAmount.toLocaleString()}
             </span>
           </div>
           <div className={styles.progressBarContainer}>
@@ -405,7 +391,9 @@ function BudgetDetails() {
         <div className={styles.historySection}>
           <h2>Expense History</h2>
           {isLoadingExpenses ? (
-            <div className={styles.loadingExpenses}>Loading expense history...</div>
+            <div className={styles.loadingExpenses}>
+              Loading expense history...
+            </div>
           ) : expenses.length === 0 ? (
             <div className={styles.noExpenses}>No expense history found</div>
           ) : (
@@ -413,16 +401,20 @@ function BudgetDetails() {
               {expenses.map((expense) => (
                 <div key={expense.expenseID} className={styles.expenseItem}>
                   <div className={styles.expenseItemLeft}>
-                    <img 
-                      src={expense.categoryIcon || "/default-icon.svg"} 
+                    <img
+                      src={expense.categoryIcon || "/default-icon.svg"}
                       alt={expense.categoryName}
                       className={styles.expenseIcon}
                     />
                     <div className={styles.expenseInfo}>
                       <div className={styles.expenseTitle}>{expense.title}</div>
                       <div className={styles.expenseMeta}>
-                        <span className={styles.expenseCategory}>{expense.categoryName}</span>
-                        <span className={styles.expenseDate}>{formatDate(expense.date)}</span>
+                        <span className={styles.expenseCategory}>
+                          {expense.categoryName}
+                        </span>
+                        <span className={styles.expenseDate}>
+                          {formatDate(expense.date)}
+                        </span>
                       </div>
                     </div>
                   </div>
