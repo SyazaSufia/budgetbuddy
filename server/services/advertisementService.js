@@ -1,6 +1,6 @@
 // services/advertisementService.js
 
-const API_URL = "http://localhost:8080/admin";
+const API_URL = "http://localhost:43210/admin";
 
 /**
  * Service for managing advertisements

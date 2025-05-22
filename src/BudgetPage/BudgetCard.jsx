@@ -16,7 +16,7 @@ function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   const fetchBudgets = (timeFilter) => {
     setIsLoading(true);
     // Add the timeFilter to the API request
-    fetch(`http://localhost:8080/budget/budgets?timeFilter=${timeFilter}`, {
+    fetch(`http://localhost:43210/budget/budgets?timeFilter=${timeFilter}`, {
       credentials: "include", // Send cookies/session info
     })
       .then((res) => {
@@ -54,7 +54,7 @@ function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
 
   // Fetch detailed budget information including categories
   const fetchBudgetDetails = (budgetID) => {
-    fetch(`http://localhost:8080/budget/budgets/${budgetID}`, {
+    fetch(`http://localhost:43210/budget/budgets/${budgetID}`, {
       credentials: "include"
     })
       .then(res => {

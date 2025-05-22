@@ -30,7 +30,7 @@ function BudgetDetails() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // API endpoints
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "http://localhost:43210";
   const BUDGET_DETAILS_URL = `${API_BASE_URL}/budget/budgets/${budgetID}`;
   const CATEGORY_EXPENSES_URL = (categoryId) => `${API_BASE_URL}/expense/categories/${categoryId}/expenses`;
 

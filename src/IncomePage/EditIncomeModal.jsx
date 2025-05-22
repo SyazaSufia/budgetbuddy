@@ -22,7 +22,7 @@ export const EditIncomeModal = ({ income, onClose, onUpdate }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/income/update/${income.incomeID}`,
+        `http://localhost:43210/income/update/${income.incomeID}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

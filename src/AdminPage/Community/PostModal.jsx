@@ -49,7 +49,7 @@ const cleanContentForDisplay = (htmlContent) => {
 function PostModal({ post, onClose, onReview, onViolated }) {
   const [fullPost, setFullPost] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:43210';
 
   // Fetch full post details when opening modal
   useEffect(() => {

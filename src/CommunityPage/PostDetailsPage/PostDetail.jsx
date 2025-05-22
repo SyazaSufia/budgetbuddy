@@ -31,7 +31,7 @@ function PostDetail({ user }) {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:8080/community/posts/${postId}`,
+          `http://localhost:43210/community/posts/${postId}`,
           {
             credentials: "include",
           }
@@ -69,7 +69,7 @@ function PostDetail({ user }) {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/community/posts/${postId}/comments`,
+        `http://localhost:43210/community/posts/${postId}/comments`,
         {
           method: "POST",
           headers: {
@@ -98,7 +98,7 @@ function PostDetail({ user }) {
         });
         // Refresh post to get the new comment
         const postResponse = await fetch(
-          `http://localhost:8080/community/posts/${postId}`,
+          `http://localhost:43210/community/posts/${postId}`,
           {
             credentials: "include",
           }
@@ -147,7 +147,7 @@ function PostDetail({ user }) {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/community/posts/${postId}/like`,
+        `http://localhost:43210/community/posts/${postId}/like`,
         {
           method: "POST",
           credentials: "include",
@@ -206,7 +206,7 @@ function PostDetail({ user }) {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/community/posts/${postId}`,
+        `http://localhost:43210/community/posts/${postId}`,
         {
           method: "DELETE",
           credentials: "include",

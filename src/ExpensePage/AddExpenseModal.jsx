@@ -15,7 +15,7 @@ export const AddExpenseModal = ({
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   // API base URLs
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "http://localhost:43210";
   const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
   const ADD_EXPENSE_URL = `${API_BASE_URL}/expense/expenses`;
 

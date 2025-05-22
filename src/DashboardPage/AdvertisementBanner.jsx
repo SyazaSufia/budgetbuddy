@@ -14,7 +14,7 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const intervalRef = useRef(null);
 
   // Get base API URL - For Vite, use import.meta.env instead of process.env
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:43210';
 
   // Fetch advertisements
   useEffect(() => {

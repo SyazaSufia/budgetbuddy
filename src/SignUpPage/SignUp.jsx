@@ -41,7 +41,7 @@ const SignUp = ({ onSignUp }) => {
     if (!validateInputs()) return;
 
     try {
-      const response = await fetch("http://localhost:8080/sign-up", {
+      const response = await fetch("http://localhost:43210/sign-up", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

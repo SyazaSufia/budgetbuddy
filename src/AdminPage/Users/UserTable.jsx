@@ -22,7 +22,7 @@ const UserTable = ({ users, setUsers }) => {
     const userToDelete = users.find((user) => user.userID === selectedUser);
     const userName = userToDelete?.userName || `ID: ${selectedUser}`;
     
-    fetch(`http://localhost:8080/admin/users/${selectedUser}`, {
+    fetch(`http://localhost:43210/admin/users/${selectedUser}`, {
       method: "DELETE",
       credentials: "include",
     })

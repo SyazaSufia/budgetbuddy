@@ -6,7 +6,7 @@ import SidebarNav from "./SideBar";
 function CommunityManagement() {
   const [filteredPosts, setFilteredPosts] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:43210';
 
   const handleSearch = async (e) => {
     e.preventDefault();

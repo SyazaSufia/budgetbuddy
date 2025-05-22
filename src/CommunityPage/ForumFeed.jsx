@@ -19,7 +19,7 @@ function ForumFeed({ user }) {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/community/posts?page=${pagination.page}&limit=${pagination.limit}`,
+        `http://localhost:43210/community/posts?page=${pagination.page}&limit=${pagination.limit}`,
         {
           credentials: 'include' // Include session cookies
         }

@@ -155,7 +155,7 @@ export default function Expense({ user }) {
   const [categoryHasExpenses, setCategoryHasExpenses] = useState(false);
 
   // API URLs - CORRECTED to match server.js route prefixes
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "http://localhost:43210";
 
   // Budget routes with "/budget" prefix
   const BUDGETS_URL = `${API_BASE_URL}/budget/budgets`;

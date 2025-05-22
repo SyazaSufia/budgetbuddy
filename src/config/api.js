@@ -3,7 +3,7 @@ const isDevelopment = process.env.NODE_ENV === 'development' || window.location.
 
 // Base API URL that adapts based on environment
 export const API_BASE_URL = isDevelopment 
-  ? 'http://localhost:8080' 
+  ? 'http://localhost:43210' 
   : 'https://budgetbuddy.space';
 
 // Reusable fetch with credentials

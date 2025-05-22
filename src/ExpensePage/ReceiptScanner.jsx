@@ -14,7 +14,7 @@ const ReceiptScanner = ({
   const [isItemsExtracted, setIsItemsExtracted] = useState(false);
   
   // API base URLs matching your existing structure
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "http://localhost:43210";
   const PROCESS_RECEIPT_URL = `${API_BASE_URL}/expense/process-receipt`;
 
   const handleImageUpload = (e) => {

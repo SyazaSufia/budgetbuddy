@@ -55,7 +55,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
           : selectedCategory.name;
 
       // First create budget - keeping the budget type aligned with the selected category
-      const budgetResponse = await fetch("http://localhost:8080/budget/budgets", {
+      const budgetResponse = await fetch("http://localhost:43210/budget/budgets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -70,7 +70,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
 
       if (budgetResponse.ok && budgetResult.success) {
         // Create the initial category that matches the budget
-        const categoryResponse = await fetch("http://localhost:8080/budget/categories", {
+        const categoryResponse = await fetch("http://localhost:43210/budget/categories", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

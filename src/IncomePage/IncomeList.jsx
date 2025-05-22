@@ -23,7 +23,7 @@ export default function IncomeList({
   // Fetch incomes from the backend
   const fetchIncomes = async () => {
     try {
-      const response = await fetch("http://localhost:8080/income", {
+      const response = await fetch("http://localhost:43210/income", {
         credentials: "include", // Send session cookies
       });
       const incomes = await response.json();
@@ -124,7 +124,7 @@ export default function IncomeList({
   // Confirm income deletion
   const handleDeleteConfirm = async (deleteAllRecurrences = false) => {
     try {
-      let url = `http://localhost:8080/income/delete/${selectedIncomeId}`;
+      let url = `http://localhost:43210/income/delete/${selectedIncomeId}`;
 
       // Add query parameter if deleting all recurrences
       if (deleteAllRecurrences) {

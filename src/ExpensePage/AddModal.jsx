@@ -32,7 +32,7 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
       }
 
       try {
-        const response = await fetch(`http://localhost:8080/budget/budgets/${budgetId}`, {
+        const response = await fetch(`http://localhost:43210/budget/budgets/${budgetId}`, {
           credentials: "include",
         });
 
@@ -201,7 +201,7 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
       };
 
       // Add the category through the API
-      const response = await fetch("http://localhost:8080/budget/categories", {
+      const response = await fetch("http://localhost:43210/budget/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -9,7 +9,7 @@ function PostTable({ initialPosts }) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [postToDelete, setPostToDelete] = useState(null);
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:43210';
 
   // Fetch posts from API if no initialPosts provided
   useEffect(() => {

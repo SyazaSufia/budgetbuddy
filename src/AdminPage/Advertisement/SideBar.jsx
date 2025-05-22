@@ -37,7 +37,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
   const handleSignOut = async () => {
     try {
       // Call the signout API to clear cookies
-      await fetch("http://localhost:8080/sign-out", {
+      await fetch("http://localhost:43210/sign-out", {
         method: "POST",
         credentials: "include", // Ensures cookies are sent
       });

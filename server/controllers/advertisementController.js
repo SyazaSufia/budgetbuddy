@@ -36,7 +36,7 @@ const getActiveAdvertisements = async (req, res) => {
     console.log("Fetched advertisements:", advertisements);
     
     // Get the base URL for the server
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:8080';
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:43210';
     
     // Process image URLs to ensure they are properly formed
     const processedAds = advertisements.map(ad => {

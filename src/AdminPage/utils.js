@@ -16,7 +16,7 @@ export const getImageUrl = (relativePath) => {
   }
   
   // Use import.meta.env for Vite projects
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:43210';
   
   // Ensure the path starts with a slash
   const normalizedPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
@@ -33,7 +33,7 @@ export const getImageUrl = (relativePath) => {
  */
 export const getApiBaseUrl = () => {
   // Use import.meta.env for Vite projects
-  return import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  return import.meta.env.VITE_API_URL || 'http://localhost:43210';
 };
 
 /**

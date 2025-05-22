@@ -10,7 +10,7 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
   const [error, setError] = useState("");
 
   // API endpoints
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "http://localhost:43210";
   const EXPENSE_URL = (id) => `${API_BASE_URL}/expense/expenses/${id}`;
   const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
 

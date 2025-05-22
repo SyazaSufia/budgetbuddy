@@ -207,7 +207,7 @@ function InputDesign({ user }) {
         try {
           // Fetch the post data for editing
           const response = await fetch(
-            `http://localhost:8080/community/posts/${editPostId}`,
+            `http://localhost:43210/community/posts/${editPostId}`,
             {
               credentials: "include",
             }
@@ -257,8 +257,8 @@ function InputDesign({ user }) {
 
       // Set up the API endpoint and method
       const url = isUpdate
-        ? `http://localhost:8080/community/posts/${postId}`
-        : "http://localhost:8080/community/posts";
+        ? `http://localhost:43210/community/posts/${postId}`
+        : "http://localhost:43210/community/posts";
 
       const method = isUpdate ? "PUT" : "POST";
 

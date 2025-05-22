@@ -59,7 +59,7 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/income/add", {
+      const response = await fetch("http://localhost:43210/income/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

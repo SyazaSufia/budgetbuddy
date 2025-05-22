@@ -58,7 +58,7 @@ export const Dashboard = ({ user }) => {
     try {
       setIsLoading(true);
       
-      const response = await fetch(`http://localhost:8080/dashboard/summary?period=${period}`, {
+      const response = await fetch(`http://localhost:43210/dashboard/summary?period=${period}`, {
         credentials: 'include', // Send session cookies
       });
       

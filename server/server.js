@@ -401,7 +401,7 @@ app.get('/', (req, res) => {
 });
 
 // Development vs Production server setup
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 43210;
 
 // Serve static files from the React app build directory for production
 if (process.env.NODE_ENV === 'production') {

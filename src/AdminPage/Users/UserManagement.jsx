@@ -8,7 +8,7 @@ const UserManagement = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:8080/admin/users", {
+    fetch("http://localhost:43210/admin/users", {
       credentials: "include", // for session auth if needed
     })
       .then((res) => {

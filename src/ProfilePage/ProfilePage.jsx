@@ -56,7 +56,7 @@ const ProfilePage = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch("http://localhost:8080/get-user-details", {
+      const response = await fetch("http://localhost:43210/get-user-details", {
         method: "GET",
         credentials: "include",
       });
@@ -242,7 +242,7 @@ const ProfilePage = () => {
       console.log("Submitting profile data:", formDataToSubmit);
 
       // Now update the profile with the selected avatar path
-      const response = await fetch("http://localhost:8080/update-profile", {
+      const response = await fetch("http://localhost:43210/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
