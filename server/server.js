@@ -93,6 +93,12 @@ app.use((req, res, next) => {
 // Serve static files - IMPORTANT for serving uploaded images
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // Simple request logger
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);

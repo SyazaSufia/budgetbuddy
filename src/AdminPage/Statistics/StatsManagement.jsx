@@ -80,7 +80,7 @@ const StatsManagement = () => {
   const scholarshipChartRef = useRef(null);
 
   // API base URL from environment variable
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:43210";
+  const API_URL = import.meta.env.REACT_APP_API_URL || "http://localhost:43210";
 
   // Fetch stats
   const fetchStats = async () => {
