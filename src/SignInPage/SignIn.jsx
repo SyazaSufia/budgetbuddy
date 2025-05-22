@@ -4,7 +4,7 @@ import { AuthLayout } from "./components/AuthLayout";
 import { Link, useLocation } from "react-router-dom";
 import { Input } from "./components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { API_BASE_URL, fetchWithAuth } from "../config/api";
+import { authAPI } from "../services/api";
 import styles from "./SignIn.module.css";
 
 const SignIn = ({ onSignIn }) => {
@@ -12,19 +12,26 @@ const SignIn = ({ onSignIn }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetchWithAuth("/sign-in", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });      
+    
+    if (!email.trim() || !password.trim()) {
+      setError("Please fill in all fields");
+      return;
+    }
 
-      const data = await response.json();
-      console.log("Parsed data:", data);
+    try {
+      setIsLoading(true);
+      setError("");
+      
+      // Use the centralized API for sign in
+      const data = await authAPI.signIn({ email, password });
+      
+      console.log("Sign-in response:", data);
 
       if (data.success) {
         onSignIn(data.user);
@@ -37,11 +44,13 @@ const SignIn = ({ onSignIn }) => {
           navigate("/adminStats");
         }
       } else {
-        setError(data.message);
+        setError(data.message || "Sign in failed");
       }
     } catch (error) {
       console.error("Error during sign-in:", error);
-      setError("Something went wrong. Please try again.");
+      setError(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -83,6 +92,7 @@ const SignIn = ({ onSignIn }) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
           />
           <div className={styles.passwordContainer}>
             <Input
@@ -91,6 +101,7 @@ const SignIn = ({ onSignIn }) => {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
               icon={
                 <span
                   className={styles.eyeIcon}
@@ -113,11 +124,11 @@ const SignIn = ({ onSignIn }) => {
           <button
             type="submit"
             className={`${styles.submitButton} ${
-              isFormValid ? styles.enabled : styles.disabled
+              isFormValid && !isLoading ? styles.enabled : styles.disabled
             }`}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
           >
-            Sign In
+            {isLoading ? "Signing In..." : "Sign In"}
           </button>
         </form>
       </div>
