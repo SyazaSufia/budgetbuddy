@@ -108,18 +108,14 @@ function BudgetDetails() {
       // Create an array of promises for fetching expenses for each category
       const expensePromises = categories.map(async (category) => {
         try {
-          const response = await expenseAPI.getCategoryExpenses(category.categoryID);
-          
-          if (!response.ok)
-            throw new Error(
-              `Error fetching expenses for ${category.categoryName}`
-            );
+          const response = await expenseAPI.getCategoryExpenses(
+            category.categoryID
+          );
 
-          const data = await response.json();
-
-          if (data.success) {
+          // Your API service already handles JSON parsing, so you should use the response directly
+          if (response.success) {
             // Return expenses with category info added
-            return data.data.map((expense) => ({
+            return response.data.map((expense) => ({
               ...expense,
               categoryName: category.categoryName,
               categoryIcon: category.icon,
