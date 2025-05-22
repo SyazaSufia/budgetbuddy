@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AuthLayout } from "./components/AuthLayout";
 import { Input } from "./components/Input";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { authAPI } from "../services/api"; // Import your centralized API
 import styles from "./SignUp.module.css";
 
 const SignUp = ({ onSignUp }) => {
@@ -15,6 +16,7 @@ const SignUp = ({ onSignUp }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,38 +36,44 @@ const SignUp = ({ onSignUp }) => {
   const isFormValid = name && email && dob && password && 
                      confirmPassword && password === confirmPassword;
 
-  // HandleSignUp function
+  // Updated HandleSignUp function using your centralized API
   const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!validateInputs()) return;
 
+    setIsLoading(true); // Set loading state
+    setError(""); // Clear previous errors
+    setSuccessMessage(""); // Clear previous success messages
+
     try {
-      const response = await fetch("http://localhost:43210/sign-up", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userName: name,
-          userEmail: email,
-          userPassword: password,
-          userDOB: dob, // Use exactly what came from the form input
-        }),
-      });
+      const userData = {
+        userName: name,
+        userEmail: email,
+        userPassword: password,
+        userDOB: dob,
+      };
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Failed to sign up.");
-        return;
-      }
+      // Use your centralized authAPI instead of direct fetch
+      const data = await authAPI.signUp(userData);
 
       setSuccessMessage(data.message || "Sign up successful!");
-      navigate("/sign-in");
+      
+      // Optional: Call the onSignUp prop if provided
+      if (onSignUp) {
+        onSignUp(data);
+      }
+
+      // Navigate to sign-in page after successful signup
+      setTimeout(() => {
+        navigate("/sign-in");
+      }, 1500); // Small delay to show success message
+
     } catch (err) {
       console.error("Error during sign-up:", err);
-      setError("Something went wrong. Please try again.");
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -105,6 +113,7 @@ const SignUp = ({ onSignUp }) => {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            disabled={isLoading} // Disable during loading
           />
           <Input
             label="Enter your email address"
@@ -112,14 +121,14 @@ const SignUp = ({ onSignUp }) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
           />
           <Input
             label="Enter your date of birth"
-            type="date" // Ensure this is set to 'date'
+            type="date"
             value={dob}
-            onChange={(e) => {
-              setDob(e.target.value);
-            }}
+            onChange={(e) => setDob(e.target.value)}
+            disabled={isLoading}
           />
           <Input
             label="Enter your password"
@@ -127,6 +136,7 @@ const SignUp = ({ onSignUp }) => {
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
             icon={
               <span
                 className={styles.eyeIcon}
@@ -142,6 +152,7 @@ const SignUp = ({ onSignUp }) => {
             type={showConfirmPassword ? "text" : "password"}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isLoading}
             icon={
               <span
                 className={styles.eyeIcon}
@@ -151,17 +162,18 @@ const SignUp = ({ onSignUp }) => {
               </span>
             }
           />
+          
           {successMessage && <p className={styles.success}>{successMessage}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
           <button
             type="submit"
             className={`${styles.submitButton} ${
-              isFormValid ? styles.enabled : styles.disabled
+              isFormValid && !isLoading ? styles.enabled : styles.disabled
             }`}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
           >
-            Sign Up
+            {isLoading ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
       </div>
