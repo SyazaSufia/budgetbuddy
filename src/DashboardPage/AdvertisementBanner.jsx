@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { advertisementAPI } from '../services/api';
 import styles from './AdvertisementBanner.module.css';
 
 // Base64 encoded placeholder image
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='100' viewBox='0 0 300 100'%3E%3Crect width='300' height='100' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='18' text-anchor='middle' dominant-baseline='middle' fill='%23666666'%3EAdvertisement%3C/text%3E%3C/svg%3E";
+
+// Get base API URL for image URLs
+const getApiBaseUrl = () => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:43210';
+  }
+  return 'http://145.79.12.85:43210';
+};
 
 const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const [advertisements, setAdvertisements] = useState([]);
@@ -13,63 +22,48 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const [showModal, setShowModal] = useState(false);
   const intervalRef = useRef(null);
 
-  // Get base API URL - For Vite, use import.meta.env instead of process.env
-  const apiBaseUrl = import.meta.env.REACT_APP_API_URL || 'http://localhost:43210';
+  const apiBaseUrl = getApiBaseUrl();
 
-  // Fetch advertisements
-  useEffect(() => {
-    const fetchAdvertisements = async () => {
-      try {
-        setIsLoading(true);
-        // Notice the path is now /advertisement/active (singular) to match your existing API
-        const response = await fetch(`${apiBaseUrl}/advertisement/active?limit=${limit}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-          credentials: 'include', // Send session cookies
-        });
-
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.data && result.data.length > 0) {
-          setAdvertisements(result.data);
-        } else {
-          // If no ads are returned, set an empty array
-          setAdvertisements([]);
-        }
-      } catch (err) {
-        console.error('Error fetching advertisements:', err);
-        setError('Failed to load advertisements');
-      } finally {
-        setIsLoading(false);
+  // Fetch advertisements using the centralized API
+  const fetchAdvertisements = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const result = await advertisementAPI.getActiveAds(limit);
+      
+      if (result.data && result.data.length > 0) {
+        setAdvertisements(result.data);
+      } else {
+        setAdvertisements([]);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching advertisements:', err);
+      setError('Failed to load advertisements');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Initial fetch
+  useEffect(() => {
     fetchAdvertisements();
 
-    // Cleanup function
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [apiBaseUrl, limit]);
+  }, [limit]);
 
   // Set up auto-scroll timer when advertisements are loaded
   useEffect(() => {
-    // Only set up auto-scroll if we have multiple ads
     if (advertisements.length > 1) {
       intervalRef.current = setInterval(() => {
         setCurrentAdIndex(prevIndex => (prevIndex + 1) % advertisements.length);
-      }, 5000); // Change ad every 5 seconds
+      }, 5000);
     }
 
-    // Cleanup function
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -82,7 +76,6 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
     if (showModal && intervalRef.current) {
       clearInterval(intervalRef.current);
     } else if (!showModal && advertisements.length > 1) {
-      // Restart auto-scroll when modal is closed
       intervalRef.current = setInterval(() => {
         setCurrentAdIndex(prevIndex => (prevIndex + 1) % advertisements.length);
       }, 5000);
@@ -97,20 +90,17 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
 
   // Navigate to previous ad
   const goToPrevAd = (e) => {
-    if (e) e.stopPropagation(); // Prevent triggering parent click events
+    if (e) e.stopPropagation();
     
-    // Clear the current interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
     
-    // Set the new ad index
     setCurrentAdIndex(prevIndex => {
       const newIndex = prevIndex - 1;
       return newIndex < 0 ? advertisements.length - 1 : newIndex;
     });
     
-    // Restart the interval if modal is not open
     if (!showModal && advertisements.length > 1) {
       intervalRef.current = setInterval(() => {
         setCurrentAdIndex(prevIndex => (prevIndex + 1) % advertisements.length);
@@ -120,17 +110,14 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
 
   // Navigate to next ad
   const goToNextAd = (e) => {
-    if (e) e.stopPropagation(); // Prevent triggering parent click events
+    if (e) e.stopPropagation();
     
-    // Clear the current interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
     
-    // Set the new ad index
     setCurrentAdIndex(prevIndex => (prevIndex + 1) % advertisements.length);
     
-    // Restart the interval if modal is not open
     if (!showModal && advertisements.length > 1) {
       intervalRef.current = setInterval(() => {
         setCurrentAdIndex(prevIndex => (prevIndex + 1) % advertisements.length);
@@ -140,15 +127,12 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
 
   // Handle manual navigation with dots
   const goToAd = (index) => {
-    // Clear the current interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
     
-    // Set the new ad index
     setCurrentAdIndex(index);
     
-    // Restart the interval if modal is not open
     if (!showModal && advertisements.length > 1) {
       intervalRef.current = setInterval(() => {
         setCurrentAdIndex(prevIndex => (prevIndex + 1) % advertisements.length);
@@ -171,17 +155,14 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const getDisplayImage = (ad) => {
     if (!ad.imageURL) return PLACEHOLDER_IMAGE;
     
-    // If we have a loading state for this image and it failed
     if (imageStates[ad.adID] === 'error') {
       return PLACEHOLDER_IMAGE;
     }
     
-    // If your imageURL is a full URL, use it directly
     if (ad.imageURL.startsWith('http')) {
       return ad.imageURL;
     }
     
-    // Otherwise, assume it's a relative path and prepend the API base URL
     return `${apiBaseUrl}${ad.imageURL}`;
   };
 
@@ -295,7 +276,7 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
                 key={index}
                 className={`${styles.adDot} ${index === currentAdIndex ? styles.activeDot : ''}`}
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent modal from opening
+                  e.stopPropagation();
                   goToAd(index);
                 }}
                 aria-label={`Advertisement ${index + 1}`}

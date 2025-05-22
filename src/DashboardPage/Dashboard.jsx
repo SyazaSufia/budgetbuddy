@@ -4,7 +4,8 @@ import { ExpenseCategory } from './ExpenseCategory';
 import { SideBar } from './SideBar';
 import ExpensePieChart from './ExpensePieChart';
 import BudgetCard from '../BudgetPage/BudgetCard';
-import AdvertisementBanner from './AdvertisementBanner'; // Import the new component
+import AdvertisementBanner from './AdvertisementBanner';
+import { dashboardAPI } from '../services/api';
 import styles from './Dashboard.module.css';
 
 export const Dashboard = ({ user }) => {
@@ -41,43 +42,30 @@ export const Dashboard = ({ user }) => {
     "Other": "#8898aa"
   };
 
-  // Default colors for categories that don't match the map
   const defaultColors = [
     "#4b6cb7", "#41b883", "#FFD166", "#6A0572", 
     "#1A535C", "#F25F5C", "#247BA0", "#70C1B3", 
     "#B2DBBF", "#8898aa"
   ];
 
-  // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
   };
 
-  // Fetch dashboard data using fetch API
+  // Updated fetchDashboardData using API service
   const fetchDashboardData = async (period) => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      const response = await fetch(`http://localhost:43210/dashboard/summary?period=${period}`, {
-        credentials: 'include', // Send session cookies
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await dashboardAPI.getSummary(period);
       
       if (data.success) {
-        // Assign colors to categories since the backend isn't doing it
+        // Add colors to categories
         if (data.data && data.data.expensesByCategory) {
-          
-          // Add colors to categories
           data.data.expensesByCategory = data.data.expensesByCategory.map((category, index) => {
-            // Try to match by category name first
             let color = categoryColorMap[category.category];
             
-            // If no match, use a color from the default array
             if (!color) {
               color = defaultColors[index % defaultColors.length];
             }
@@ -93,10 +81,9 @@ export const Dashboard = ({ user }) => {
         setActivePeriod(period);
       } else {
         setError(data.error || 'Failed to load dashboard data');
-        console.error("Failed to fetch dashboard data:", data.error);
       }
     } catch (err) {
-      setError(`Error connecting to server: ${err.message}`);
+      setError(err.message || 'Error connecting to server');
       console.error('Dashboard data fetch error:', err);
     } finally {
       setIsLoading(false);
@@ -127,7 +114,6 @@ export const Dashboard = ({ user }) => {
     }
   ];
 
-  // Handle period change
   const handlePeriodChange = (period) => {
     fetchDashboardData(period);
   };
@@ -139,7 +125,6 @@ export const Dashboard = ({ user }) => {
         rel="stylesheet"
       />
       <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-        {/* Pass the toggle handler to the SideBar */}
         <SideBar onToggleCollapse={handleSidebarToggle} />
 
         <main className={styles.mainContent}>
@@ -160,13 +145,17 @@ export const Dashboard = ({ user }) => {
             </div>
           </header>
 
-          {/* Replace the old ad banner with our new component */}
           <AdvertisementBanner limit={3} showPlaceholder={true} />
 
           {isLoading ? (
             <div className={styles.loadingIndicator}>Loading dashboard data...</div>
           ) : error ? (
-            <div className={styles.errorMessage}>{error}</div>
+            <div className={styles.errorMessage}>
+              <p>{error}</p>
+              <button onClick={() => fetchDashboardData(activePeriod)}>
+                Retry
+              </button>
+            </div>
           ) : (
             <>
               <section className={styles.cardSection}>
@@ -180,7 +169,6 @@ export const Dashboard = ({ user }) => {
                   <div className={styles.expenseChart}>
                     <h3 className={styles.expenseTitle}>Expenses by category</h3>
                     <div className={styles.chartContent}>
-                      {/* Pie chart with validated colors */}
                       <div className={styles.chartImage}>
                         <ExpensePieChart categories={dashboardData.expensesByCategory || []} />
                       </div>
@@ -189,7 +177,7 @@ export const Dashboard = ({ user }) => {
                           dashboardData.expensesByCategory.map((category, index) => (
                             <ExpenseCategory 
                               key={index} 
-                              color={category.color} // We've ensured this is set in fetchDashboardData
+                              color={category.color}
                               category={category.category}
                               percentage={category.percentage}
                               amount={category.amount}
@@ -202,12 +190,10 @@ export const Dashboard = ({ user }) => {
                     </div>
                   </div>
                   
-                  {/* Add BudgetCard component to the right of ExpenseChart */}
                   <div className={styles.budgetSection}>
                     <h3 className={styles.budgetTitle}>Budget Overview</h3>
                     <div className={styles.budgetList}>
                       <BudgetCard />
-                      {/* You can add more budget cards here if needed */}
                     </div>
                   </div>
                 </div>
