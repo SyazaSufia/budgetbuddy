@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./AddModal.module.css";
 import { toast } from "react-toastify";
+import { expenseAPI, categoryAPI, budgetAPI } from "../services/api";
 
 export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
   const [title, setTitle] = useState("");
@@ -8,11 +9,6 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
   const [date, setDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  // API endpoints
-  const API_BASE_URL = "http://localhost:43210";
-  const EXPENSE_URL = (id) => `${API_BASE_URL}/expense/expenses/${id}`;
-  const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
 
   // Initialize form fields with the expense data
   useEffect(() => {
@@ -49,13 +45,16 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
       return;
     }
 
-    // Check budget limits first, accounting for the existing expense amount
-    const shouldProceed = await checkBudgetLimits(
-      expense.categoryID,
-      amount,
-      expense.amount
-    );
-    if (!shouldProceed) return;
+    // Only check budget limits if we have a valid categoryID
+    let shouldProceed = true;
+    if (expense.categoryID) {
+      shouldProceed = await checkBudgetLimits(
+        expense.categoryID,
+        amount,
+        expense.amount
+      );
+      if (!shouldProceed) return;
+    }
 
     setIsSubmitting(true);
 
@@ -67,22 +66,10 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
         date: date
       };
 
-      // Use the correct API endpoint
-      const response = await fetch(
-        EXPENSE_URL(expense.expenseID),
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
+      // Use the API method to update expense
+      const result = await expenseAPI.updateExpense(expense.expenseID, payload);
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (result.success) {
         // Create updated expense object
         const updatedExpense = {
           ...expense,
@@ -113,43 +100,31 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
     newExpenseAmount,
     existingAmount = 0
   ) => {
+    // Skip budget check if no valid category ID
+    if (!categoryId) {
+      console.log("No category ID provided for budget check");
+      return true;
+    }
+    
     try {
-      // Fetch the category information - using the correct endpoint
-      const response = await fetch(
-        CATEGORY_URL(categoryId),
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
+      // Get the category information
+      const categoryData = await categoryAPI.getCategory(categoryId);
+      
+      if (!categoryData || !categoryData.success || !categoryData.data) {
         console.log("Could not fetch category information");
         return true; // No budget restrictions if we can't fetch info
       }
 
-      const categoryData = await response.json();
-
-      if (!categoryData.success || !categoryData.data) {
-        console.log("No category data available");
-        return true; // Proceed if no data
-      }
-
-      // Get the budget information for this category
-      const fetchBudgetResponse = await fetch(
-        `${API_BASE_URL}/budget/budgets/${categoryData.data.budgetID}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!fetchBudgetResponse.ok) {
-        console.log("Could not fetch budget information");
+      // Skip budget check if no budgetID in category data
+      if (!categoryData.data.budgetID) {
+        console.log("Category has no associated budget");
         return true;
       }
 
-      const budgetData = await fetchBudgetResponse.json();
+      // Get the budget information for this category
+      const budgetData = await budgetAPI.getBudgetDetails(categoryData.data.budgetID);
       
-      if (!budgetData.success || !budgetData.data || !budgetData.data.budget) {
+      if (!budgetData || !budgetData.success || !budgetData.data || !budgetData.data.budget) {
         console.log("No budget data available");
         return true;
       }
@@ -278,3 +253,5 @@ export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
     </div>
   );
 };
+
+export default EditExpenseModal;

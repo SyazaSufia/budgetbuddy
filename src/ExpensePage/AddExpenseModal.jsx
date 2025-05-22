@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styles from "./AddModal.module.css";
 import { toast } from "react-toastify";
 import ReceiptScanner from "./ReceiptScanner";
+import { expenseAPI, categoryAPI } from "../services/api";
 
 export const AddExpenseModal = ({
   onClose,
@@ -13,11 +14,6 @@ export const AddExpenseModal = ({
     { tempId: `temp-${Date.now()}`, title: "", amount: "", date: new Date().toISOString().split("T")[0] }
   ]);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
-
-  // API base URLs
-  const API_BASE_URL = "http://localhost:43210";
-  const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
-  const ADD_EXPENSE_URL = `${API_BASE_URL}/expense/expenses`;
 
   const handleSubmit = async () => {
     // Validate form
@@ -64,18 +60,10 @@ export const AddExpenseModal = ({
             date,
           };
 
-          const response = await fetch(ADD_EXPENSE_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          });
+          // Use the API method instead of direct fetch
+          const result = await expenseAPI.addExpense(payload);
 
-          const result = await response.json();
-
-          if (response.ok && result.success) {
+          if (result.success) {
             // Create new expense object with the data from the server response
             const newExpense = {
               expenseID: result.data.expenseID || Date.now(),
@@ -180,24 +168,15 @@ export const AddExpenseModal = ({
     existingAmount = 0
   ) => {
     try {
-      // Fetch the category information using the correct URL with prefix
-      const response = await fetch(CATEGORY_URL(categoryId), {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
+      // Use the API method to get category information
+      const response = await categoryAPI.getCategory(categoryId);
+      
+      if (!response || !response.success || !response.data) {
         console.log("No budget set for this category");
         return true; // No budget restrictions if there's no budget
       }
 
-      const budgetData = await response.json();
-
-      if (!budgetData.success || !budgetData.data) {
-        console.log("No budget data available");
-        return true; // Proceed if no budget data
-      }
-
-      const { categoryAmount, targetAmount } = budgetData.data;
+      const { categoryAmount, targetAmount } = response.data;
 
       // For editing, we need to subtract the existing amount first
       const currentAmount =

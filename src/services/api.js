@@ -177,6 +177,9 @@ export const categoryAPI = {
     return apiRequest(endpoint);
   },
 
+  // Get a specific category by ID
+  getCategory: (id) => apiRequest(`/budget/categories/${id}`),
+
   addCategory: (categoryData) =>
     apiRequest("/budget/categories", {
       method: "POST",
@@ -237,24 +240,66 @@ export const incomeAPI = {
 };
 
 // Expense API methods
+// Expense API methods
 export const expenseAPI = {
-  getExpenses: () => apiRequest("/expense"),
+  // Get all expenses
+  getExpenses: () => apiRequest("/expense/expenses"),
+
+  // Get expenses for a specific category
+  getCategoryExpenses: (categoryId) =>
+    apiRequest(`/expense/categories/${categoryId}/expenses`),
+
+  // Add a new expense
   addExpense: (expenseData) =>
-    apiRequest("/expense", {
+    apiRequest("/expense/expenses", {
       method: "POST",
       body: JSON.stringify(expenseData),
     }),
+
+  // Update an existing expense
   updateExpense: (id, expenseData) =>
-    apiRequest(`/expense/${id}`, {
+    apiRequest(`/expense/expenses/${id}`, {
       method: "PUT",
       body: JSON.stringify(expenseData),
     }),
+
+  // Delete an expense
   deleteExpense: (id) =>
-    apiRequest(`/expense/${id}`, {
+    apiRequest(`/expense/expenses/${id}`, {
       method: "DELETE",
     }),
-  getCategoryExpenses: (categoryId) =>
-    apiRequest(`/expense/categories/${categoryId}/expenses`),
+
+  // Process receipt image
+  processReceipt: (formData) => {
+    const API_BASE_URL =
+      process.env.NODE_ENV === "development" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+        ? "http://localhost:43210"
+        : "http://145.79.12.85:43210";
+
+    return fetch(`${API_BASE_URL}/expense/process-receipt`, {
+      method: "POST",
+      body: formData,
+      credentials: "include", // Important for cookies/session
+    }).then(async (response) => {
+      // Handle non-JSON responses
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            data.message || `HTTP error! status: ${response.status}`
+          );
+        }
+        return data;
+      } else {
+        const text = await response.text();
+        throw new Error(`Server returned non-JSON response: ${text}`);
+      }
+    });
+  },
 };
 
 export default apiRequest;

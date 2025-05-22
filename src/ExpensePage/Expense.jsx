@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import styles from "./Expense.module.css";
-import SidebarNav from "./SideBar";
+import SideBar from "./SideBar";
 import { DeleteExpenseModal } from "./DeleteExpenseModal";
 import { AddExpenseModal } from "./AddExpenseModal";
 import { EditExpenseModal } from "./EditExpenseModal";
 import TimeFilter from "./TimeFilter";
 import { toast } from "react-toastify";
+import { expenseAPI, budgetAPI, categoryAPI } from "../services/api"; // Import API methods
 
 // Component to display a single expense item
 const ExpenseItem = ({ expense, onEdit, onDelete }) => (
@@ -154,30 +155,11 @@ export default function Expense({ user }) {
   const [selectedCategoryName, setSelectedCategoryName] = useState(null);
   const [categoryHasExpenses, setCategoryHasExpenses] = useState(false);
 
-  // API URLs - CORRECTED to match server.js route prefixes
-  const API_BASE_URL = "http://localhost:43210";
-
-  // Budget routes with "/budget" prefix
-  const BUDGETS_URL = `${API_BASE_URL}/budget/budgets`;
-  const BUDGET_DETAILS_URL = (budgetId) =>
-    `${API_BASE_URL}/budget/budgets/${budgetId}`;
-  const CATEGORY_URL = (id) => `${API_BASE_URL}/budget/categories/${id}`;
-
-  // Expense routes with "/expense" prefix
-  const CATEGORY_EXPENSES_URL = (id) =>
-    `${API_BASE_URL}/expense/categories/${id}/expenses`;
-  const EXPENSE_URL = (id) => `${API_BASE_URL}/expense/expenses/${id}`;
-
   // Fetch all user's budgets
   const fetchBudgets = async () => {
     try {
-      const response = await fetch(BUDGETS_URL, {
-        credentials: "include",
-      });
+      const result = await budgetAPI.getBudgets();
 
-      if (!response.ok) throw new Error("Failed to fetch budgets");
-
-      const result = await response.json();
       if (
         result.success &&
         Array.isArray(result.data) &&
@@ -210,13 +192,8 @@ export default function Expense({ user }) {
 
       // Process each budget one by one
       for (const budget of budgetsList) {
-        const response = await fetch(BUDGET_DETAILS_URL(budget.budgetID), {
-          credentials: "include",
-        });
+        const result = await budgetAPI.getBudgetDetails(budget.budgetID);
 
-        if (!response.ok) continue;
-
-        const result = await response.json();
         if (
           result.success &&
           result.data &&
@@ -250,17 +227,8 @@ export default function Expense({ user }) {
   // Fetch expenses for a specific category
   const fetchCategoryExpenses = async (categoryId) => {
     try {
-      const response = await fetch(CATEGORY_EXPENSES_URL(categoryId), {
-        credentials: "include",
-      });
+      const result = await expenseAPI.getCategoryExpenses(categoryId);
 
-      if (!response.ok) {
-        // Initialize with empty array if fetch fails
-        setExpenses((prev) => ({ ...prev, [categoryId]: [] }));
-        return;
-      }
-
-      const result = await response.json();
       if (result.success && Array.isArray(result.data)) {
         // Format dates and store expenses by category ID
         const formattedExpenses = result.data.map((expense) => ({
@@ -405,12 +373,9 @@ export default function Expense({ user }) {
 
   const handleDeleteCategoryConfirm = async () => {
     try {
-      const response = await fetch(CATEGORY_URL(selectedCategoryId), {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const result = await categoryAPI.deleteCategory(selectedCategoryId);
 
-      if (response.ok) {
+      if (result.success) {
         // Remove the category and its expenses from state
         setCategories((prev) =>
           prev.filter((cat) => cat.categoryID !== selectedCategoryId)
@@ -443,8 +408,7 @@ export default function Expense({ user }) {
         setSelectedCategoryId(null);
         toast.success("Category deleted successfully!");
       } else {
-        const error = await response.json();
-        console.error("Failed to delete category:", error.message);
+        console.error("Failed to delete category:", result.message);
         toast.error("Failed to delete category");
       }
     } catch (error) {
@@ -479,12 +443,9 @@ export default function Expense({ user }) {
 
   const handleDeleteExpenseConfirm = async () => {
     try {
-      const response = await fetch(EXPENSE_URL(selectedExpenseId), {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const result = await expenseAPI.deleteExpense(selectedExpenseId);
 
-      if (response.ok) {
+      if (result.success) {
         // Remove expense from state
         const updateExpensesList = (prevExpenses) => {
           const updated = {};
@@ -507,8 +468,7 @@ export default function Expense({ user }) {
         setSelectedExpenseId(null);
         toast.success("Expense deleted successfully!");
       } else {
-        const error = await response.json();
-        console.error("Failed to delete expense:", error.message);
+        console.error("Failed to delete expense:", result.message);
         toast.error("Failed to delete expense");
       }
     } catch (error) {
@@ -573,7 +533,7 @@ export default function Expense({ user }) {
         <div
           className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}
         >
-          <SidebarNav onToggleCollapse={handleSidebarToggle} />
+          <SideBar onToggleCollapse={handleSidebarToggle} />
           <section className={styles.main}>
             <header className={styles.headerSection}>
               <h1 className={styles.pageHeader}>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import styles from "./AddModal.module.css"; // Using the same styles as AddModal
+import styles from "./AddModal.module.css";
+import { toast } from "react-toastify";
 
 const ReceiptScanner = ({
   onItemsSelected,
@@ -12,23 +13,20 @@ const ReceiptScanner = ({
   const [receiptImage, setReceiptImage] = useState(null);
   const [extractedItems, setExtractedItems] = useState([]);
   const [isItemsExtracted, setIsItemsExtracted] = useState(false);
-  
-  // API base URLs matching your existing structure
-  const API_BASE_URL = "http://localhost:43210";
-  const PROCESS_RECEIPT_URL = `${API_BASE_URL}/expense/process-receipt`;
+  const [error, setError] = useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       // Check file type
       if (!file.type.startsWith('image/')) {
-        alert("Please upload an image file");
+        toast.error("Please upload an image file");
         return;
       }
       
       // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
+        toast.error("File size must be less than 5MB");
         return;
       }
       
@@ -36,41 +34,66 @@ const ReceiptScanner = ({
       setPreviewUrl(URL.createObjectURL(file));
       setIsItemsExtracted(false); // Reset when a new image is uploaded
       setExtractedItems([]);
+      setError(null);
     }
   };
 
   const processReceipt = async () => {
     if (!receiptImage) {
-      alert("Please upload a receipt image first");
+      toast.error("Please upload a receipt image first");
       return;
     }
 
     try {
       setIsProcessing(true);
+      setError(null);
       
       // Create FormData to send the image file
       const formData = new FormData();
       formData.append('receipt', receiptImage);
-      formData.append('categoryID', categoryId);
       
-      const response = await fetch(PROCESS_RECEIPT_URL, {
+      // Only append categoryID if it's not null or undefined
+      if (categoryId) {
+        formData.append('categoryID', categoryId.toString());
+      }
+      
+      // Use direct fetch for better control over the request
+      const API_BASE_URL = process.env.NODE_ENV === "development" || 
+                           window.location.hostname === "localhost" || 
+                           window.location.hostname === "127.0.0.1"
+                           ? "http://localhost:43210"
+                           : "http://145.79.12.85:43210";
+      
+      const response = await fetch(`${API_BASE_URL}/expense/process-receipt`, {
         method: 'POST',
-        credentials: 'include',
-        body: formData
+        body: formData,
+        credentials: 'include', // Important for cookies/session
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to process receipt");
+        const errorText = await response.text();
+        let errorMessage;
+        
+        try {
+          // Try to parse as JSON
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || `Error: ${response.status}`;
+        } catch (e) {
+          // If not JSON, use the text directly
+          errorMessage = errorText || `HTTP error! status: ${response.status}`;
+        }
+        
+        throw new Error(errorMessage);
       }
       
+      // Parse the JSON response
       const result = await response.json();
       
       if (result.success) {
         // Convert single item to array format if needed
         const receiptItems = result.data.items || [{ 
-          title: result.data.title,
-          amount: result.data.amount,
+          title: result.data.title || "Unnamed Item",
+          amount: result.data.amount || 0,
           date: result.data.date || new Date().toISOString().split('T')[0]
         }];
         
@@ -83,12 +106,15 @@ const ReceiptScanner = ({
         
         setExtractedItems(itemsWithId);
         setIsItemsExtracted(true);
+        toast.success("Receipt processed successfully!");
       } else {
-        alert(result.message || "Failed to extract information from receipt");
+        setError(result.message || "Failed to extract information from receipt");
+        toast.error(result.message || "Failed to extract information from receipt");
       }
     } catch (error) {
       console.error("Error processing receipt:", error);
-      alert(error.message || "Error processing receipt");
+      setError(error.message || "Error processing receipt");
+      toast.error(error.message || "Error processing receipt");
     } finally {
       setIsProcessing(false);
     }
@@ -107,7 +133,7 @@ const ReceiptScanner = ({
   const addSelectedItems = () => {
     const selectedItems = extractedItems.filter(item => item.isSelected);
     if (selectedItems.length === 0) {
-      alert("Please select at least one item");
+      toast.error("Please select at least one item");
       return;
     }
     
@@ -118,6 +144,8 @@ const ReceiptScanner = ({
     <div className={styles.modalOverlay}>
       <div className={`${styles.modalContent} ${isItemsExtracted ? styles.modalContentWide : ''}`}>
         <div className={styles.modalHeader}>Upload Receipt</div>
+        
+        {error && <div className={styles.errorMessage}>{error}</div>}
         
         {!isItemsExtracted ? (
           <>
