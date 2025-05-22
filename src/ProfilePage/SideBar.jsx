@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../services/api";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../SignOut/SignOutModal";
 
@@ -15,6 +16,7 @@ const menuItems = [
 export function SideBar({ onSignOut, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const navigate = useNavigate();
 
   // When collapse state changes, notify parent component
@@ -38,11 +40,10 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
 
   const handleSignOut = async () => {
     try {
-      // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
+      setIsSigningOut(true);
+      
+      // Use the centralized API for sign out
+      await authAPI.signOut();
   
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");
@@ -50,11 +51,28 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
       // Close the modal
       setIsSignOutModalOpen(false);
       
+      // Call parent's onSignOut if provided
+      if (onSignOut) {
+        onSignOut();
+      }
+      
       // Redirect to homepage and refresh
       navigate("/");
       window.location.reload(); // Forces a full page refresh
     } catch (error) {
       console.error("Sign out failed:", error);
+      // Even if the API call fails, still clear local data and redirect
+      localStorage.removeItem("authToken");
+      setIsSignOutModalOpen(false);
+      
+      if (onSignOut) {
+        onSignOut();
+      }
+      
+      navigate("/");
+      window.location.reload();
+    } finally {
+      setIsSigningOut(false);
     }
   };  
 
@@ -108,6 +126,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
         isOpen={isSignOutModalOpen}
         onClose={closeSignOutModal}
         onConfirm={handleSignOut}
+        isLoading={isSigningOut}
       />
     </>
   );

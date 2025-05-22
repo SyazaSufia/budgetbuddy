@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { profileAPI } from "../services/api";
 import SideBar from "./SideBar";
 import InfoSection from "./InfoSection";
 import FormField from "./FormField";
@@ -24,6 +25,8 @@ const ProfilePage = () => {
   const [isFormComplete, setIsFormComplete] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({
     age: "",
     email: "",
@@ -56,11 +59,10 @@ const ProfilePage = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch("http://localhost:43210/get-user-details", {
-        method: "GET",
-        credentials: "include",
-      });
-      const data = await response.json();
+      setIsLoading(true);
+      
+      // Use the centralized API for fetching user details
+      const data = await profileAPI.getUserDetails();
 
       if (data.user) {
         const userData = data.user;
@@ -114,9 +116,13 @@ const ProfilePage = () => {
         });
       } else {
         console.error("No user data found");
+        toast.error("Failed to load user data");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
+      toast.error(error.message || "Error loading profile data");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -231,6 +237,8 @@ const ProfilePage = () => {
     e.preventDefault();
 
     try {
+      setIsSaving(true);
+      
       // Create a copy of form data for submission
       const formDataToSubmit = { ...formData };
       
@@ -241,26 +249,35 @@ const ProfilePage = () => {
 
       console.log("Submitting profile data:", formDataToSubmit);
 
-      // Now update the profile with the selected avatar path
-      const response = await fetch("http://localhost:43210/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(formDataToSubmit),
-      });
-
-      if (response.ok) {
-        toast.success("Profile updated successfully!");
-        fetchUserData(); // Reload the user data after successful update
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Failed to update profile.");
-      }
+      // Use the centralized API for updating profile
+      await profileAPI.updateProfile(formDataToSubmit);
+      
+      toast.success("Profile updated successfully!");
+      // Reload the user data after successful update
+      await fetchUserData();
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast.error("Error saving profile.");
+      toast.error(error.message || "Failed to update profile.");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  // Show loading state while fetching user data
+  if (isLoading) {
+    return (
+      <main className={styles.profile}>
+        <div className={`${styles.content} ${isSidebarCollapsed ? styles.sidebarCollapsed : ""}`}>
+          <SideBar onToggleCollapse={handleSidebarToggle} />
+          <div className={styles.mainContent}>
+            <div className={styles.loadingContainer}>
+              <p>Loading profile data...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.profile}>
@@ -294,6 +311,7 @@ const ProfilePage = () => {
                         type="button"
                         className={styles.chooseAvatarButton}
                         onClick={() => setIsAvatarModalOpen(true)}
+                        disabled={isSaving}
                       >
                         Choose Your Avatar
                       </button>
@@ -311,6 +329,7 @@ const ProfilePage = () => {
                     placeholder="Full name"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e)}
+                    disabled={isSaving}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -321,6 +340,7 @@ const ProfilePage = () => {
                     value={formData.age}
                     onChange={(e) => handleInputChange("age", e)}
                     readOnly={true}
+                    disabled={isSaving}
                   />
                   {errors.age && (
                     <p className={styles.errorText}>{errors.age}</p>
@@ -332,6 +352,7 @@ const ProfilePage = () => {
                     type="date"
                     value={formData.dob}
                     onChange={(e) => handleInputChange("dob", e)}
+                    disabled={isSaving}
                   />
                 </div>
               </div>
@@ -344,6 +365,7 @@ const ProfilePage = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e)}
+                    disabled={isSaving}
                   />
                   {errors.email && (
                     <p className={styles.errorText}>{errors.email}</p>
@@ -356,6 +378,7 @@ const ProfilePage = () => {
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e)}
+                    disabled={isSaving}
                   />
                   {errors.phoneNumber && (
                     <p className={styles.errorText}>{errors.phoneNumber}</p>
@@ -380,6 +403,7 @@ const ProfilePage = () => {
                         className={styles.select}
                         value={formData.incomeType}
                         onChange={(e) => handleInputChange("incomeType", e.target.value)}
+                        disabled={isSaving}
                       >
                         <option value="">Select Income Type</option>
                         <option value="Active">Active</option>
@@ -401,6 +425,7 @@ const ProfilePage = () => {
                           className={styles.select}
                           value={formData.scholarshipType}
                           onChange={(e) => handleInputChange("scholarshipType", e.target.value)}
+                          disabled={isSaving}
                         >
                           <option value="">Select Scholarship Type</option>
                           <option value="JPA">Jabatan Perkhidmatan Awam (JPA)</option>
@@ -421,6 +446,7 @@ const ProfilePage = () => {
                       placeholder="Enter scholarship name"
                       value={formData.scholarshipTitle}
                       onChange={(e) => handleInputChange("scholarshipTitle", e)}
+                      disabled={isSaving}
                     />
                     {errors.scholarshipTitle && (
                       <p className={styles.errorText}>{errors.scholarshipTitle}</p>
@@ -439,9 +465,9 @@ const ProfilePage = () => {
             className={styles.saveButton}
             type="submit"
             onClick={handleSubmit}
-            disabled={!isFormComplete}
+            disabled={!isFormComplete || isSaving}
           >
-            Save
+            {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
