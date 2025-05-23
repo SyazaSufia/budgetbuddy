@@ -54,7 +54,8 @@ const corsOptions = {
   origin: [
     "http://localhost:5173",
     "https://budgetbuddy.space",
-    "https://www.budgetbuddy.space"
+    "https://www.budgetbuddy.space",
+    "http://145.79.12.85"
   ],
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", 'X-Dev-Bypass-Auth'],

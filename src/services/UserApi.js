@@ -8,7 +8,7 @@ const API_BASE_URL = isDevelopment
   ? "http://localhost:43210"
   : window.location.hostname === "budgetbuddy.space" 
     ? "https://budgetbuddy.space/api"  // If using nginx proxy
-    : "http://145.79.12.85:43210";    // Direct IP access
+    : "/api";    // Direct IP access
 
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -271,12 +271,6 @@ export const expenseAPI = {
 
   // Process receipt image
   processReceipt: (formData) => {
-    const API_BASE_URL =
-      process.env.NODE_ENV === "development" ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-        ? "http://localhost:43210"
-        : "http://145.79.12.85:43210";
 
     return fetch(`${API_BASE_URL}/expense/process-receipt`, {
       method: "POST",

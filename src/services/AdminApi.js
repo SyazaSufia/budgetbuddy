@@ -8,7 +8,7 @@ const API_BASE_URL = isDevelopment
   ? "http://localhost:43210"
   : window.location.hostname === "budgetbuddy.space" 
     ? "https://budgetbuddy.space/api"  // If using nginx proxy
-    : "http://145.79.12.85:43210";    // Direct IP access
+    : "/api";    // Direct IP access
 
 const adminApiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}/admin${endpoint}`;
