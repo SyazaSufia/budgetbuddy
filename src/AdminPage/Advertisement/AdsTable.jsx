@@ -5,7 +5,13 @@ import { getImageUrl, formatDate, truncateText } from "../utils";
 // Base64 encoded placeholder image with improved design
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60' viewBox='0 0 80 60'%3E%3Crect width='80' height='60' fill='%23f3f4f6'/%3E%3Crect x='2' y='2' width='76' height='56' fill='%23f9fafb' rx='3' ry='3' stroke='%23e5e7eb' stroke-width='1'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='9' text-anchor='middle' dominant-baseline='middle' fill='%23a1a1aa'%3ENo Image%3C/text%3E%3C/svg%3E";
 
-const AdvertisementTable = ({ advertisements, onEdit, onDelete, loading }) => {
+const AdvertisementTable = ({ 
+  advertisements, 
+  onEdit, 
+  onDelete, 
+  onToggleStatus, 
+  loading 
+}) => {
   // Track image loading state
   const [imageStates, setImageStates] = useState({});
 
@@ -61,6 +67,19 @@ const AdvertisementTable = ({ advertisements, onEdit, onDelete, loading }) => {
     return isActive ? styles.statusActive : styles.statusInactive;
   };
 
+  // Helper to check if ad is expired
+  const isAdExpired = (endDate) => {
+    return new Date(endDate) < new Date();
+  };
+
+  // Helper to get status display text
+  const getStatusText = (isActive, endDate) => {
+    if (isAdExpired(endDate)) {
+      return "Expired";
+    }
+    return isActive ? "Active" : "Inactive";
+  };
+
   return (
     <div className={styles.tableContainer}>
       <table className={styles.table}>
@@ -76,61 +95,87 @@ const AdvertisementTable = ({ advertisements, onEdit, onDelete, loading }) => {
           </tr>
         </thead>
         <tbody>
-          {advertisements.map((ad, index) => (
-            <tr 
-              key={ad.adID} 
-              className={index % 2 === 0 ? styles.evenRow : styles.oddRow}
-            >
-              <td className={styles.imageCell}>
-                <div className={styles.imageThumbnailContainer}>
-                  <img
-                    src={getDisplayImage(ad)}
-                    alt={ad.title || "Advertisement"}
-                    className={styles.thumbnailImage}
-                    onLoad={() => handleImageLoad(ad.adID)}
-                    onError={() => handleImageError(ad.adID)}
-                  />
-                </div>
-              </td>
-              <td className={styles.titleCell}>{truncateText(ad.title, 30)}</td>
-              <td className={styles.descriptionCell}>{truncateText(ad.description, 50)}</td>
-              <td>
-                <span className={styles.positionBadge}>
-                  {ad.position || "Banner"}
-                </span>
-              </td>
-              <td className={styles.durationCell}>
-                <div className={styles.dateRange}>
-                  <div className={styles.startDate}>{formatDate(ad.startDate)}</div>
-                  <div className={styles.dateSeparator}>to</div>
-                  <div className={styles.endDate}>{formatDate(ad.endDate)}</div>
-                </div>
-              </td>
-              <td>
-                <span className={`${styles.statusBadge} ${getStatusClass(ad.isActive)}`}>
-                  {ad.isActive ? "Active" : "Inactive"}
-                </span>
-              </td>
-              <td className={styles.actionCell}>
-                <div className={styles.actionButtons}>
-                  <button
-                    onClick={() => onEdit(ad)}
-                    className={styles.editButton}
-                    aria-label={`Edit ${ad.title}`}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => onDelete(ad.adID)}
-                    className={styles.deleteButton}
-                    aria-label={`Delete ${ad.title}`}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {advertisements.map((ad, index) => {
+            const isExpired = isAdExpired(ad.endDate);
+            
+            return (
+              <tr 
+                key={ad.adID} 
+                className={`${index % 2 === 0 ? styles.evenRow : styles.oddRow} ${isExpired ? styles.expiredRow : ''}`}
+              >
+                <td className={styles.imageCell}>
+                  <div className={styles.imageThumbnailContainer}>
+                    <img
+                      src={getDisplayImage(ad)}
+                      alt={ad.title || "Advertisement"}
+                      className={styles.thumbnailImage}
+                      onLoad={() => handleImageLoad(ad.adID)}
+                      onError={() => handleImageError(ad.adID)}
+                    />
+                  </div>
+                </td>
+                <td className={styles.titleCell}>
+                  <div className={styles.titleContainer}>
+                    <span className={styles.titleText}>
+                      {truncateText(ad.title, 30)}
+                    </span>
+                    {ad.linkURL && (
+                      <a 
+                        href={ad.linkURL} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={styles.linkIcon}
+                        title="Visit link"
+                      >
+                        🔗
+                      </a>
+                    )}
+                  </div>
+                </td>
+                <td className={styles.descriptionCell}>
+                  {truncateText(ad.description, 50)}
+                </td>
+                <td>
+                  <span className={styles.positionBadge}>
+                    {ad.position || "Banner"}
+                  </span>
+                </td>
+                <td className={styles.durationCell}>
+                  <div className={styles.dateRange}>
+                    <div className={styles.startDate}>{formatDate(ad.startDate)}</div>
+                    <div className={styles.dateSeparator}>to</div>
+                    <div className={`${styles.endDate} ${isExpired ? styles.expiredDate : ''}`}>
+                      {formatDate(ad.endDate)}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className={`${styles.statusBadge} ${getStatusClass(ad.isActive && !isExpired)}`}>
+                    {getStatusText(ad.isActive, ad.endDate)}
+                  </span>
+                </td>
+                <td className={styles.actionCell}>
+                  <div className={styles.actionButtons}>
+                    <button
+                      onClick={() => onEdit(ad)}
+                      className={styles.editButton}
+                      aria-label={`Edit ${ad.title}`}
+                    >
+                      Edit
+                    </button>  
+                    
+                    <button
+                      onClick={() => onDelete(ad.adID)}
+                      className={styles.deleteButton}
+                      aria-label={`Delete ${ad.title}`}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

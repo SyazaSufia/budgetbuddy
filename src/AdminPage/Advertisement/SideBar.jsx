@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../../SignOut/SignOutModal";
+import { adminAPI } from "../../services/AdminApi";
 
 const menuItems = [
   { id: "statistic", label: "Statistic", icon: "/stats-icon.svg", path: "/adminStats"},
@@ -13,6 +14,7 @@ const menuItems = [
 export function SideBar({ onSignOut, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const navigate = useNavigate();
 
   // When collapse state changes, notify parent component
@@ -36,23 +38,39 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
 
   const handleSignOut = async () => {
     try {
-      // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
-  
+      setIsSigningOut(true);
+      
+      // Call the centralized API for sign out
+      await adminAPI.auth.signOut();
+
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");
-  
+
       // Close the modal
       setIsSignOutModalOpen(false);
+      
+      // Call parent's onSignOut if provided
+      if (onSignOut) {
+        onSignOut();
+      }
       
       // Redirect to homepage and refresh
       navigate("/");
       window.location.reload(); // Forces a full page refresh
     } catch (error) {
       console.error("Sign out failed:", error);
+      // Even if the API call fails, still clear local data and redirect
+      localStorage.removeItem("authToken");
+      setIsSignOutModalOpen(false);
+      
+      if (onSignOut) {
+        onSignOut();
+      }
+      
+      navigate("/");
+      window.location.reload();
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -74,6 +92,11 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
                 role="button" 
                 tabIndex={0} 
                 onClick={() => navigate(item.path)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    navigate(item.path);
+                  }
+                }}
               >
                 <img src={item.icon} className={styles.menuIcon} alt={`${item.label} icon`} />
                 {!isCollapsed && <div>{item.label}</div>}
@@ -84,6 +107,11 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
               role="button" 
               tabIndex={0} 
               onClick={openSignOutModal}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  openSignOutModal();
+                }
+              }}
             >
               <img src="/signout-icon.svg" className={styles.menuIcon} alt="Sign Out icon" />
               {!isCollapsed && <div>Sign Out</div>}
@@ -95,6 +123,11 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
           role="button" 
           tabIndex={0} 
           onClick={toggleSidebar}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              toggleSidebar();
+            }
+          }}
         >
           {!isCollapsed && <div className={styles.collapseText}>Collapse</div>}
           <img src="/collapse-icon.svg" className={styles.collapseIcon} alt="Collapse sidebar" />
@@ -106,6 +139,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
         isOpen={isSignOutModalOpen}
         onClose={closeSignOutModal}
         onConfirm={handleSignOut}
+        isLoading={isSigningOut}
       />
     </>
   );
