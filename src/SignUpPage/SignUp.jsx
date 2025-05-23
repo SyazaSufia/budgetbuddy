@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AuthLayout } from "./components/AuthLayout";
 import { Input } from "./components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { authAPI } from "../services/api"; // Import your centralized API
+import { authAPI } from "../services/UserApi";
 import styles from "./SignUp.module.css";
 
 const SignUp = ({ onSignUp }) => {

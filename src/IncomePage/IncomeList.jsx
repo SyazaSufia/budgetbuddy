@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { incomeAPI } from "../services/api"; // Adjust path to your api.js file
+import { incomeAPI } from "../services/UserApi";
 import styles from "./Income.module.css";
 import { AddIncomeModal } from "./AddModal";
 import { DeleteModal } from "./DeleteModal";

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { authAPI } from "../services/api"; // Adjust path to your api.js file
+import { authAPI } from "../services/UserApi";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../SignOut/SignOutModal";
 

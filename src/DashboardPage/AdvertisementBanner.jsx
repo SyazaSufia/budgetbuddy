@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { advertisementAPI } from '../services/api';
+import { advertisementAPI } from '../services/UserApi';
 import styles from './AdvertisementBanner.module.css';
 
 // Base64 encoded placeholder image

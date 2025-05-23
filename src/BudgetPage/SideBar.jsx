@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../SignOut/SignOutModal";
-import { authAPI } from "../services/api";
+import { authAPI } from "../services/UserApi";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: "/dashboard-icon.svg", path: "/dashboard" },

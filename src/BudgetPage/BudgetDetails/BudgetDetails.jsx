@@ -6,7 +6,7 @@ import Sidebar from "../SideBar";
 import BreadcrumbNav from "./BreadCrumbNav";
 import { DeleteModal } from "./DeleteModal";
 import BudgetIndicator from "../BudgetIndicator";
-import { budgetAPI, expenseAPI } from "../../services/api";
+import { budgetAPI, expenseAPI } from "../../services/UserApi";
 
 function BudgetDetails() {
   const { budgetID } = useParams();

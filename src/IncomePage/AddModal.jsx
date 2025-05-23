@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { incomeAPI } from "../services/api";
+import { incomeAPI } from "../services/UserApi";
 import styles from "./AddModal.module.css";
 
 export const AddIncomeModal = ({ onClose, onAddIncome }) => {

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { CreateBudgetModal } from "./CreateModal";
 import { useNavigate } from "react-router-dom";
 import BudgetIndicator from "./BudgetIndicator";
-import { budgetAPI } from "../services/api";
+import { budgetAPI } from "../services/UserApi";
 
 function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);

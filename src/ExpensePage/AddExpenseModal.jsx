@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./AddModal.module.css";
 import { toast } from "react-toastify";
 import ReceiptScanner from "./ReceiptScanner";
-import { expenseAPI, categoryAPI } from "../services/api";
+import { expenseAPI, categoryAPI } from "../services/UserApi";
 
 export const AddExpenseModal = ({
   onClose,

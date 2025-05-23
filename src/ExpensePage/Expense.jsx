@@ -6,7 +6,7 @@ import { AddExpenseModal } from "./AddExpenseModal";
 import { EditExpenseModal } from "./EditExpenseModal";
 import TimeFilter from "./TimeFilter";
 import { toast } from "react-toastify";
-import { expenseAPI, budgetAPI, categoryAPI } from "../services/api"; // Import API methods
+import { expenseAPI, budgetAPI, categoryAPI } from "../services/UserApi";
 
 // Component to display a single expense item
 const ExpenseItem = ({ expense, onEdit, onDelete }) => (

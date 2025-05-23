@@ -5,7 +5,7 @@ import { SideBar } from './SideBar';
 import ExpensePieChart from './ExpensePieChart';
 import BudgetCard from '../BudgetPage/BudgetCard';
 import AdvertisementBanner from './AdvertisementBanner';
-import { dashboardAPI } from '../services/api';
+import { dashboardAPI } from '../services/UserApi';
 import styles from './Dashboard.module.css';
 
 export const Dashboard = ({ user }) => {

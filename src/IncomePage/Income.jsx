@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./Income.module.css";
 import SidebarNav from "./SideBar";
 import IncomeList from "./IncomeList";
-import TimeFilter from "./TimeFilter"; // Import TimeFilter component
+import TimeFilter from "./TimeFilter";
 
 export default function IncomeLayout({ user }) {
   const [totalIncome, setTotalIncome] = useState(0); // State for total income

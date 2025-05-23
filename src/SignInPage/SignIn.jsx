@@ -4,7 +4,7 @@ import { AuthLayout } from "./components/AuthLayout";
 import { Link, useLocation } from "react-router-dom";
 import { Input } from "./components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { authAPI } from "../services/api";
+import { authAPI } from "../services/UserApi";
 import styles from "./SignIn.module.css";
 
 const SignIn = ({ onSignIn }) => {

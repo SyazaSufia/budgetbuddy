@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { profileAPI } from "../services/api";
+import { profileAPI } from "../services/UserApi";
 import SideBar from "./SideBar";
 import InfoSection from "./InfoSection";
 import FormField from "./FormField";

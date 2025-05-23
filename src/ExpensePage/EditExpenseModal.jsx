@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./AddModal.module.css";
 import { toast } from "react-toastify";
-import { expenseAPI, categoryAPI, budgetAPI } from "../services/api";
+import { expenseAPI, categoryAPI, budgetAPI } from "../services/UserApi";
 
 export const EditExpenseModal = ({ onClose, onEdit, expense }) => {
   const [title, setTitle] = useState("");

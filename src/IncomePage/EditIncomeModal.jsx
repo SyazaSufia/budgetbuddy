@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { incomeAPI } from "../services/api"; // Adjust path to your api.js file
+import { incomeAPI } from "../services/UserApi";
 import styles from "./EditModal.module.css";
 
 export const EditIncomeModal = ({ income, onClose, onUpdate }) => {

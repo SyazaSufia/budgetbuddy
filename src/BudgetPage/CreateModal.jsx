@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./CreateModal.module.css";
 import { toast } from "react-toastify";
-import { budgetAPI } from "../services/api";
+import { budgetAPI } from "../services/UserApi";
 
 export const CreateBudgetModal = ({ onClose, onAdd }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

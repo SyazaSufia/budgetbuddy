@@ -1,4 +1,3 @@
-// Environment detection - matches config/api.js pattern
 const isDevelopment =
   process.env.NODE_ENV === "development" ||
   window.location.hostname === "localhost" ||
