@@ -80,7 +80,7 @@ const adminApiRequest = async (endpoint, options = {}) => {
   }
 };
 
-// Admin Authentication API methods
+// Admin Authentication API methods (if needed in the future)
 export const adminAuthAPI = {
   signIn: (credentials) =>
     adminApiRequest("/sign-in", {
@@ -98,8 +98,9 @@ export const adminAuthAPI = {
   getUserDetails: () => adminApiRequest("/get-user-details"),
 };
 
-// User Management API methods
+// User Management API methods - matches your existing routes
 export const adminUserAPI = {
+  // GET /admin/users
   getAllUsers: (page = 1, limit = 50, search = "") => {
     const queryParams = new URLSearchParams({
       page: page.toString(),
@@ -109,27 +110,30 @@ export const adminUserAPI = {
     return adminApiRequest(`/users?${queryParams}`);
   },
 
+  // GET /admin/users/:id
   getUserById: (userId) => adminApiRequest(`/users/${userId}`),
 
+  // PUT /admin/users/:id (for future use)
   updateUser: (userId, userData) =>
     adminApiRequest(`/users/${userId}`, {
       method: "PUT",
       body: JSON.stringify(userData),
     }),
 
+  // DELETE /admin/users/:id
   deleteUser: (userId) =>
     adminApiRequest(`/users/${userId}`, {
       method: "DELETE",
     }),
 
+  // Additional methods for future backend implementation
   getUserStats: () => adminApiRequest("/users/stats"),
-
-  exportUsers: (format = "csv") => 
-    adminApiRequest(`/users/export?format=${format}`),
+  exportUsers: (format = "csv") => adminApiRequest(`/users/export?format=${format}`),
 };
 
-// Advertisement Management API methods
+// Advertisement Management API methods - matches your existing routes
 export const adminAdvertisementAPI = {
+  // GET /admin/advertisements
   getAllAdvertisements: (page = 1, limit = 50, status = "all") => {
     const queryParams = new URLSearchParams({
       page: page.toString(),
@@ -139,8 +143,10 @@ export const adminAdvertisementAPI = {
     return adminApiRequest(`/advertisements?${queryParams}`);
   },
 
+  // GET /admin/advertisements/:id
   getAdvertisementById: (adId) => adminApiRequest(`/advertisements/${adId}`),
 
+  // POST /admin/advertisements
   createAdvertisement: (adData) => {
     // Handle both FormData and regular object data
     if (adData instanceof FormData) {
@@ -156,6 +162,7 @@ export const adminAdvertisementAPI = {
     }
   },
 
+  // PUT /admin/advertisements/:id
   updateAdvertisement: (adId, adData) => {
     // Handle both FormData and regular object data
     if (adData instanceof FormData) {
@@ -171,20 +178,21 @@ export const adminAdvertisementAPI = {
     }
   },
 
+  // DELETE /admin/advertisements/:id
   deleteAdvertisement: (adId) =>
     adminApiRequest(`/advertisements/${adId}`, {
       method: "DELETE",
     }),
 
+  // Additional methods for future backend implementation
   getAdvertisementStats: () => adminApiRequest("/advertisements/stats"),
-
   toggleAdvertisementStatus: (adId) =>
     adminApiRequest(`/advertisements/${adId}/toggle-status`, {
       method: "PATCH",
     }),
 };
 
-// Community Management API methods
+// Community Management API methods (for future implementation)
 export const adminCommunityAPI = {
   getAllPosts: (page = 1, limit = 50, status = "all") => {
     const queryParams = new URLSearchParams({
@@ -224,7 +232,7 @@ export const adminCommunityAPI = {
     }),
 };
 
-// Statistics and Analytics API methods
+// Statistics and Analytics API methods (for future implementation)
 export const adminStatsAPI = {
   getDashboardStats: () => adminApiRequest("/stats/dashboard"),
 
@@ -251,7 +259,7 @@ export const adminStatsAPI = {
   },
 };
 
-// System Management API methods
+// System Management API methods (for future implementation)
 export const adminSystemAPI = {
   getSystemInfo: () => adminApiRequest("/system/info"),
 
@@ -291,7 +299,7 @@ export const adminSystemAPI = {
   getSystemSettings: () => adminApiRequest("/system/settings"),
 };
 
-// Reports API methods
+// Reports API methods (for future implementation)
 export const adminReportsAPI = {
   generateUserReport: (filters = {}) =>
     adminApiRequest("/reports/users", {
@@ -321,7 +329,7 @@ export const adminReportsAPI = {
     }),
 };
 
-// Notification Management API methods
+// Notification Management API methods (for future implementation)
 export const adminNotificationAPI = {
   getAllNotifications: (page = 1, limit = 50) => {
     const queryParams = new URLSearchParams({
@@ -363,7 +371,7 @@ export const adminNotificationAPI = {
     }),
 };
 
-// Content Management API methods
+// Content Management API methods (for future implementation)
 export const adminContentAPI = {
   getPages: () => adminApiRequest("/content/pages"),
 
