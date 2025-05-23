@@ -239,7 +239,6 @@ export const incomeAPI = {
 };
 
 // Expense API methods
-// Expense API methods
 export const expenseAPI = {
   // Get all expenses
   getExpenses: () => apiRequest("/expense/expenses"),
@@ -299,6 +298,57 @@ export const expenseAPI = {
       }
     });
   },
+};
+
+// Community API methods
+export const communityAPI = {
+  // Get all posts with pagination
+  getPosts: (page = 1, limit = 6) => {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return apiRequest(`/community/posts?${queryParams}`);
+  },
+
+  // Get a specific post by ID with comments
+  getPostById: (postId) => apiRequest(`/community/posts/${postId}`),
+
+  // Create a new post
+  createPost: (postData) =>
+    apiRequest("/community/posts", {
+      method: "POST",
+      body: JSON.stringify(postData),
+    }),
+
+  // Update an existing post
+  updatePost: (postId, postData) =>
+    apiRequest(`/community/posts/${postId}`, {
+      method: "PUT",
+      body: JSON.stringify(postData),
+    }),
+
+  // Delete a post
+  deletePost: (postId) =>
+    apiRequest(`/community/posts/${postId}`, {
+      method: "DELETE",
+    }),
+
+  // Add a comment to a post
+  addComment: (postId, commentData) =>
+    apiRequest(`/community/posts/${postId}/comments`, {
+      method: "POST",
+      body: JSON.stringify(commentData),
+    }),
+
+  // Toggle like/unlike on a post
+  toggleLike: (postId) =>
+    apiRequest(`/community/posts/${postId}/like`, {
+      method: "POST",
+    }),
+
+  // Get likes for a post
+  getLikes: (postId) => apiRequest(`/community/posts/${postId}/likes`),
 };
 
 export default apiRequest;

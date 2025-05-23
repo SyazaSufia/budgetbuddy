@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./ForumFeed.module.css";
 import PostCard from "./PostCard";
+import { communityAPI } from "../services/UserApi";
 
 function ForumFeed({ user }) {
   const navigate = useNavigate();
@@ -14,35 +15,26 @@ function ForumFeed({ user }) {
     totalPages: 1
   });
 
-  // Function to fetch posts from your API
+  // Function to fetch posts using the new API
   const fetchPosts = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      const response = await fetch(
-        `http://localhost:43210/community/posts?page=${pagination.page}&limit=${pagination.limit}`,
-        {
-          credentials: 'include' // Include session cookies
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch posts');
-      }
-      
-      const data = await response.json();
+      const data = await communityAPI.getPosts(pagination.page, pagination.limit);
       
       if (data.success) {
         setPosts(data.data.posts);
-        setPagination({
-          ...pagination,
+        setPagination(prev => ({
+          ...prev,
           totalPages: data.data.pagination.totalPages
-        });
+        }));
       } else {
         throw new Error(data.error || 'Unknown error occurred');
       }
     } catch (err) {
       console.error("Error fetching posts:", err);
-      setError(err.message);
+      setError(err.message || 'Failed to fetch posts');
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +48,7 @@ function ForumFeed({ user }) {
   // Handle pagination
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      setPagination({ ...pagination, page: newPage });
+      setPagination(prev => ({ ...prev, page: newPage }));
     }
   };
 

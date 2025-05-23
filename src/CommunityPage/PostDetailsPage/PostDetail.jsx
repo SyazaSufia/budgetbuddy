@@ -6,6 +6,7 @@ import SidebarNav from "../SideBar";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { formatStandardDate } from '../../utils/dateUtils';
+import { communityAPI } from "../../services/UserApi";
 
 function PostDetail({ user }) {
   const { postId } = useParams();
@@ -30,18 +31,7 @@ function PostDetail({ user }) {
     const fetchPostDetails = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `http://localhost:43210/community/posts/${postId}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch post details");
-        }
-
-        const data = await response.json();
+        const data = await communityAPI.getPostById(postId);
 
         if (data.success) {
           setPost(data.data);
@@ -68,23 +58,7 @@ function PostDetail({ user }) {
     setIsSubmittingComment(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:43210/community/posts/${postId}/comments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: commentText }),
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to submit comment");
-      }
-
-      const data = await response.json();
+      const data = await communityAPI.addComment(postId, { content: commentText });
 
       if (data.success) {
         // Show success toast notification
@@ -96,19 +70,11 @@ function PostDetail({ user }) {
           pauseOnHover: true,
           draggable: true,
         });
+        
         // Refresh post to get the new comment
-        const postResponse = await fetch(
-          `http://localhost:43210/community/posts/${postId}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        if (postResponse.ok) {
-          const postData = await postResponse.json();
-          if (postData.success) {
-            setPost(postData.data);
-          }
+        const postData = await communityAPI.getPostById(postId);
+        if (postData.success) {
+          setPost(postData.data);
         }
 
         // Clear comment input
@@ -146,19 +112,7 @@ function PostDetail({ user }) {
     setIsLiking(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:43210/community/posts/${postId}/like`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to toggle like status");
-      }
-
-      const data = await response.json();
+      const data = await communityAPI.toggleLike(postId);
 
       if (data.success) {
         // Update post state with new like status
@@ -205,19 +159,7 @@ function PostDetail({ user }) {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:43210/community/posts/${postId}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete post");
-      }
-
-      const data = await response.json();
+      const data = await communityAPI.deletePost(postId);
 
       if (data.success) {
         toast.success("Post deleted successfully!", {

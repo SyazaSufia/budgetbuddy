@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../SignOut/SignOutModal";
+import { authAPI } from "../services/UserApi";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: "/dashboard-icon.svg", path: "/dashboard" },
@@ -44,11 +45,8 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
 
   const handleSignOut = async () => {
     try {
-      // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
+      // Use the API method instead of direct fetch
+      await authAPI.signOut();
   
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");
@@ -56,11 +54,17 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
       // Close the modal
       setIsSignOutModalOpen(false);
       
+      // Call parent's onSignOut if provided
+      if (onSignOut) {
+        onSignOut();
+      }
+      
       // Redirect to homepage and refresh
       navigate("/");
       window.location.reload(); // Forces a full page refresh
     } catch (error) {
       console.error("Sign out failed:", error);
+      // You might want to show an error toast here
     }
   };  
 

@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SideBar } from "../SideBar";
 import { ChevronRightIcon, PencilIcon, AlertIcon } from "./Icons";
+import { communityAPI } from "../../services/UserApi";
 
 // Import the separated RichTextEditor component
 import RichTextEditor from "./RichTextEditor";
@@ -110,7 +111,7 @@ const PostForm = ({ onSubmit, isSubmitting, initialData, isEditMode }) => {
   const handleCancel = () => {
     if (isEditMode) {
       // If editing, go back to the post detail page
-      navigate(`/community/post/${initialData.postID}`);
+      navigate(`/postdetails/${initialData.postID}`); // Changed from /community/post/
     } else {
       // If creating, go back to community page
       navigate("/community");
@@ -205,19 +206,8 @@ function InputDesign({ user }) {
         setIsLoading(true);
 
         try {
-          // Fetch the post data for editing
-          const response = await fetch(
-            `http://localhost:43210/community/posts/${editPostId}`,
-            {
-              credentials: "include",
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch post");
-          }
-
-          const data = await response.json();
+          // Use communityAPI to fetch the post data for editing
+          const data = await communityAPI.getPostById(editPostId);
 
           if (data.success) {
             // Check if current user is the author
@@ -255,69 +245,79 @@ function InputDesign({ user }) {
       // Determine if creating or updating
       const isUpdate = isEditMode && postId;
 
-      // Set up the API endpoint and method
-      const url = isUpdate
-        ? `http://localhost:43210/community/posts/${postId}`
-        : "http://localhost:43210/community/posts";
-
-      const method = isUpdate ? "PUT" : "POST";
-
       // Log the content before sending to API (for debugging)
       console.log("Submitting content to API:", formData.content);
 
-      // Call the API endpoint
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      let data;
+      if (isUpdate) {
+        // Update existing post
+        data = await communityAPI.updatePost(postId, {
           subject: formData.subject,
           content: formData.content,
-        }),
-        credentials: "include", // Include session cookies
-      });
+        });
+      } else {
+        // Create new post
+        data = await communityAPI.createPost({
+          subject: formData.subject,
+          content: formData.content,
+        });
+      }
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
         // Success message and redirect
         const successMessage = isUpdate
           ? "Post updated successfully!"
           : "Post created successfully!";
 
-        // *** FIX: If editing, go back to the post detail page with correct URL ***
         if (isUpdate) {
-          // The URL pattern should match your router configuration
-          navigate(`/community/post/${postId}`);
+          // For editing, redirect to the post detail page
+          // Use the postId that we got from the URL parameter
+          console.log("Redirecting to post:", postId); // Debug log
 
-          // Display success toast here instead of passing it in URL parameters
+          // Small delay to ensure the post is updated on the server
+          setTimeout(() => {
+            navigate(`/postdetails/${postId}`, {
+              state: { successMessage }, // Pass success message through navigation state
+            });
+          }, 100);
+
+          // Display success toast
           toast.success(successMessage, {
             position: "top-right",
-            autoClose: 5000,
+            autoClose: 3000,
           });
         } else {
-          // For new posts, go to community page with success toast
-          navigate(`/community?toast=success&message=${successMessage}`);
+          // For new posts, use the returned post ID if available
+          const newPostId = data.data?.postID || data.postID;
+          if (newPostId) {
+            // Redirect to the newly created post
+            navigate(`/postdetails/${newPostId}`, {
+              state: { successMessage },
+            });
+          } else {
+            // Fallback to community page if no post ID returned
+            navigate(
+              `/community?toast=success&message=${encodeURIComponent(successMessage)}`
+            );
+          }
+
+          toast.success(successMessage, {
+            position: "top-right",
+            autoClose: 3000,
+          });
         }
       } else {
         // Error handling
-        setError(
+        throw new Error(
           data.error ||
             `Failed to ${isUpdate ? "update" : "create"} post. Please try again.`
-        );
-        toast.error(
-          data.error ||
-            `Failed to ${isUpdate ? "update" : "create"} post. Please try again.`,
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
         );
       }
     } catch (err) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} post:`, err);
-      const errorMessage = `An error occurred while ${isEditMode ? "updating" : "creating"} your post. Please try again.`;
+      const errorMessage =
+        err.message ||
+        `An error occurred while ${isEditMode ? "updating" : "creating"} your post. Please try again.`;
       setError(errorMessage);
       toast.error(errorMessage, {
         position: "top-right",
