@@ -6,9 +6,11 @@ const isDevelopment =
 // Base API URL that adapts based on environment
 const API_BASE_URL = isDevelopment
   ? "http://localhost:43210"
-  : window.location.hostname === "budgetbuddy.space" 
-    ? "https://budgetbuddy.space/api"  // If using nginx proxy
-    : "/api";    // Direct IP access
+  : `${window.location.protocol}//${window.location.host}/api`;
+
+console.log('API_BASE_URL:', API_BASE_URL); // For debugging
+
+export { API_BASE_URL };
 
 const adminApiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}/admin${endpoint}`;
