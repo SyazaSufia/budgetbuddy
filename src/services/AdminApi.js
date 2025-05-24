@@ -98,6 +98,96 @@ export const adminAuthAPI = {
   getUserDetails: () => adminApiRequest("/get-user-details"),
 };
 
+// Create a general API request function for non-admin endpoints
+const generalApiRequest = async (endpoint, options = {}) => {
+  const url = `${API_BASE_URL}${endpoint}`; // Note: no /admin prefix
+
+  const defaultOptions = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Important for sessions
+  };
+
+  // Handle FormData - don't set Content-Type for multipart/form-data
+  const config = {
+    ...defaultOptions,
+    ...options,
+  };
+
+  if (options.body instanceof FormData) {
+    // Remove Content-Type header to let browser set it with boundary
+    delete config.headers["Content-Type"];
+  } else {
+    config.headers = {
+      ...defaultOptions.headers,
+      ...options.headers,
+    };
+  }
+
+  try {
+    const response = await fetch(url, config);
+    
+    // Check if response is actually JSON
+    const contentType = response.headers.get("content-type");
+    const isJson = contentType && contentType.includes("application/json");
+    
+    let data;
+    if (isJson) {
+      data = await response.json();
+    } else {
+      // Handle non-JSON responses (like HTML error pages)
+      const text = await response.text();
+      console.warn(`Non-JSON response from ${endpoint}:`, text.substring(0, 200));
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}. Endpoint may not exist or server may be down.`);
+      }
+      
+      // For successful non-JSON responses, return a default success object
+      data = { success: true, message: "Operation completed" };
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error(`API Error (${endpoint}):`, error);
+    
+    // Enhance error message for common issues
+    if (error.message.includes('Failed to fetch')) {
+      throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please check if the server is running.`);
+    }
+    
+    if (error.message.includes('Unexpected token')) {
+      throw new Error(`Server returned invalid response. The endpoint ${endpoint} may not exist or may be misconfigured.`);
+    }
+    
+    throw error;
+  }
+};
+
+// General Authentication API methods (for non-admin endpoints)
+export const generalAuthAPI = {
+  signOut: () =>
+    generalApiRequest("/sign-out", {
+      method: "POST",
+    }),
+
+  signIn: (credentials) =>
+    generalApiRequest("/sign-in", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    }),
+
+  checkAuth: () => generalApiRequest("/check-auth"),
+};
+
+// Export the general API request function
+export { generalApiRequest };
+
 // User Management API methods - matches your existing routes
 export const adminUserAPI = {
   // GET /admin/users
