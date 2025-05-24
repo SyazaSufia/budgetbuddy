@@ -236,11 +236,7 @@ export const expenseAPI = {
     }),
 
   processReceipt: (formData) => {
-    const API_BASE_URL_FOR_RECEIPT = isDevelopment
-      ? "http://localhost:43210"
-      : `${window.location.protocol}//${window.location.host}/api`;
-
-    return fetch(`${API_BASE_URL_FOR_RECEIPT}/expense/process-receipt`, {
+    return fetch(`${API_BASE_URL}/expense/process-receipt`, {
       method: "POST",
       body: formData,
       credentials: "include",

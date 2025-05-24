@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./AddModal.module.css";
 import { toast } from "react-toastify";
+import { expenseAPI } from "../services/UserApi"; // Update this import path to match your project structure
 
 const ReceiptScanner = ({
   onItemsSelected,
@@ -57,37 +58,8 @@ const ReceiptScanner = ({
         formData.append('categoryID', categoryId.toString());
       }
       
-      // Use direct fetch for better control over the request
-      const API_BASE_URL = process.env.NODE_ENV === "development" || 
-                           window.location.hostname === "localhost" || 
-                           window.location.hostname === "127.0.0.1"
-                           ? "http://localhost:43210"
-                           : "http://145.79.12.85:43210";
-      
-      const response = await fetch(`${API_BASE_URL}/expense/process-receipt`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include', // Important for cookies/session
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage;
-        
-        try {
-          // Try to parse as JSON
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.message || `Error: ${response.status}`;
-        } catch (e) {
-          // If not JSON, use the text directly
-          errorMessage = errorText || `HTTP error! status: ${response.status}`;
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      // Parse the JSON response
-      const result = await response.json();
+      // Use the API method from the centralized API configuration
+      const result = await expenseAPI.processReceipt(formData);
       
       if (result.success) {
         // Convert single item to array format if needed
