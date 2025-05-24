@@ -10,6 +10,8 @@ const API_BASE_URL = isDevelopment
 
 console.log('API_BASE_URL:', API_BASE_URL); // For debugging
 
+export { API_BASE_URL };
+
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
 

@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { advertisementAPI } from '../services/UserApi';
+import { advertisementAPI, API_BASE_URL } from '../services/UserApi';
 import styles from './AdvertisementBanner.module.css';
 
 // Base64 encoded placeholder image
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='100' viewBox='0 0 300 100'%3E%3Crect width='300' height='100' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='18' text-anchor='middle' dominant-baseline='middle' fill='%23666666'%3EAdvertisement%3C/text%3E%3C/svg%3E";
-
-// Get base API URL for image URLs
-const getApiBaseUrl = () => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:43210';
-  }
-  return 'http://145.79.12.85:43210';
-};
 
 const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const [advertisements, setAdvertisements] = useState([]);
@@ -21,8 +13,6 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const [imageStates, setImageStates] = useState({});
   const [showModal, setShowModal] = useState(false);
   const intervalRef = useRef(null);
-
-  const apiBaseUrl = getApiBaseUrl();
 
   // Fetch advertisements using the centralized API
   const fetchAdvertisements = async () => {
@@ -163,7 +153,7 @@ const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
       return ad.imageURL;
     }
     
-    return `${apiBaseUrl}${ad.imageURL}`;
+    return `${API_BASE_URL}${ad.imageURL}`;
   };
 
   // Handle image load success
