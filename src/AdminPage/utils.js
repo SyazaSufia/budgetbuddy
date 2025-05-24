@@ -1,9 +1,5 @@
-/**
- * Utility functions for handling URLs and other common tasks
- */
-
 // Import the API_BASE_URL from your adminAPI
-import { API_BASE_URL } from '../services/AdminAPI';
+import { API_BASE_URL } from '../services/AdminApi';
 
 /**
  * Formats a relative image URL to a full URL with base path
