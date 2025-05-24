@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { API_BASE_URL, fetchWithAuth } from "./config/api";
+import { authAPI } from "./services/UserApi";
 
 // Create authentication context
 const AuthContext = createContext();
@@ -16,10 +16,11 @@ export const AuthProvider = ({ children }) => {
   
   const logout = async () => {
     try {
-      await fetchWithAuth("/sign-out", { method: "POST" });
+      await authAPI.signOut(); // Use consistent API
       setUser(null);
     } catch (error) {
       console.error("Error during logout:", error);
+      setUser(null); // Clear user even if logout fails
     }
   };
 
@@ -28,13 +29,8 @@ export const AuthProvider = ({ children }) => {
     
     try {
       setLoading(true);
-      const response = await fetchWithAuth("/check-auth");
+      const data = await authAPI.checkAuth(); // Use consistent API
       
-      if (!response.ok) {
-        throw new Error(`Auth check failed with status: ${response.status}`);
-      }
-      
-      const data = await response.json();
       if (data.isAuthenticated) {
         setUser(data.user);
       } else {

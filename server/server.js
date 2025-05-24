@@ -51,15 +51,31 @@ const isAuthenticated = require("./middleware/isAuthenticated");
 
 // CORS options - allow the deployed frontend and local development
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://budgetbuddy.space",
-    "https://www.budgetbuddy.space",
-    "http://145.79.12.85"
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://budgetbuddy.space",
+      "https://www.budgetbuddy.space",
+      "http://budgetbuddy.space",
+      "http://www.budgetbuddy.space",
+      "http://145.79.12.85"
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", 'X-Dev-Bypass-Auth'],
   credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
 const saltRounds = 10;
@@ -77,10 +93,14 @@ app.use(
     secret: process.env.SESSION_SECRET || "4eba08474238b7a30245666cec4ab4b199199473a2fc9020b8d766cf2cf8731f",
     resave: false,
     saveUninitialized: false,
+    name: "budgetbuddy.session", // Custom session name
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 1000, // 1 hour
+      secure: process.env.NODE_ENV === "production" && process.env.FORCE_HTTPS === "true", // Only use secure in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours (increased from 1 hour)
+      sameSite: process.env.NODE_ENV === "production" ? 'lax' : 'lax', // Lax for cross-origin requests
+      domain: process.env.NODE_ENV === "production" ? undefined : undefined, // Let browser handle domain
+      path: '/'
     },
   })
 );
@@ -88,6 +108,7 @@ app.use(
 // Ensure Access-Control-Allow-Credentials header is set
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   next();
 });
 

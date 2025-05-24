@@ -1,14 +1,23 @@
-const isDevelopment =
-  process.env.NODE_ENV === "development" ||
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1";
+// Simplified and more reliable API base URL detection
+const getApiBaseUrl = () => {
+  // Development detection
+  const isDevelopment = 
+    process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
 
-// Base API URL that adapts based on environment
-const API_BASE_URL = isDevelopment
-  ? "http://localhost:43210"
-  : window.location.hostname === "budgetbuddy.space" 
-    ? "https://budgetbuddy.space/api"  // If using nginx proxy
-    : "/api";    // Direct IP access
+  if (isDevelopment) {
+    return "http://localhost:43210";
+  }
+
+  // Production - use relative URLs for API calls
+  // This works regardless of domain (budgetbuddy.space or IP)
+  return "/api";
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log("API Base URL:", API_BASE_URL); // Debug log
 
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -17,7 +26,7 @@ const apiRequest = async (endpoint, options = {}) => {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include", // Important for sessions
+    credentials: "include", // This is crucial for session cookies
   };
 
   const config = {
@@ -30,7 +39,12 @@ const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
+    console.log(`Making API request to: ${url}`); // Debug log
     const response = await fetch(url, config);
+    
+    // Log response details for debugging
+    console.log(`Response status: ${response.status} for ${url}`);
+    
     const data = await response.json();
 
     if (!response.ok) {
