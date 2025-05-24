@@ -3,6 +3,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./InputDesign.module.css";
 import { DeleteModal } from "./DeleteModal";
+import { adminUserAPI } from "../../services/AdminApi";
 
 const UserTable = ({ users, setUsers }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,7 +14,7 @@ const UserTable = ({ users, setUsers }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedUser) {
       toast.error("No user selected for deletion");
       return;
@@ -22,28 +23,16 @@ const UserTable = ({ users, setUsers }) => {
     const userToDelete = users.find((user) => user.userID === selectedUser);
     const userName = userToDelete?.userName || `ID: ${selectedUser}`;
     
-    fetch(`http://localhost:43210/admin/users/${selectedUser}`, {
-      method: "DELETE",
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then(data => {
-            throw new Error(data.message || "Failed to delete user");
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log(`User with ID ${selectedUser} deleted successfully`);
-        setUsers(users.filter((user) => user.userID !== selectedUser));
-        setIsModalOpen(false);
-        toast.success(`User ${userName} was successfully deleted!`);
-      })
-      .catch((err) => {
-        console.error("Error deleting user:", err);
-        toast.error(`Error deleting user: ${err.message || "Unknown error"}`);
-      });
+    try {
+      const data = await adminUserAPI.deleteUser(selectedUser);
+      console.log(`User with ID ${selectedUser} deleted successfully`);
+      setUsers(users.filter((user) => user.userID !== selectedUser));
+      setIsModalOpen(false);
+      toast.success(`User ${userName} was successfully deleted!`);
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      toast.error(`Error deleting user: ${err.message || "Unknown error"}`);
+    }
   };
 
   const cancelDelete = () => {

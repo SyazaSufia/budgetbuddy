@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./InputDesign.module.css";
 import UserTable from "./UserTable";
+import { adminUserAPI } from "../../services/AdminApi";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -8,28 +9,25 @@ const UserManagement = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:43210/admin/users", {
-      credentials: "include", // for session auth if needed
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        return res.json();
-      })
-      .then((data) => {
+    const fetchUsers = async () => {
+      try {
+        const data = await adminUserAPI.getAllUsers();
+        
         if (data.success && data.data) {
-          console.log("Users loaded:", data.data); // Log the user data
-          setUsers(data.data); // Assuming the users are under the 'data' key
+          console.log("Users loaded:", data.data);
+          setUsers(data.data);
         } else {
           setError("Failed to load users");
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error loading users:", err);
-        setError("Error loading users");
-      })
-      .finally(() => setLoading(false));
+        setError(`Error loading users: ${err.message || "Unknown error"}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   return (

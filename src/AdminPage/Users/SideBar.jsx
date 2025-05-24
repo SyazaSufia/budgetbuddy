@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../../SignOut/SignOutModal";
+import { adminAuthAPI } from "../../services/AdminApi";
 
 const menuItems = [
   { id: "statistic", label: "Statistic", icon: "/stats-icon.svg", path: "/adminStats"},
@@ -37,10 +38,7 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
   const handleSignOut = async () => {
     try {
       // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
+      await adminAuthAPI.signOut();
 
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");
