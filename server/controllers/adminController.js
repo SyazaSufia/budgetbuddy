@@ -48,10 +48,10 @@ const deleteUser = async (req, res) => {
         'expenses',
         'budgets', 
         'categories',
-        'transactions',
-        'savings_goals',
-        'financial_records',
-        'user_settings'
+        'income',
+        'community_posts',
+        'community_comments',
+        'post_likes'
       ];
 
       for (const table of tablesToClean) {
@@ -196,7 +196,7 @@ const deleteUserRecursive = async (req, res) => {
       }
 
       // Delete other related tables (same as before)
-      const tablesToClean = ['expenses', 'budgets', 'categories', 'transactions', 'savings_goals'];
+      const tablesToClean = ['expenses', 'budgets', 'categories', 'income','community_posts','community_comments', 'post_likes'];
 
       for (const table of tablesToClean) {
         try {
