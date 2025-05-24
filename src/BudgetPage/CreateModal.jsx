@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./CreateModal.module.css";
 import { toast } from "react-toastify";
-import { budgetAPI } from "../services/UserApi";
+import { budgetAPI, categoryAPI } from "../services/UserApi";
 
 export const CreateBudgetModal = ({ onClose, onAdd }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +55,7 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
           ? customCategoryName.trim()
           : selectedCategory.name;
 
-      // First create budget using your centralized API
+      // Create budget using centralized API
       const budgetData = {
         budgetName,
         icon: selectedCategory.icon,
@@ -66,7 +66,6 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
 
       if (budgetResult.success) {
         // Create the initial category that matches the budget
-        // You'll need to add categoryAPI to your main API file or extend budgetAPI
         const categoryData = {
           categoryName: budgetName,
           icon: selectedCategory.icon,
@@ -74,18 +73,10 @@ export const CreateBudgetModal = ({ onClose, onAdd }) => {
         };
 
         try {
-          // For now, using direct fetch for category creation since it's not in your main API
-          // You should add categoryAPI to your main API file
-          const categoryResponse = await fetch("http://localhost:43210/budget/categories", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(categoryData),
-          });
+          // Use centralized categoryAPI instead of direct fetch
+          const categoryResult = await categoryAPI.addCategory(categoryData);
 
-          const categoryResult = await categoryResponse.json();
-
-          if (categoryResponse.ok && categoryResult.success) {
+          if (categoryResult.success) {
             // Successfully created both budget and initial category
             const updatedBudgetData = {
               ...budgetResult.data,

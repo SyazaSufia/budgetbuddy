@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import styles from "./AddModal.module.css";
+import { budgetAPI, categoryAPI } from "../services/UserApi";
 
 export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
   const [budgetDetails, setBudgetDetails] = useState(null);
@@ -32,15 +33,9 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
       }
 
       try {
-        const response = await fetch(`http://localhost:43210/budget/budgets/${budgetId}`, {
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch budget details");
-        }
-
-        const result = await response.json();
+        // Use centralized budgetAPI instead of direct fetch
+        const result = await budgetAPI.getBudgetDetails(budgetId);
+        
         if (result.success && result.data) {
           setBudgetDetails(result.data.budget);
           
@@ -58,7 +53,6 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
           let filteredCategories;
           
           if (matchingCategory) {
-
             const relevantCategories = findRelevantCategories(budgetName);
             
             // Filter out categories that already exist in this budget
@@ -89,7 +83,6 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
 
   // Find relevant categories based on budget type
   const findRelevantCategories = (budgetName) => {
-
     const lowerBudgetName = budgetName.toLowerCase();
     
     // Always include "Others" category
@@ -200,17 +193,10 @@ export const AddCategoryModal = ({ onClose, onAdd, budgetId }) => {
         budgetID: budgetId
       };
 
-      // Add the category through the API
-      const response = await fetch("http://localhost:43210/budget/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(categoryData),
-      });
+      // Use centralized categoryAPI instead of direct fetch
+      const result = await categoryAPI.addCategory(categoryData);
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (result.success) {
         // Pass the new category to the parent component
         await onAdd(result.data);
         toast.success("Category added successfully!");
