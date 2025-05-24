@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import styles from "./CommunityManagement.module.css";
 import PostTable from "./PostTable";
 import SidebarNav from "./SideBar";
+import { adminAPI } from "../../services/AdminApi";
 
 function CommunityManagement() {
   const [filteredPosts, setFilteredPosts] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const apiUrl = import.meta.env.REACT_APP_API_URL || 'http://localhost:43210';
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -17,15 +17,8 @@ function CommunityManagement() {
     }
     
     try {
-      const response = await fetch(`${apiUrl}/admin/community/posts?search=${encodeURIComponent(searchTerm)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      const data = await response.json();
+      // Use the adminAPI instead of hardcoded URL
+      const data = await adminAPI.community.getAllPosts(1, 50, "all", searchTerm);
       
       if (data.success) {
         setFilteredPosts(data.data);

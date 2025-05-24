@@ -3,13 +3,45 @@ import { useNavigate } from "react-router-dom";
 import styles from "./PostTable.module.css";
 import PostModal from "./PostModal";
 import { DeleteModal } from "./DeleteModal";
+import { adminAPI } from "../../services/AdminApi";
+
+// Simple toast notification component
+const Toast = ({ message, type, isVisible, onClose }) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className={`${styles.toast} ${styles[type]}`}>
+      <span>{message}</span>
+      <button onClick={onClose} className={styles.toastClose}>×</button>
+    </div>
+  );
+};
 
 function PostTable({ initialPosts }) {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [postToDelete, setPostToDelete] = useState(null);
-  const apiUrl = import.meta.env.REACT_APP_API_URL || 'http://localhost:43210';
+  const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
+
+  // Show toast notification
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, isVisible: true });
+  };
+
+  // Hide toast notification
+  const hideToast = () => {
+    setToast({ message: '', type: '', isVisible: false });
+  };
 
   // Fetch posts from API if no initialPosts provided
   useEffect(() => {
@@ -22,17 +54,9 @@ function PostTable({ initialPosts }) {
     const fetchPosts = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${apiUrl}/admin/community/posts`, {
-          credentials: 'include'
-        });
+        const data = await adminAPI.community.getAllPosts();
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
-
-        const data = await response.json();
         if (data.success) {
-          // Ensure each post has content property even if it's empty
           const processedPosts = data.data.map(post => ({
             ...post,
             content: post.content || ""
@@ -43,13 +67,14 @@ function PostTable({ initialPosts }) {
         }
       } catch (error) {
         console.error("Error fetching posts:", error);
+        showToast("Failed to load posts", "error");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchPosts();
-  }, [initialPosts, apiUrl]);
+  }, [initialPosts]);
 
   // Handle view post details
   const handleViewPost = (post) => {
@@ -66,30 +91,21 @@ function PostTable({ initialPosts }) {
     if (!selectedPost) return;
     
     try {
-      const response = await fetch(`${apiUrl}/admin/community/posts/${selectedPost.postID}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: 'Reviewed' })
-      });
-
-      const data = await response.json();
+      // Use the new updatePostStatus method
+      const data = await adminAPI.community.updatePostStatus(selectedPost.postID, 'Reviewed');
 
       if (data.success) {
-        // Update the post status in our local state
         setPosts(posts.map(post => 
           post.postID === selectedPost.postID ? { ...post, status: 'Reviewed' } : post
         ));
-        // Update the selected post status
         setSelectedPost({...selectedPost, status: 'Reviewed'});
+        showToast("Post marked as reviewed successfully", "success");
       } else {
-        alert("Failed to update post status");
+        showToast("Failed to update post status", "error");
       }
     } catch (error) {
       console.error("Error updating post status:", error);
-      alert("Failed to update post status. Please try again later.");
+      showToast("Failed to update post status. Please try again later.", "error");
     }
   };
 
@@ -98,30 +114,21 @@ function PostTable({ initialPosts }) {
     if (!selectedPost) return;
     
     try {
-      const response = await fetch(`${apiUrl}/admin/community/posts/${selectedPost.postID}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: 'Violated' })
-      });
-
-      const data = await response.json();
+      // Use the new updatePostStatus method
+      const data = await adminAPI.community.updatePostStatus(selectedPost.postID, 'Violated');
 
       if (data.success) {
-        // Update the post status in our local state
         setPosts(posts.map(post => 
           post.postID === selectedPost.postID ? { ...post, status: 'Violated' } : post
         ));
-        // Update the selected post status
         setSelectedPost({...selectedPost, status: 'Violated'});
+        showToast("Post marked as violated successfully", "success");
       } else {
-        alert("Failed to update post status");
+        showToast("Failed to update post status", "error");
       }
     } catch (error) {
       console.error("Error updating post status:", error);
-      alert("Failed to update post status. Please try again later.");
+      showToast("Failed to update post status. Please try again later.", "error");
     }
   };
 
@@ -140,24 +147,18 @@ function PostTable({ initialPosts }) {
     if (!postToDelete) return;
     
     try {
-      const response = await fetch(`${apiUrl}/admin/community/posts/${postToDelete.postID}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      const data = await response.json();
+      const data = await adminAPI.community.deletePost(postToDelete.postID);
 
       if (data.success) {
-        // Remove the post from our local state
         setPosts(posts.filter(post => post.postID !== postToDelete.postID));
-        // Close the delete modal
         setPostToDelete(null);
+        showToast("Post deleted successfully", "success");
       } else {
-        alert("Failed to delete post");
+        showToast("Failed to delete post", "error");
       }
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert("Failed to delete post. Please try again later.");
+      showToast("Failed to delete post. Please try again later.", "error");
     }
   };
 
@@ -180,6 +181,14 @@ function PostTable({ initialPosts }) {
 
   return (
     <div className={styles.tableWrapper}>
+      {/* Toast Notification */}
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+
       <table className={styles.postsTable}>
         <thead>
           <tr>

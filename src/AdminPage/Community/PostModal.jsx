@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./PostModal.module.css";
+import { adminAPI } from "../../services/AdminApi";
 
 // Function to clean HTML content for display while preserving HTML formatting
 const cleanContentForDisplay = (htmlContent) => {
@@ -49,7 +50,6 @@ const cleanContentForDisplay = (htmlContent) => {
 function PostModal({ post, onClose, onReview, onViolated }) {
   const [fullPost, setFullPost] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const apiUrl = import.meta.env.REACT_APP_API_URL || 'http://localhost:43210';
 
   // Fetch full post details when opening modal
   useEffect(() => {
@@ -58,15 +58,9 @@ function PostModal({ post, onClose, onReview, onViolated }) {
     const fetchFullPost = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${apiUrl}/admin/community/posts/${post.postID}`, {
-          credentials: 'include'
-        });
+        // Use adminAPI instead of hardcoded URL
+        const data = await adminAPI.community.getPostById(post.postID);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch full post');
-        }
-        
-        const data = await response.json();
         if (data.success) {
           setFullPost(data.data);
         }
@@ -78,7 +72,7 @@ function PostModal({ post, onClose, onReview, onViolated }) {
     };
     
     fetchFullPost();
-  }, [post, apiUrl]);
+  }, [post]);
   
   if (!post) return null;
 

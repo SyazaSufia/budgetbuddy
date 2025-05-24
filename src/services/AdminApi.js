@@ -280,11 +280,11 @@ export const adminAdvertisementAPI = {
   getAdvertisementStats: () => adminApiRequest("/advertisements/stats"),
   toggleAdvertisementStatus: (adId) =>
     adminApiRequest(`/advertisements/${adId}/toggle-status`, {
-      method: "PATCH",
+      method: "PUT",
     }),
 };
 
-// Community Management API methods (for future implementation)
+// Community Management API methods
 export const adminCommunityAPI = {
   getAllPosts: (page = 1, limit = 50, status = "all") => {
     const queryParams = new URLSearchParams({
@@ -301,6 +301,13 @@ export const adminCommunityAPI = {
     adminApiRequest(`/community/posts/${postId}`, {
       method: "PUT",
       body: JSON.stringify(postData),
+    }),
+
+  // NEW: Update post status method
+  updatePostStatus: (postId, status) =>
+    adminApiRequest(`/community/posts/${postId}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
     }),
 
   deletePost: (postId) =>
@@ -324,7 +331,7 @@ export const adminCommunityAPI = {
     }),
 };
 
-// Statistics and Analytics API methods
+// Statistics and Analytics API methods (updated to match backend routes)
 export const adminStatsAPI = {
   // Change from /stats/dashboard to /stats/all to match your backend
   getDashboardStats: () => adminApiRequest("/stats/all"),
@@ -356,158 +363,6 @@ export const adminStatsAPI = {
   getScholarshipStats: () => adminApiRequest("/stats/scholarship"),
 };
 
-// System Management API methods (for future implementation)
-export const adminSystemAPI = {
-  getSystemInfo: () => adminApiRequest("/system/info"),
-
-  getSystemLogs: (page = 1, limit = 100, level = "all") => {
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...(level !== "all" && { level })
-    });
-    return adminApiRequest(`/system/logs?${queryParams}`);
-  },
-
-  clearLogs: (level = "all") =>
-    adminApiRequest("/system/logs/clear", {
-      method: "POST",
-      body: JSON.stringify({ level }),
-    }),
-
-  backupDatabase: () =>
-    adminApiRequest("/system/backup", {
-      method: "POST",
-    }),
-
-  getBackups: () => adminApiRequest("/system/backups"),
-
-  restoreBackup: (backupId) =>
-    adminApiRequest(`/system/backups/${backupId}/restore`, {
-      method: "POST",
-    }),
-
-  updateSystemSettings: (settings) =>
-    adminApiRequest("/system/settings", {
-      method: "PUT",
-      body: JSON.stringify(settings),
-    }),
-
-  getSystemSettings: () => adminApiRequest("/system/settings"),
-};
-
-// Reports API methods (for future implementation)
-export const adminReportsAPI = {
-  generateUserReport: (filters = {}) =>
-    adminApiRequest("/reports/users", {
-      method: "POST",
-      body: JSON.stringify(filters),
-    }),
-
-  generateFinancialReport: (filters = {}) =>
-    adminApiRequest("/reports/financial", {
-      method: "POST",
-      body: JSON.stringify(filters),
-    }),
-
-  generateActivityReport: (filters = {}) =>
-    adminApiRequest("/reports/activity", {
-      method: "POST",
-      body: JSON.stringify(filters),
-    }),
-
-  getReportHistory: () => adminApiRequest("/reports/history"),
-
-  downloadReport: (reportId) => adminApiRequest(`/reports/${reportId}/download`),
-
-  deleteReport: (reportId) =>
-    adminApiRequest(`/reports/${reportId}`, {
-      method: "DELETE",
-    }),
-};
-
-// Notification Management API methods (for future implementation)
-export const adminNotificationAPI = {
-  getAllNotifications: (page = 1, limit = 50) => {
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-    });
-    return adminApiRequest(`/notifications?${queryParams}`);
-  },
-
-  sendNotification: (notificationData) =>
-    adminApiRequest("/notifications", {
-      method: "POST",
-      body: JSON.stringify(notificationData),
-    }),
-
-  sendBulkNotification: (notificationData) =>
-    adminApiRequest("/notifications/bulk", {
-      method: "POST",
-      body: JSON.stringify(notificationData),
-    }),
-
-  updateNotification: (notificationId, notificationData) =>
-    adminApiRequest(`/notifications/${notificationId}`, {
-      method: "PUT",
-      body: JSON.stringify(notificationData),
-    }),
-
-  deleteNotification: (notificationId) =>
-    adminApiRequest(`/notifications/${notificationId}`, {
-      method: "DELETE",
-    }),
-
-  getNotificationTemplates: () => adminApiRequest("/notifications/templates"),
-
-  createTemplate: (templateData) =>
-    adminApiRequest("/notifications/templates", {
-      method: "POST",
-      body: JSON.stringify(templateData),
-    }),
-};
-
-// Content Management API methods (for future implementation)
-export const adminContentAPI = {
-  getPages: () => adminApiRequest("/content/pages"),
-
-  getPageById: (pageId) => adminApiRequest(`/content/pages/${pageId}`),
-
-  updatePage: (pageId, pageData) =>
-    adminApiRequest(`/content/pages/${pageId}`, {
-      method: "PUT",
-      body: JSON.stringify(pageData),
-    }),
-
-  getSettings: () => adminApiRequest("/content/settings"),
-
-  updateSettings: (settings) =>
-    adminApiRequest("/content/settings", {
-      method: "PUT",
-      body: JSON.stringify(settings),
-    }),
-
-  uploadMedia: (formData) =>
-    adminApiRequest("/content/media", {
-      method: "POST",
-      body: formData,
-    }),
-
-  getMedia: (page = 1, limit = 50) => {
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-    });
-    return adminApiRequest(`/content/media?${queryParams}`);
-  },
-
-  deleteMedia: (mediaId) =>
-    adminApiRequest(`/content/media/${mediaId}`, {
-      method: "DELETE",
-    }),
-};
-
 // Main admin API object
 export const adminAPI = {
   auth: adminAuthAPI,
@@ -515,10 +370,6 @@ export const adminAPI = {
   advertisements: adminAdvertisementAPI,
   community: adminCommunityAPI,
   stats: adminStatsAPI,
-  system: adminSystemAPI,
-  reports: adminReportsAPI,
-  notifications: adminNotificationAPI,
-  content: adminContentAPI,
 };
 
 export default adminApiRequest;
