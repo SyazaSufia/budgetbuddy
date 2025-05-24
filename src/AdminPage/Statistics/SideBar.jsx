@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./SideBar.module.css";
 import SignOutModal from "../../SignOut/SignOutModal";
+import { generalAuthAPI } from "../../services/AdminApi"; // Import the general auth API instead of admin auth
 
 const menuItems = [
   { id: "statistic", label: "Statistic", icon: "/stats-icon.svg", path: "/adminStats", active: true},
@@ -36,11 +37,8 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
 
   const handleSignOut = async () => {
     try {
-      // Call the signout API to clear cookies
-      await fetch("http://localhost:43210/sign-out", {
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent
-      });
+      // Use the general auth API to sign out instead of admin-specific endpoint
+      await generalAuthAPI.signOut();
   
       // Remove authentication data from local storage
       localStorage.removeItem("authToken");
@@ -53,6 +51,12 @@ export function SideBar({ onSignOut, onToggleCollapse }) {
       window.location.reload(); // Forces a full page refresh
     } catch (error) {
       console.error("Sign out failed:", error);
+      
+      // Even if API fails, still proceed with local logout
+      localStorage.removeItem("authToken");
+      setIsSignOutModalOpen(false);
+      navigate("/");
+      window.location.reload();
     }
   };  
 

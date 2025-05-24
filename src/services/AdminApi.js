@@ -324,9 +324,10 @@ export const adminCommunityAPI = {
     }),
 };
 
-// Statistics and Analytics API methods (for future implementation)
+// Statistics and Analytics API methods
 export const adminStatsAPI = {
-  getDashboardStats: () => adminApiRequest("/stats/dashboard"),
+  // Change from /stats/dashboard to /stats/all to match your backend
+  getDashboardStats: () => adminApiRequest("/stats/all"),
 
   getUserAnalytics: (period = "month") =>
     adminApiRequest(`/stats/users?period=${period}`),
@@ -349,6 +350,10 @@ export const adminStatsAPI = {
     });
     return adminApiRequest(`/stats/export/${type}?${queryParams}`);
   },
+
+  // Add individual methods to match your backend routes
+  getIncomeStats: () => adminApiRequest("/stats/income"),
+  getScholarshipStats: () => adminApiRequest("/stats/scholarship"),
 };
 
 // System Management API methods (for future implementation)

@@ -14,9 +14,10 @@ import {
 } from "recharts";
 import DataTable from "./DataTable";
 import StatsSummaryCard from "./StatsSummaryCard";
+import { adminAPI } from "../../services/AdminApi";
 import styles from "./StatsPage.module.css";
 
-// More varied color palette for charts
+// Color palette for charts
 const COLORS = {
   income: [
     "#8884d8",
@@ -38,28 +39,6 @@ const COLORS = {
   ],
 };
 
-// Mock data for development when API is not available
-const MOCK_DATA = {
-  incomeStats: [
-    { incomeType: "Employment", count: 65 },
-    { incomeType: "Self-employed", count: 42 },
-    { incomeType: "Government Support", count: 30 },
-    { incomeType: "Family Support", count: 25 },
-    { incomeType: "Retirement", count: 18 },
-    { incomeType: "Investments", count: 12 },
-    { incomeType: "Other", count: 8 },
-  ],
-  scholarshipStats: [
-    { scholarshipType: "Need-based", count: 48 },
-    { scholarshipType: "Merit-based", count: 35 },
-    { scholarshipType: "Athletic", count: 22 },
-    { scholarshipType: "Community Service", count: 18 },
-    { scholarshipType: "Diversity", count: 15 },
-    { scholarshipType: "None", count: 62 },
-  ],
-  totalUsers: 200,
-};
-
 const StatsManagement = () => {
   const [stats, setStats] = useState({
     incomeStats: [],
@@ -72,139 +51,43 @@ const StatsManagement = () => {
     income: "bar",
     scholarship: "bar",
   });
-  const [useMockData, setUseMockData] = useState(false);
   const [showTables, setShowTables] = useState(false);
 
   // References for chart components to enable export functionality
   const incomeChartRef = useRef(null);
   const scholarshipChartRef = useRef(null);
 
-  // API base URL from environment variable
-  const API_URL = import.meta.env.REACT_APP_API_URL || "http://localhost:43210";
-
-  // Fetch stats
+  // Fetch stats using the admin API
   const fetchStats = async () => {
     try {
-      setStats((prev) => ({ ...prev, loading: true }));
+      setStats((prev) => ({ ...prev, loading: true, error: null }));
 
-      // If mock data is enabled, use that instead of API call
-      if (useMockData) {
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      // Use the admin API to fetch dashboard stats
+      const data = await adminAPI.stats.getDashboardStats();
+
+      if (data && data.success) {
         setStats({
-          incomeStats: MOCK_DATA.incomeStats,
-          scholarshipStats: MOCK_DATA.scholarshipStats,
-          totalUsers: MOCK_DATA.totalUsers,
+          incomeStats: data.data?.incomeStats || [],
+          scholarshipStats: data.data?.scholarshipStats || [],
+          totalUsers: data.data?.totalUsers || 0,
           loading: false,
           error: null,
         });
-        return;
-      }
-
-      // Log the API URL for debugging
-      const endpoint = `${API_URL}/admin/stats/all`;
-      console.log(`Fetching from: ${endpoint}`);
-
-      // Simplify headers to avoid CORS issues
-      const headers = {
-        "Content-Type": "application/json",
-      };
-
-      try {
-        console.log("Attempting to fetch from primary endpoint...");
-        const response = await fetch(endpoint, {
-          method: "GET",
-          headers,
-          credentials: "include", // Include cookies if using session-based auth
-        });
-
-        if (!response.ok) {
-          console.log(`Primary endpoint returned status: ${response.status}`);
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Received data from primary endpoint:", data);
-
-        if (data.success) {
-          setStats({
-            incomeStats: data.data.incomeStats,
-            scholarshipStats: data.data.scholarshipStats,
-            totalUsers: data.data.totalUsers,
-            loading: false,
-            error: null,
-          });
-          return;
-        } else {
-          console.error("API returned success:false", data);
-          throw new Error(
-            data.message || "API returned an unsuccessful response"
-          );
-        }
-      } catch (initialError) {
-        console.log("Primary endpoint failed, trying test endpoint...");
-
-        try {
-          // Try the test endpoint without authentication
-          const testEndpoint = `${API_URL}/admin/stats/all-test`;
-          console.log(`Trying test endpoint: ${testEndpoint}`);
-          
-          const testResponse = await fetch(testEndpoint, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (!testResponse.ok) {
-            console.log(`Test endpoint returned status: ${testResponse.status}`);
-            throw new Error(
-              `Test API request failed with status ${testResponse.status}`
-            );
-          }
-
-          const testData = await testResponse.json();
-          console.log("Received data from test endpoint:", testData);
-
-          if (testData.success) {
-            setStats({
-              incomeStats: testData.data.incomeStats,
-              scholarshipStats: testData.data.scholarshipStats,
-              totalUsers: testData.data.totalUsers,
-              loading: false,
-              error: null,
-            });
-            return;
-          } else {
-            throw new Error(
-              testData.message ||
-                "API test endpoint returned an unsuccessful response"
-            );
-          }
-        } catch (testError) {
-          console.error("Both endpoints failed:", testError);
-          throw testError; // Re-throw to be caught by the outer catch
-        }
+      } else {
+        throw new Error(data?.message || "Failed to fetch statistics");
       }
     } catch (error) {
       console.error("Error fetching statistics:", error);
-
-      // If any error occurs, fall back to mock data
-      console.warn("API error, falling back to mock data");
-      setUseMockData(true);
-      setStats({
-        incomeStats: MOCK_DATA.incomeStats,
-        scholarshipStats: MOCK_DATA.scholarshipStats,
-        totalUsers: MOCK_DATA.totalUsers,
+      setStats((prev) => ({
+        ...prev,
         loading: false,
-        error: null,
-      });
+        error: error.message || "Failed to load statistics. Please try again later.",
+      }));
     }
   };
 
   // Initial data fetch
   useEffect(() => {
-    console.log("Component mounted, fetching stats...");
     fetchStats();
   }, []);
 
@@ -239,16 +122,14 @@ const StatsManagement = () => {
     }));
   };
 
-  // Toggle between mock data and API data
-  const toggleMockData = () => {
-    setUseMockData((prev) => !prev);
-    // Re-fetch with the new setting
-    setTimeout(fetchStats, 0);
-  };
-
   // Toggle between charts and tables
   const toggleView = () => {
     setShowTables((prev) => !prev);
+  };
+
+  // Refresh data
+  const handleRefresh = () => {
+    fetchStats();
   };
 
   // Export data as CSV
@@ -287,9 +168,32 @@ const StatsManagement = () => {
     return <div className={styles.loadingMessage}>Loading statistics...</div>;
   }
 
+  // Display error message
+  if (stats.error) {
+    return (
+      <div className={styles.errorContainer}>
+        <div className={styles.errorMessage}>
+          <h2>Unable to Load Statistics</h2>
+          <p>{stats.error}</p>
+          <button onClick={handleRefresh} className={styles.retryButton}>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Render the income chart based on the selected chart type
   const renderIncomeChart = () => {
     const data = formatIncomeData();
+
+    if (data.length === 0) {
+      return (
+        <div className={styles.noDataMessage}>
+          No income distribution data available
+        </div>
+      );
+    }
 
     if (chartType.income === "bar") {
       return (
@@ -348,6 +252,14 @@ const StatsManagement = () => {
   // Render the scholarship chart based on the selected chart type
   const renderScholarshipChart = () => {
     const data = formatScholarshipData();
+
+    if (data.length === 0) {
+      return (
+        <div className={styles.noDataMessage}>
+          No scholarship distribution data available
+        </div>
+      );
+    }
 
     if (chartType.scholarship === "bar") {
       return (
@@ -433,10 +345,11 @@ const StatsManagement = () => {
         <h1 className={styles.heading}>User Statistics Dashboard</h1>
         <div className={styles.dataSourceToggle}>
           <button
-            onClick={toggleMockData}
-            className={`${styles.toggleButton} ${useMockData ? styles.mockEnabled : styles.mockDisabled}`}
+            onClick={handleRefresh}
+            className={styles.toggleButton}
+            disabled={stats.loading}
           >
-            {useMockData ? "Using Mock Data" : "Using API Data"}
+            {stats.loading ? "Refreshing..." : "Refresh Data"}
           </button>
           <button
             onClick={toggleView}
@@ -490,6 +403,7 @@ const StatsManagement = () => {
               <button
                 onClick={() => exportAsCSV("income")}
                 className={styles.exportButton}
+                disabled={!stats.incomeStats || stats.incomeStats.length === 0}
               >
                 Export CSV
               </button>
@@ -522,6 +436,7 @@ const StatsManagement = () => {
               <button
                 onClick={() => exportAsCSV("scholarship")}
                 className={styles.exportButton}
+                disabled={!stats.scholarshipStats || stats.scholarshipStats.length === 0}
               >
                 Export CSV
               </button>
@@ -536,19 +451,6 @@ const StatsManagement = () => {
           </div>
         </div>
       </div>
-      
-      {/* Debug Info (only in development) */}
-      {import.meta.env.DEV && (
-        <div className={styles.debugInfo}>
-          <h3>Debug Information</h3>
-          <p>API URL: {API_URL}</p>
-          <p>Using Mock Data: {useMockData ? "Yes" : "No"}</p>
-          <p>Data Loading: {stats.loading ? "Yes" : "No"}</p>
-          <p>Income Stats Count: {stats.incomeStats?.length || 0}</p>
-          <p>Scholarship Stats Count: {stats.scholarshipStats?.length || 0}</p>
-          {stats.error && <p>Error: {stats.error.toString()}</p>}
-        </div>
-      )}
     </div>
   );
 };
