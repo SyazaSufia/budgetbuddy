@@ -71,7 +71,9 @@ const corsOptions = {
       console.log("Blocked by CORS:", origin);
       callback(new Error('Not allowed by CORS'));
     }
+    credentials: true
   },
+  
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", 'X-Dev-Bypass-Auth'],
   credentials: true,
@@ -389,7 +391,7 @@ app.post("/update-profile", isAuthenticated, async (req, res) => {
 //---------------------------ADMIN ENDPOINTS---------------------------//
 
 // Add Admin endpoint
-app.post("/add-admin", async (req, res) => {
+app.post("/api/add-admin", async (req, res) => {
   try {
     const { adminName, adminEmail, adminPassword } = req.body;
 

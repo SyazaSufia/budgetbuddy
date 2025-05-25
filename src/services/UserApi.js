@@ -3,7 +3,7 @@ const isDevelopment =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1";
 
-// Fixed API configuration - always use the same origin as the current page
+// Fixed API configuration - always use the same protocol and host as the current page
 const API_BASE_URL = isDevelopment
   ? "http://localhost:43210"
   : `${window.location.protocol}//${window.location.host}/api`;
@@ -34,6 +34,15 @@ const apiRequest = async (endpoint, options = {}) => {
   try {
     console.log('Making API request to:', url); // For debugging
     const response = await fetch(url, config);
+    
+    // Check if response is HTML (error page) instead of JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error('Server returned non-JSON response:', text.substring(0, 200));
+      throw new Error('Server returned an error page instead of JSON. Please check your server configuration.');
+    }
+    
     const data = await response.json();
 
     if (!response.ok) {

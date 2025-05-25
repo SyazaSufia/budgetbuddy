@@ -2,6 +2,60 @@ const db = require('../db');
 const path = require("path");
 const fs = require("fs");
 
+// Configuration object for file paths - centralized configuration
+const CONFIG = {
+  UPLOAD_DIRS: {
+    ADS: 'uploads/ads',
+    USERS: 'uploads/users',
+    GENERAL: 'uploads'
+  },
+  FILE_LIMITS: {
+    MAX_SIZE: 5 * 1024 * 1024, // 5MB
+    ALLOWED_TYPES: /jpeg|jpg|png|gif|webp/
+  },
+  DEFAULT_POSITION: 'banner'
+};
+
+// Utility functions for file operations
+const FileUtils = {
+  // Get absolute path for uploads
+  getUploadPath: (subDir = '') => {
+    return path.join(process.cwd(), 'public', subDir);
+  },
+
+  // Get relative URL path for database storage
+  getUrlPath: (subDir, filename) => {
+    return `/${subDir}/${filename}`;
+  },
+
+  // Ensure directory exists
+  ensureDirectoryExists: (dirPath) => {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  },
+
+  // Delete file if exists
+  deleteFileIfExists: (filePath) => {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.warn('Error deleting file:', error.message);
+      return false;
+    }
+  },
+
+  // Convert relative URL to absolute file path
+  urlToFilePath: (relativeUrl) => {
+    if (!relativeUrl) return null;
+    return path.join(process.cwd(), 'public', relativeUrl);
+  }
+};
+
 const getAllUsers = async (req, res) => {
   try {
     const results = await db.query("SELECT * FROM user");
@@ -274,7 +328,7 @@ const createAdvertisement = async (req, res) => {
     
     // Handle image upload if file exists
     if (req.file) {
-      imageURL = `/uploads/ads/${req.file.filename}`;
+      imageURL = FileUtils.getUrlPath(CONFIG.UPLOAD_DIRS.ADS, req.file.filename);
     }
     
     const insertQuery = `
@@ -291,7 +345,7 @@ const createAdvertisement = async (req, res) => {
       linkURL, 
       startDate, 
       endDate, 
-      'banner', // Always set to "banner"
+      CONFIG.DEFAULT_POSITION, // Use config instead of hardcoded 'banner'
       isActive
     ]);
     
@@ -334,12 +388,12 @@ const updateAdvertisement = async (req, res) => {
     if (req.file) {
       // Delete old image if exists
       if (existingAd.imageURL) {
-        const oldImagePath = path.join(__dirname, '../public', existingAd.imageURL);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+        const oldImagePath = FileUtils.urlToFilePath(existingAd.imageURL);
+        if (oldImagePath) {
+          FileUtils.deleteFileIfExists(oldImagePath);
         }
       }
-      imageURL = `/uploads/ads/${req.file.filename}`;
+      imageURL = FileUtils.getUrlPath(CONFIG.UPLOAD_DIRS.ADS, req.file.filename);
     }
     
     const updateQuery = `
@@ -363,8 +417,8 @@ const updateAdvertisement = async (req, res) => {
       linkURL,
       startDate,
       endDate,
-      'banner', // Always set to "banner"
-      isActive, // Use our converted value
+      CONFIG.DEFAULT_POSITION, // Use config instead of hardcoded 'banner'
+      isActive,
       id
     ]);
     
@@ -399,9 +453,9 @@ const deleteAdvertisement = async (req, res) => {
     if (result.affectedRows > 0) {
       // Delete the image file if it exists
       if (ads[0].imageURL) {
-        const imagePath = path.join(__dirname, '../public', ads[0].imageURL);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
+        const imagePath = FileUtils.urlToFilePath(ads[0].imageURL);
+        if (imagePath) {
+          FileUtils.deleteFileIfExists(imagePath);
         }
       }
       
@@ -433,6 +487,7 @@ const getAdvertisementById = async (req, res) => {
   }
 };
 
+// Export configuration and utilities for use in other modules
 module.exports = {
   getAllUsers,
   deleteUser, // Uses the FK disable method
@@ -441,5 +496,8 @@ module.exports = {
   createAdvertisement,
   updateAdvertisement,
   deleteAdvertisement,
-  getAdvertisementById
+  getAdvertisementById,
+  // Export utilities and config for reuse
+  CONFIG,
+  FileUtils
 };
