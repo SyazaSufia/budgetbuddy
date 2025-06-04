@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./Advertisement.css";
-import { getImageUrl } from "../utils";
+import { getImageUrl, getPlaceholderImage, getErrorPlaceholder } from "../utils/imageUtils";
 import { adminAPI } from "../../services/AdminApi";
 
-// Base64 encoded solid gray placeholder image with text
-const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='18' text-anchor='middle' dominant-baseline='middle' fill='%23666666'%3ELoading...%3C/text%3E%3C/svg%3E";
-
 /**
- * Component to display advertisements
+ * Component to display advertisements in admin panel
  * @param {Object} props Component props
  * @param {number} props.limit - Maximum number of ads to display
  * @param {boolean} props.showPlaceholder - Whether to show a placeholder when no ads are available
@@ -17,7 +14,7 @@ const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
 const Advertisement = ({ 
   limit = 1,
   showPlaceholder = true,
-  status = "all" // Default to all ads, but you might want 'active' for public display
+  status = "all"
 }) => {
   const [advertisements, setAdvertisements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +35,7 @@ const Advertisement = ({
         
         // If you want only active ads for public display, filter them
         if (status === 'active') {
-          adsData = adsData.filter(ad => ad.status === 'active' || ad.isActive === true);
+          adsData = adsData.filter(ad => ad.status === 'active' || ad.isActive === true || ad.isActive === 1);
         }
         
         setAdvertisements(adsData);
@@ -59,27 +56,32 @@ const Advertisement = ({
   const getPlaceholderAd = () => {
     return {
       adID: 'placeholder',
-      id: 'placeholder', // Some APIs might use 'id' instead of 'adID'
+      id: 'placeholder',
       title: 'Banner Ad Space',
       description: 'This space is available for advertising',
       imageURL: null,
-      image: null, // Some APIs might use 'image' instead of 'imageURL'
+      image: null,
       linkURL: '#',
-      link: '#', // Some APIs might use 'link' instead of 'linkURL'
+      link: '#',
     };
   };
 
   // Helper to get the display image URL
   const getDisplayImage = (ad) => {
     const imageUrl = ad.imageURL || ad.image;
-    if (!imageUrl) return PLACEHOLDER_IMAGE;
-    
     const adId = ad.adID || ad.id;
-    // If we have a loading state for this image
-    if (imageStates[adId] === 'error') {
-      return PLACEHOLDER_IMAGE;
+    
+    // If no image URL, return placeholder
+    if (!imageUrl) {
+      return getPlaceholderImage();
     }
     
+    // If we have a loading state for this image and it's an error
+    if (imageStates[adId] === 'error') {
+      return getErrorPlaceholder();
+    }
+    
+    // Use the centralized utility to get the proper URL
     return getImageUrl(imageUrl);
   };
 
@@ -93,6 +95,7 @@ const Advertisement = ({
 
   // Handle image load error
   const handleImageError = (adId) => {
+    console.warn(`Failed to load image for ad ID: ${adId}`);
     setImageStates(prev => ({
       ...prev,
       [adId]: 'error'
@@ -108,6 +111,29 @@ const Advertisement = ({
       console.log(`Ad clicked: ${adId}`);
     } catch (err) {
       console.error("Error tracking ad click:", err);
+    }
+  };
+
+  // Handle ad refresh
+  const handleRefresh = async () => {
+    setImageStates({}); // Reset image states
+    setLoading(true);
+    
+    try {
+      const response = await adminAPI.advertisements.getAllAdvertisements(1, limit, status);
+      let adsData = response.data || response.advertisements || [];
+      
+      if (status === 'active') {
+        adsData = adsData.filter(ad => ad.status === 'active' || ad.isActive === true || ad.isActive === 1);
+      }
+      
+      setAdvertisements(adsData);
+      setError(null);
+    } catch (err) {
+      console.error("Error refreshing advertisements:", err);
+      setError(err.message || "Failed to refresh advertisements");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,24 +158,65 @@ const Advertisement = ({
     
     const adContent = (
       <div className={`ad-content ${isPlaceholder ? 'ad-placeholder' : ''}`}>
-        <img 
-          src={isPlaceholder ? PLACEHOLDER_IMAGE : getDisplayImage(ad)}
-          alt={ad.title || "Advertisement"} 
-          className="ad-image"
-          onLoad={() => !isPlaceholder && handleImageLoad(adId)}
-          onError={() => !isPlaceholder && handleImageError(adId)}
-        />
+        <div className="ad-image-container">
+          <img 
+            src={isPlaceholder ? getPlaceholderImage() : getDisplayImage(ad)}
+            alt={ad.title || "Advertisement"} 
+            className="ad-image"
+            onLoad={() => !isPlaceholder && handleImageLoad(adId)}
+            onError={() => !isPlaceholder && handleImageError(adId)}
+          />
+          
+          {/* Image loading state indicator */}
+          {!isPlaceholder && imageStates[adId] === 'error' && (
+            <div className="ad-image-error">
+              <button 
+                onClick={() => {
+                  setImageStates(prev => ({ ...prev, [adId]: undefined }));
+                  // Force image reload by updating the src
+                  const img = document.querySelector(`img[alt="${ad.title || "Advertisement"}"]`);
+                  if (img) {
+                    const src = img.src;
+                    img.src = '';
+                    img.src = src;
+                  }
+                }}
+                className="retry-button"
+                title="Retry loading image"
+              >
+                🔄 Retry
+              </button>
+            </div>
+          )}
+        </div>
         
         <div className="ad-text">
           <h4 className="ad-title">{ad.title}</h4>
           {ad.description && (
             <p className="ad-description">{ad.description}</p>
           )}
+          
+          {/* Admin-specific information */}
+          <div className="ad-admin-info">
+            <small className="ad-status">
+              Status: {ad.isActive === 1 || ad.isActive === true ? 'Active' : 'Inactive'}
+            </small>
+            {ad.startDate && (
+              <small className="ad-date">
+                Start: {new Date(ad.startDate).toLocaleDateString()}
+              </small>
+            )}
+            {ad.endDate && (
+              <small className="ad-date">
+                End: {new Date(ad.endDate).toLocaleDateString()}
+              </small>
+            )}
+          </div>
         </div>
       </div>
     );
     
-    // Only wrap in anchor if it's not a placeholder or has a valid link
+    // Only wrap in anchor if it's not a placeholder and has a valid link
     return isPlaceholder || !linkUrl || linkUrl === '#' ? (
       adContent
     ) : (
@@ -172,6 +239,9 @@ const Advertisement = ({
       <div className="ad-container ad-banner ad-error">
         <div className="ad-error-message">
           <small>Unable to load advertisements</small>
+          <button onClick={handleRefresh} className="retry-button">
+            🔄 Retry
+          </button>
         </div>
       </div>
     );
@@ -180,6 +250,16 @@ const Advertisement = ({
   // Always render as banner
   return (
     <div className="ad-container ad-banner">
+      {/* Admin controls */}
+      <div className="ad-admin-controls">
+        <button onClick={handleRefresh} className="refresh-button" title="Refresh advertisements">
+          🔄 Refresh
+        </button>
+        <span className="ad-count">
+          Showing {adsToDisplay.length} of {advertisements.length || 0} ads
+        </span>
+      </div>
+      
       {adsToDisplay.map((ad, index) => {
         const adId = ad.adID || ad.id || index;
         return (
@@ -189,6 +269,13 @@ const Advertisement = ({
           </div>
         );
       })}
+      
+      {/* Show error message if there's an error but we're still showing content */}
+      {error && advertisements.length > 0 && (
+        <div className="ad-error-notice">
+          <small>⚠️ {error}</small>
+        </div>
+      )}
     </div>
   );
 };
