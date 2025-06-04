@@ -43,6 +43,9 @@ const getActiveAdvertisements = async (req, res) => {
       return process.env.API_BASE_URL || "http://localhost:43210";
     };
 
+    // Call the function to get the base URL
+    const baseUrl = getBaseUrl(req);
+
     // Process image URLs to ensure they are properly formed
     const processedAds = advertisements.map((ad) => {
       if (ad.imageURL && !ad.imageURL.startsWith("http")) {
