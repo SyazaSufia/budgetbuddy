@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { expenseAPI, budgetAPI, categoryAPI } from "../services/UserApi";
 
 // Component to display a single expense item
-const ExpenseItem = ({ expense, onEdit, onDelete }) => (
+const ExpenseItem = ({ expense, onEdit, onDelete, isViewOnly }) => (
   <article className={styles.expenseItem}>
     <div className={styles.expenseDetails}>
       <div className={styles.titleSection}>
@@ -20,17 +20,20 @@ const ExpenseItem = ({ expense, onEdit, onDelete }) => (
           RM {parseFloat(expense.amount).toFixed(2)}
         </span>
         <span className={styles.expenseDate}>{expense.date}</span>
-        <div className={styles.actionButtons}>
-          <button className={styles.iconButton} onClick={() => onEdit(expense)}>
-            <img src="/edit-icon.svg" alt="Edit" />
-          </button>
-          <button
-            className={styles.iconButton}
-            onClick={() => onDelete(expense.expenseID)}
-          >
-            <img src="/delete-icon.svg" alt="Delete" />
-          </button>
-        </div>
+        {/* Only show action buttons when not in view-only mode */}
+        {!isViewOnly && (
+          <div className={styles.actionButtons}>
+            <button className={styles.iconButton} onClick={() => onEdit(expense)}>
+              <img src="/edit-icon.svg" alt="Edit" />
+            </button>
+            <button
+              className={styles.iconButton}
+              onClick={() => onDelete(expense.expenseID)}
+            >
+              <img src="/delete-icon.svg" alt="Delete" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   </article>
@@ -49,6 +52,7 @@ const CategoryItem = ({
   onEditExpense,
   onDeleteExpense,
   budgetName,
+  isViewOnly, // New prop to control view-only mode
 }) => (
   <div className={styles.categoryContainer}>
     <div className={styles.categoryHeader}>
@@ -78,9 +82,12 @@ const CategoryItem = ({
         </button>
       </div>
       <div className={styles.actionButtons}>
-        <button className={styles.iconButton} onClick={onAddExpense}>
-          <img src="/add-icon.svg" alt="Add" />
-        </button>
+        {/* Only show add button when not in view-only mode */}
+        {!isViewOnly && (
+          <button className={styles.iconButton} onClick={onAddExpense}>
+            <img src="/add-icon.svg" alt="Add" />
+          </button>
+        )}
       </div>
     </div>
 
@@ -93,6 +100,7 @@ const CategoryItem = ({
               expense={expense}
               onEdit={onEditExpense}
               onDelete={onDeleteExpense}
+              isViewOnly={isViewOnly}
             />
           ))
         ) : (
@@ -154,6 +162,9 @@ export default function Expense({ user }) {
   const [categoryBudgetMap, setCategoryBudgetMap] = useState({}); // Map categories to their budget names
   const [selectedCategoryName, setSelectedCategoryName] = useState(null);
   const [categoryHasExpenses, setCategoryHasExpenses] = useState(false);
+
+  // Check if current filter is view-only (everything except "thisMonth")
+  const isViewOnlyMode = activeFilter !== "thisMonth";
 
   //Fetch categories based on time filter
   const fetchCategoriesForTimeFilter = async (timeFilter) => {
@@ -293,6 +304,12 @@ export default function Expense({ user }) {
 
   // Event handlers
   const handleEditExpenseClick = (expense) => {
+    // Prevent editing expenses in view-only mode
+    if (isViewOnlyMode) {
+      toast.info("Editing expenses is only available for the current month.");
+      return;
+    }
+    
     setSelectedExpense(expense);
     setIsEditExpenseModalOpen(true);
   };
@@ -403,6 +420,12 @@ export default function Expense({ user }) {
   };
 
   const handleAddExpenseClick = (categoryId) => {
+    // Prevent adding expenses in view-only mode
+    if (isViewOnlyMode) {
+      toast.info("Adding expenses is only available for the current month.");
+      return;
+    }
+    
     setSelectedCategoryId(categoryId);
     setIsAddExpenseModalOpen(true);
   };
@@ -421,6 +444,12 @@ export default function Expense({ user }) {
   };
 
   const handleDeleteExpenseClick = (expenseId) => {
+    // Prevent deleting expenses in view-only mode
+    if (isViewOnlyMode) {
+      toast.info("Deleting expenses is only available for the current month.");
+      return;
+    }
+    
     setSelectedExpenseId(expenseId);
     setIsDeleteExpenseModalOpen(true);
   };
@@ -581,6 +610,7 @@ export default function Expense({ user }) {
                     onEditExpense={handleEditExpenseClick}
                     onDeleteExpense={handleDeleteExpenseClick}
                     budgetName={categoryBudgetMap[category.categoryID]}
+                    isViewOnly={isViewOnlyMode} // Pass view-only state
                   />
                 ))
               ) : (
@@ -598,8 +628,8 @@ export default function Expense({ user }) {
           </section>
         </div>
 
-        {/* Add Expense Modal */}
-        {isAddExpenseModalOpen && (
+        {/* Add Expense Modal - Only show when not in view-only mode */}
+        {isAddExpenseModalOpen && !isViewOnlyMode && (
           <AddExpenseModal
             categoryId={selectedCategoryId}
             onClose={() => setIsAddExpenseModalOpen(false)}
@@ -607,8 +637,8 @@ export default function Expense({ user }) {
           />
         )}
 
-        {/* Edit Expense Modal */}
-        {isEditExpenseModalOpen && (
+        {/* Edit Expense Modal - Only show when not in view-only mode */}
+        {isEditExpenseModalOpen && !isViewOnlyMode && (
           <EditExpenseModal
             expense={selectedExpense}
             onClose={() => setIsEditExpenseModalOpen(false)}
