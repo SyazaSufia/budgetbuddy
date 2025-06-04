@@ -193,7 +193,8 @@ export const Dashboard = ({ user }) => {
                   <div className={styles.budgetSection}>
                     <h3 className={styles.budgetTitle}>Budget Overview</h3>
                     <div className={styles.budgetList}>
-                      <BudgetCard />
+                      {/* Pass the active period to BudgetCard using correct prop name */}
+                      <BudgetCard activeTimeFilter={activePeriod} />
                     </div>
                   </div>
                 </div>

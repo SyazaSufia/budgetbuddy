@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import BudgetIndicator from "./BudgetIndicator";
 import { budgetAPI } from "../services/UserApi";
 
-function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
+function BudgetCard({ activeTimeFilter = 'month' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [budgets, setBudgets] = useState([]);
   const [budgetExpenses, setBudgetExpenses] = useState({});
@@ -14,13 +14,27 @@ function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Map Dashboard period values to BudgetCard expected values
+  const mapPeriodFilter = (dashboardPeriod) => {
+    const periodMap = {
+      'month': 'thisMonth',
+      'lastMonth': 'lastMonth', 
+      'year': 'thisYear',
+      'last12Months': 'last12Months'
+    };
+    return periodMap[dashboardPeriod] || 'thisMonth';
+  };
+
   const fetchBudgets = async (timeFilter) => {
     setIsLoading(true);
     setError(null);
     
     try {
+      // Map the period before sending to API
+      const mappedFilter = mapPeriodFilter(timeFilter);
+      
       // Use your centralized budgetAPI - you might need to extend it to support timeFilter
-      const data = await budgetAPI.getBudgets(timeFilter);
+      const data = await budgetAPI.getBudgets(mappedFilter);
       
       if (data.success) {
         // Ensure default values if properties are missing
@@ -32,7 +46,7 @@ function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
         
         // Fetch detailed information for each budget
         processedBudgets.forEach(budget => {
-          fetchBudgetDetails(budget.budgetID);
+          fetchBudgetDetails(budget.budgetID, mappedFilter);
         });
       } else {
         console.error("Failed to load budgets:", data.message);
@@ -47,10 +61,10 @@ function BudgetCard({ activeTimeFilter = 'thisMonth' }) {
   };
 
   // Fetch detailed budget information including categories
-  const fetchBudgetDetails = async (budgetID) => {
+  const fetchBudgetDetails = async (budgetID, timeFilter) => {
     try {
       // You'll need to add this method to your budgetAPI
-      const data = await budgetAPI.getBudgetDetails(budgetID);
+      const data = await budgetAPI.getBudgetDetails(budgetID, timeFilter);
       
       if (data.success) {
         // Calculate total expenses for this budget from its categories
