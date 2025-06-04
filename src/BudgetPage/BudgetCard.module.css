@@ -113,3 +113,18 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+.readOnlyIndicator {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.readOnlyText {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
+}

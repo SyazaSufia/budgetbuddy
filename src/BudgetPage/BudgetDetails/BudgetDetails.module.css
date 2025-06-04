@@ -407,3 +407,45 @@
     font-size: 28px;
   }
 }
+
+/* Read-only badge in breadcrumb area */
+.readOnlyBadge {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-left: 16px;
+}
+
+/* Disabled section styles */
+.disabledSection {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.disabledHeader {
+  cursor: not-allowed;
+}
+
+.disabledHeader:hover {
+  background-color: transparent;
+}
+
+.disabledIcon {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.disabledText {
+  color: #999;
+}
+
+/* Ensure proper layout for top nav with read-only badge */
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}

@@ -30,6 +30,9 @@ function BudgetDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
+  // Get read-only mode from navigation state
+  const isReadOnlyMode = location.state?.isReadOnlyMode || false;
+
   // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
@@ -149,7 +152,7 @@ function BudgetDetails() {
   };
 
   const handleSetGoal = async () => {
-    if (!targetAmount) return;
+    if (!targetAmount || isReadOnlyMode) return; // Prevent action in read-only mode
 
     setIsSubmittingGoal(true);
     try {
@@ -182,6 +185,8 @@ function BudgetDetails() {
   };
 
   const handleDeleteBudget = async () => {
+    if (isReadOnlyMode) return; // Prevent action in read-only mode
+    
     setIsDeleting(true);
     try {
       // Check if budget has categories
@@ -272,6 +277,10 @@ function BudgetDetails() {
         <div className={styles.topNavSection}>
           <div className={styles.topNav}>
             <BreadcrumbNav budgetName={budget.budgetName || "Budget Details"} />
+            {/* Show read-only indicator */}
+            {isReadOnlyMode && (
+              <span className={styles.readOnlyBadge}>View Only</span>
+            )}
           </div>
         </div>
 
@@ -311,32 +320,35 @@ function BudgetDetails() {
           </div>
         </div>
 
-        {/* Set a Goal section */}
-        <div className={styles.actionSection}>
+        {/* Set a Goal section - disabled in read-only mode */}
+        <div className={`${styles.actionSection} ${isReadOnlyMode ? styles.disabledSection : ''}`}>
           <div
-            className={styles.actionHeader}
-            onClick={() => setGoalExpanded(!goalExpanded)}
+            className={`${styles.actionHeader} ${isReadOnlyMode ? styles.disabledHeader : ''}`}
+            onClick={() => !isReadOnlyMode && setGoalExpanded(!goalExpanded)}
+            title={isReadOnlyMode ? "Goal editing is only available for current month budgets" : ""}
           >
             <div className={styles.actionLeft}>
               <div className={styles.actionIcon}>
                 <img
                   src="/goal-icon.svg"
                   alt="icon"
-                  className={styles.actionIconImage}
+                  className={`${styles.actionIconImage} ${isReadOnlyMode ? styles.disabledIcon : ''}`}
                 />
               </div>
-              <span>Set a Goal</span>
+              <span className={isReadOnlyMode ? styles.disabledText : ''}>Set a Goal</span>
             </div>
-            <img
-              src="/chevron-right.svg"
-              alt="chevron"
-              className={`${styles.actionIconImage} ${
-                goalExpanded ? styles.rotate : ""
-              }`}
-            />
+            {!isReadOnlyMode && (
+              <img
+                src="/chevron-right.svg"
+                alt="chevron"
+                className={`${styles.actionIconImage} ${
+                  goalExpanded ? styles.rotate : ""
+                }`}
+              />
+            )}
           </div>
 
-          {goalExpanded && (
+          {goalExpanded && !isReadOnlyMode && (
             <div className={styles.actionContent}>
               <div className={styles.inputGroup}>
                 <label>Amount</label>
@@ -364,21 +376,22 @@ function BudgetDetails() {
           )}
         </div>
 
-        {/* Delete Budget section */}
-        <div className={styles.actionSection}>
+        {/* Delete Budget section - disabled in read-only mode */}
+        <div className={`${styles.actionSection} ${isReadOnlyMode ? styles.disabledSection : ''}`}>
           <div
-            className={styles.actionHeader}
-            onClick={() => setShowDeleteModal(true)}
+            className={`${styles.actionHeader} ${isReadOnlyMode ? styles.disabledHeader : ''}`}
+            onClick={() => !isReadOnlyMode && setShowDeleteModal(true)}
+            title={isReadOnlyMode ? "Budget deletion is only available for current month budgets" : ""}
           >
             <div className={styles.actionLeft}>
               <div className={styles.actionIcon}>
                 <img
                   src="/delete-icon.svg"
                   alt="icon"
-                  className={styles.actionIconImage}
+                  className={`${styles.actionIconImage} ${isReadOnlyMode ? styles.disabledIcon : ''}`}
                 />
               </div>
-              <span>Delete Budget</span>
+              <span className={isReadOnlyMode ? styles.disabledText : ''}>Delete Budget</span>
             </div>
           </div>
         </div>
@@ -424,8 +437,8 @@ function BudgetDetails() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {/* Delete Confirmation Modal - only functional when not in read-only mode */}
+      {showDeleteModal && !isReadOnlyMode && (
         <DeleteModal
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteBudget}

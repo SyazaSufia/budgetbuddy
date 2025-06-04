@@ -14,6 +14,9 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Check if the current filter allows editing (only "thisMonth" allows editing)
+  const isReadOnlyMode = activeTimeFilter !== 'thisMonth';
+
   // Map Dashboard period values to BudgetCard expected values
   const mapPeriodFilter = (dashboardPeriod) => {
     const periodMap = {
@@ -89,8 +92,10 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
     fetchBudgets(activeTimeFilter);
   }, [activeTimeFilter]); // Re-fetch when activeTimeFilter changes
 
-  // Handle adding a new budget
+  // Handle adding a new budget (only works in edit mode)
   const handleAddBudget = (newBudget) => {
+    if (isReadOnlyMode) return; // Prevent action in read-only mode
+    
     // First, close the modal
     setIsModalOpen(false);
 
@@ -101,9 +106,14 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
     fetchBudgets(activeTimeFilter);
   };
 
-  // Navigate to budget details with budget ID
+  // Navigate to budget details with budget ID and read-only state
   const navigateToBudgetDetails = (budget) => {
-    navigate(`/budgetdetails/${budget.budgetID}`, { state: { budget } });
+    navigate(`/budgetdetails/${budget.budgetID}`, { 
+      state: { 
+        budget,
+        isReadOnlyMode: isReadOnlyMode // Pass read-only state to details page
+      } 
+    });
   };
 
   // Calculate progress color based on percentage
@@ -125,6 +135,13 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
 
   return (
     <div className={styles.cardContainer}>
+      {/* Show read-only indicator if not in thisMonth mode */}
+      {isReadOnlyMode && (
+        <div className={styles.readOnlyIndicator}>
+          <span className={styles.readOnlyText}>View Only Mode</span>
+        </div>
+      )}
+
       {/* Render each budget as a card */}
       {budgets.length === 0 ? (
         <div className={styles.noBudgets}>
@@ -133,7 +150,9 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
             alt="No budgets"
             className={styles.emptyIllustration}
           />
-          <p>No budgets found for this time period. Create a new budget!</p>
+          <p>No budgets found for this time period. 
+            {!isReadOnlyMode && " Create a new budget!"}
+          </p>
         </div>
       ) : (
         budgets.map((budget) => {
@@ -186,19 +205,21 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
         })
       )}
 
-      {/* Button to create new budget */}
-      <section className={styles.createBudgetButton}>
-        <button
-          className={styles.addBudgetButton}
-          onClick={() => setIsModalOpen(true)}
-        >
-          <img src="/add-icon.svg" alt="Add" />
-          <span>Create New Budget</span>
-        </button>
-      </section>
+      {/* Only show Create New Budget button when not in read-only mode */}
+      {!isReadOnlyMode && (
+        <section className={styles.createBudgetButton}>
+          <button
+            className={styles.addBudgetButton}
+            onClick={() => setIsModalOpen(true)}
+          >
+            <img src="/add-icon.svg" alt="Add" />
+            <span>Create New Budget</span>
+          </button>
+        </section>
+      )}
 
-      {/* Modal for creating a new budget */}
-      {isModalOpen && (
+      {/* Modal for creating a new budget - only functional when not in read-only mode */}
+      {isModalOpen && !isReadOnlyMode && (
         <CreateBudgetModal
           onClose={() => setIsModalOpen(false)}
           onAdd={handleAddBudget}
