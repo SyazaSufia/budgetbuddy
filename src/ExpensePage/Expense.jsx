@@ -155,7 +155,48 @@ export default function Expense({ user }) {
   const [selectedCategoryName, setSelectedCategoryName] = useState(null);
   const [categoryHasExpenses, setCategoryHasExpenses] = useState(false);
 
-  // Fetch all user's budgets
+  //Fetch categories based on time filter
+  const fetchCategoriesForTimeFilter = async (timeFilter) => {
+    try {
+      setIsLoading(true);
+
+      // Use the proper API method from categoryAPI
+      const result = await categoryAPI.getCategoriesForTimeFilter(timeFilter);
+
+      if (result.success && Array.isArray(result.data)) {
+        setCategories(result.data);
+
+        // Create budget mapping from the categories data
+        // Since we now get budget info directly from the query, we can map it easily
+        const budgetMapping = {};
+
+        result.data.forEach((category) => {
+          budgetMapping[category.categoryID] = category.budgetName;
+        });
+
+        setCategoryBudgetMap(budgetMapping);
+
+        // Fetch expenses for each category
+        for (const category of result.data) {
+          await fetchCategoryExpenses(category.categoryID);
+        }
+      } else {
+        setCategories([]);
+        setCategoryBudgetMap({});
+      }
+    } catch (error) {
+      console.error("Error fetching categories for time filter:", error);
+      setCategories([]);
+      setCategoryBudgetMap({});
+
+      // Show user-friendly error message
+      toast.error("Failed to load categories. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all user's budgets (kept for compatibility)
   const fetchBudgets = async () => {
     try {
       const result = await budgetAPI.getBudgets();
@@ -169,58 +210,11 @@ export default function Expense({ user }) {
         return result.data; // Return all budgets
       } else {
         // No budgets found
-        setIsLoading(false);
         return [];
       }
     } catch (error) {
       console.error("Error fetching budgets:", error);
-      setIsLoading(false);
       return [];
-    }
-  };
-
-  // Fetch details for each budget including its categories
-  const fetchAllBudgetDetails = async (budgetsList) => {
-    if (!budgetsList || budgetsList.length === 0) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      let allCategories = [];
-      const budgetCategoryMapping = {};
-
-      // Process each budget one by one
-      for (const budget of budgetsList) {
-        const result = await budgetAPI.getBudgetDetails(budget.budgetID);
-
-        if (
-          result.success &&
-          result.data &&
-          Array.isArray(result.data.categories)
-        ) {
-          // Map each category to its budget name
-          result.data.categories.forEach((category) => {
-            budgetCategoryMapping[category.categoryID] =
-              result.data.budget.budgetName;
-          });
-
-          // Add these categories to our complete list
-          allCategories = [...allCategories, ...result.data.categories];
-        }
-      }
-
-      setCategories(allCategories);
-      setCategoryBudgetMap(budgetCategoryMapping);
-
-      // Fetch expenses for each category
-      for (const category of allCategories) {
-        await fetchCategoryExpenses(category.categoryID);
-      }
-    } catch (error) {
-      console.error("Error fetching budget details:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -292,17 +286,9 @@ export default function Expense({ user }) {
 
     setFilteredExpenses(filtered);
 
-    // Determine which categories to display
-    if (activeFilter === "thisMonth") {
-      setVisibleCategories(categories);
-    } else {
-      const categoriesWithExpenses = categories.filter(
-        (category) =>
-          filtered[category.categoryID] &&
-          filtered[category.categoryID].length > 0
-      );
-      setVisibleCategories(categoriesWithExpenses);
-    }
+    // For expense page, show all categories from the selected time filter
+    // Categories are already filtered by time when fetched
+    setVisibleCategories(categories);
   };
 
   // Event handlers
@@ -337,8 +323,7 @@ export default function Expense({ user }) {
     });
 
     // Refresh categories data to get updated amounts
-    const fetchedBudgets = await fetchBudgets();
-    await fetchAllBudgetDetails(fetchedBudgets);
+    await fetchCategoriesForTimeFilter(activeFilter);
 
     setIsEditExpenseModalOpen(false);
     setSelectedExpense(null);
@@ -429,8 +414,7 @@ export default function Expense({ user }) {
     }));
 
     // Refresh categories data to get updated amounts
-    const fetchedBudgets = await fetchBudgets();
-    await fetchAllBudgetDetails(fetchedBudgets);
+    await fetchCategoriesForTimeFilter(activeFilter);
 
     setIsAddExpenseModalOpen(false);
     toast.success("Expense added successfully!");
@@ -461,8 +445,7 @@ export default function Expense({ user }) {
         setFilteredExpenses(updateExpensesList);
 
         // Refresh categories data to get updated amounts
-        const fetchedBudgets = await fetchBudgets();
-        await fetchAllBudgetDetails(fetchedBudgets);
+        await fetchCategoriesForTimeFilter(activeFilter);
 
         setIsDeleteExpenseModalOpen(false);
         setSelectedExpenseId(null);
@@ -494,11 +477,16 @@ export default function Expense({ user }) {
 
   // Get message for empty states
   const getEmptyStateMessage = () => {
-    if (budgets.length === 0) {
-      return "No budgets found. Create a budget first to get started.";
-    }
     if (categories.length === 0) {
-      return "No expense categories found. Categories are created automatically when you create a budget.";
+      return `No expense categories found for the selected ${
+        activeFilter === "thisMonth"
+          ? "month"
+          : activeFilter === "lastMonth"
+            ? "last month"
+            : activeFilter === "thisYear"
+              ? "year"
+              : "period"
+      }. Categories are created when you create a budget for that time period.`;
     }
     return `No expenses found for the selected ${
       activeFilter === "thisMonth"
@@ -513,17 +501,19 @@ export default function Expense({ user }) {
 
   // Effect hooks
   useEffect(() => {
-    const initializeData = async () => {
-      const fetchedBudgets = await fetchBudgets();
-      await fetchAllBudgetDetails(fetchedBudgets);
-    };
-
-    initializeData();
+    // Initialize data with current filter
+    fetchCategoriesForTimeFilter(activeFilter);
+    fetchBudgets(); // Keep for compatibility if needed elsewhere
   }, []);
 
   useEffect(() => {
+    // Re-fetch categories when filter changes
+    fetchCategoriesForTimeFilter(activeFilter);
+  }, [activeFilter]);
+
+  useEffect(() => {
     applyTimeFilter();
-  }, [activeFilter, expenses, categories]);
+  }, [expenses, categories, activeFilter]);
 
   const totalExpense = calculateTotalExpense();
 

@@ -155,21 +155,49 @@ exports.createBudget = async (req, res) => {
       });
     }
 
-    // Check if a budget with this name already exists for this user
+    // Get current date for monthly duplicate check
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    // Define current month boundaries
+    const startOfMonth = new Date(currentYear, currentMonth, 1);
+    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+
+    // For debugging - let's see what we're checking
+    console.log('Creating budget check:', {
+      budgetName,
+      userID,
+      currentMonth: currentMonth + 1,
+      currentYear,
+      startOfMonth: startOfMonth.toISOString(),
+      endOfMonth: endOfMonth.toISOString()
+    });
+
+    // Check if a budget with this name already exists for this user IN THE CURRENT MONTH ONLY
     const checkQuery = `
-      SELECT * FROM budgets WHERE userID = ? AND budgetName = ?
+      SELECT budgetID, budgetName, createdAt FROM budgets 
+      WHERE userID = ? AND budgetName = ? 
+      AND createdAt >= ? AND createdAt <= ?
     `;
 
-    const checkResults = await db.query(checkQuery, [userID, budgetName]);
+    const checkResults = await db.query(checkQuery, [
+      userID,
+      budgetName,
+      startOfMonth,
+      endOfMonth,
+    ]);
+
+    console.log('Check results:', checkResults);
 
     if (checkResults.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "A budget with this name already exists.",
+        message: `A budget with the name "${budgetName}" already exists for this month.`,
       });
     }
 
-    // If not exists, proceed to insert
+    // If not exists in current month, proceed to insert
     const insertQuery = `INSERT INTO budgets (userID, budgetName, targetAmount, icon) VALUES (?, ?, ?, ?)`;
     const result = await db.query(insertQuery, [
       userID,
@@ -189,6 +217,7 @@ exports.createBudget = async (req, res) => {
       message: "Budget created successfully!",
     });
   } catch (err) {
+    console.error('Error creating budget:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -518,14 +547,14 @@ exports.updateCategory = async (req, res) => {
 // Delete a category
 exports.deleteCategory = async (req, res) => {
   let connection = null;
-  
+
   try {
     const { categoryID } = req.params;
     const userID = req.session.user.id;
 
     // Create a new connection for the transaction
     connection = await require("../db").createConnection();
-    
+
     // Start a transaction
     await connection.beginTransaction();
 
@@ -535,28 +564,32 @@ exports.deleteCategory = async (req, res) => {
         DELETE FROM expenses 
         WHERE categoryID = ? AND userID = ?
       `;
-      
+
       await connection.execute(deleteExpensesQuery, [categoryID, userID]);
-      
+
       // Then delete the category
       const deleteCategoryQuery = `
         DELETE FROM categories 
         WHERE categoryID = ? AND userID = ?
       `;
-      
-      const [result] = await connection.execute(deleteCategoryQuery, [categoryID, userID]);
-      
+
+      const [result] = await connection.execute(deleteCategoryQuery, [
+        categoryID,
+        userID,
+      ]);
+
       if (result.affectedRows === 0) {
         await connection.rollback();
         return res.status(404).json({
           success: false,
-          message: "Category not found or you don't have permission to delete it",
+          message:
+            "Category not found or you don't have permission to delete it",
         });
       }
-      
+
       // Commit the transaction
       await connection.commit();
-      
+
       res.status(200).json({
         success: true,
         message: "Category and all associated expenses deleted successfully",
@@ -584,5 +617,101 @@ exports.deleteCategory = async (req, res) => {
         console.error("Error closing connection:", err);
       }
     }
+  }
+};
+
+// Get categories filtered by time period
+exports.getCategoriesForTimeFilter = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const { timeFilter } = req.query;
+
+    let dateCondition = "";
+    const queryParams = [userID];
+
+    // Get current date for calculations
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    // Add date filtering based on timeFilter parameter
+    if (timeFilter) {
+      let startDate;
+
+      switch (timeFilter) {
+        case "thisMonth":
+          // First day of current month to today
+          startDate = new Date(currentYear, currentMonth, 1);
+          dateCondition = " AND c.createdAt >= ?";
+          queryParams.push(startDate);
+          break;
+
+        case "lastMonth":
+          // First day of last month to last day of last month
+          startDate = new Date(currentYear, currentMonth - 1, 1);
+          const endDate = new Date(currentYear, currentMonth, 0);
+          dateCondition = " AND c.createdAt >= ? AND c.createdAt <= ?";
+          queryParams.push(startDate, endDate);
+          break;
+
+        case "thisYear":
+          // First day of current year to today
+          startDate = new Date(currentYear, 0, 1);
+          dateCondition = " AND c.createdAt >= ?";
+          queryParams.push(startDate);
+          break;
+
+        case "last12Months":
+          // 12 months ago from today to today
+          startDate = new Date(currentYear, currentMonth - 11, 1);
+          dateCondition = " AND c.createdAt >= ?";
+          queryParams.push(startDate);
+          break;
+
+        default:
+          // No filter or invalid filter, return all categories
+          break;
+      }
+    }
+
+    // Query to get categories with their budget information
+    const query = `
+      SELECT 
+        c.categoryID, 
+        c.categoryName, 
+        c.icon, 
+        c.budgetID,
+        COALESCE(c.categoryAmount, 0) AS categoryAmount,
+        b.budgetName,
+        b.targetAmount,
+        b.icon as budgetIcon
+      FROM categories c
+      INNER JOIN budgets b ON c.budgetID = b.budgetID
+      WHERE c.userID = ? AND b.userID = ?${dateCondition}
+      ORDER BY b.budgetName, c.categoryName
+    `;
+
+    // Add userID twice for the JOIN condition
+    queryParams.splice(1, 0, userID);
+
+    const results = await db.query(query, queryParams);
+
+    // Format the results
+    const formattedResults = results.map((category) => ({
+      ...category,
+      categoryAmount: parseFloat(category.categoryAmount || 0),
+      targetAmount: parseFloat(category.targetAmount || 0),
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedResults,
+    });
+  } catch (err) {
+    console.error("Error fetching categories for time filter:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };

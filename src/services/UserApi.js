@@ -8,7 +8,7 @@ const API_BASE_URL = isDevelopment
   ? "http://localhost:43210"
   : `${window.location.protocol}//${window.location.host}/api`;
 
-console.log('API_BASE_URL:', API_BASE_URL); // For debugging
+console.log("API_BASE_URL:", API_BASE_URL); // For debugging
 
 export { API_BASE_URL };
 
@@ -32,17 +32,22 @@ const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
-    console.log('Making API request to:', url); // For debugging
+    console.log("Making API request to:", url); // For debugging
     const response = await fetch(url, config);
-    
+
     // Check if response is HTML (error page) instead of JSON
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
-      console.error('Server returned non-JSON response:', text.substring(0, 200));
-      throw new Error('Server returned an error page instead of JSON. Please check your server configuration.');
+      console.error(
+        "Server returned non-JSON response:",
+        text.substring(0, 200)
+      );
+      throw new Error(
+        "Server returned an error page instead of JSON. Please check your server configuration."
+      );
     }
-    
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -83,6 +88,19 @@ export const authAPI = {
     apiRequest("/update-profile", {
       method: "POST",
       body: JSON.stringify(profileData),
+    }),
+
+  // Password reset methods
+  forgotPassword: (email) =>
+    apiRequest("/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token, password) =>
+    apiRequest("/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
     }),
 };
 
@@ -186,6 +204,14 @@ export const categoryAPI = {
     apiRequest(`/budget/categories/${id}`, {
       method: "DELETE",
     }),
+
+  //Get categories filtered by time period
+  getCategoriesForTimeFilter: (timeFilter) => {
+    const endpoint = timeFilter
+      ? `/budget/categories/time-filter?timeFilter=${timeFilter}`
+      : "/budget/categories/time-filter";
+    return apiRequest(endpoint);
+  },
 };
 
 // Income API methods
