@@ -135,12 +135,6 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
 
   return (
     <div className={styles.cardContainer}>
-      {/* Show read-only indicator if not in thisMonth mode */}
-      {isReadOnlyMode && (
-        <div className={styles.readOnlyIndicator}>
-          <span className={styles.readOnlyText}>View Only Mode</span>
-        </div>
-      )}
 
       {/* Render each budget as a card */}
       {budgets.length === 0 ? (
