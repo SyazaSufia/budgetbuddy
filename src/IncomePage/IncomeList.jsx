@@ -21,6 +21,9 @@ export default function IncomeList({
   const [isRecurringIncome, setIsRecurringIncome] = useState(false);
   const [updateAllRecurrences, setUpdateAllRecurrences] = useState(false);
 
+  // Check if the current filter allows editing (only "thisMonth" allows editing)
+  const isReadOnlyMode = activeFilter !== "thisMonth";
+
   // Fetch incomes from the backend using API
   const fetchIncomes = async () => {
     try {
@@ -108,8 +111,10 @@ export default function IncomeList({
     onUpdateTotalIncome(total);
   }, [activeFilter, incomeItems, onUpdateTotalIncome]);
 
-  // Handle delete button click
+  // Handle delete button click (only works in edit mode)
   const handleDeleteClick = (id, isRecurring = false) => {
+    if (isReadOnlyMode) return; // Prevent action in read-only mode
+    
     setSelectedIncomeId(id);
     setIsRecurringIncome(isRecurring);
     setIsDeleteModalOpen(true);
@@ -141,8 +146,10 @@ export default function IncomeList({
     }
   };
 
-  // Handle edit button click
+  // Handle edit button click (only works in edit mode)
   const handleEditClick = (income) => {
+    if (isReadOnlyMode) return; // Prevent action in read-only mode
+    
     setCurrentIncome(income);
     setIsEditModalOpen(true);
     // Reset the update all recurrences flag
@@ -167,7 +174,7 @@ export default function IncomeList({
     }
   };
 
-  // Add income modal callback
+  // Add income modal callback (only works in edit mode)
   const handleAddIncome = async () => {
     try {
       await fetchIncomes(); // Auto-refresh after adding a new one
@@ -200,7 +207,9 @@ export default function IncomeList({
 
   return (
     <section className={styles.incomeLists}>
-      <h2 className={styles.title}>All Income</h2>
+      <h2 className={styles.title}>
+        All Income {isReadOnlyMode && <span className={styles.readOnlyLabel}>(View Only)</span>}
+      </h2>
       <div className={styles.content4}>
         {filteredIncomeItems.length > 0 ? (
           filteredIncomeItems.map((item) => (
@@ -230,24 +239,50 @@ export default function IncomeList({
                     <span className={styles.amount}>{item.amount}</span>
                   </div>
                 </div>
-                <div className={styles.icons}>
-                  <button
-                    className={styles.iconButton}
-                    aria-label="Edit income"
-                    onClick={() => handleEditClick(item)}
-                  >
-                    <img loading="lazy" src="/edit-icon.svg" alt="Edit" />
-                  </button>
-                  <button
-                    className={styles.iconButton}
-                    aria-label="Delete income"
-                    onClick={() =>
-                      handleDeleteClick(item.incomeID, item.isRecurring)
-                    }
-                  >
-                    <img loading="lazy" src="/delete-icon.svg" alt="Delete" />
-                  </button>
-                </div>
+                
+                {/* Only show action buttons in edit mode (thisMonth filter) */}
+                {!isReadOnlyMode && (
+                  <div className={styles.icons}>
+                    <button
+                      className={styles.iconButton}
+                      aria-label="Edit income"
+                      onClick={() => handleEditClick(item)}
+                    >
+                      <img loading="lazy" src="/edit-icon.svg" alt="Edit" />
+                    </button>
+                    <button
+                      className={styles.iconButton}
+                      aria-label="Delete income"
+                      onClick={() =>
+                        handleDeleteClick(item.incomeID, item.isRecurring)
+                      }
+                    >
+                      <img loading="lazy" src="/delete-icon.svg" alt="Delete" />
+                    </button>
+                  </div>
+                )}
+                
+                {/* Show disabled buttons in read-only mode for visual consistency */}
+                {isReadOnlyMode && (
+                  <div className={styles.icons}>
+                    <button
+                      className={`${styles.iconButton} ${styles.disabledButton}`}
+                      aria-label="Edit income (disabled)"
+                      disabled
+                      title="Editing is only available for current month entries"
+                    >
+                      <img loading="lazy" src="/edit-icon.svg" alt="Edit" />
+                    </button>
+                    <button
+                      className={`${styles.iconButton} ${styles.disabledButton}`}
+                      aria-label="Delete income (disabled)"
+                      disabled
+                      title="Deleting is only available for current month entries"
+                    >
+                      <img loading="lazy" src="/delete-icon.svg" alt="Delete" />
+                    </button>
+                  </div>
+                )}
               </div>
             </article>
           ))
@@ -265,28 +300,32 @@ export default function IncomeList({
         )}
       </div>
 
-      <button
-        className={styles.addIncomeButton}
-        onClick={() => setIsModalOpen(true)}
-      >
-        <img loading="lazy" src="/add-icon.svg" alt="Add" />
-        <span>Add Income</span>
-      </button>
+      {/* Only show Add Income button when not in read-only mode */}
+      {!isReadOnlyMode && (
+        <button
+          className={styles.addIncomeButton}
+          onClick={() => setIsModalOpen(true)}
+        >
+          <img loading="lazy" src="/add-icon.svg" alt="Add" />
+          <span>Add Income</span>
+        </button>
+      )}
 
-      {isModalOpen && (
+      {/* Modals - only functional when not in read-only mode */}
+      {isModalOpen && !isReadOnlyMode && (
         <AddIncomeModal
           onClose={() => setIsModalOpen(false)}
           onAddIncome={handleAddIncome}
         />
       )}
-      {isDeleteModalOpen && (
+      {isDeleteModalOpen && !isReadOnlyMode && (
         <DeleteModal
           onCancel={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteConfirm}
           isRecurring={isRecurringIncome}
         />
       )}
-      {isEditModalOpen && (
+      {isEditModalOpen && !isReadOnlyMode && (
         <EditIncomeModal
           income={currentIncome}
           onClose={() => setIsEditModalOpen(false)}

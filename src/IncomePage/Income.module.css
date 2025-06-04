@@ -395,3 +395,23 @@
     padding: 0 20px;
   }
 }
+
+/* Disabled button styles */
+.disabledButton {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.disabledButton:hover {
+  opacity: 0.4;
+  transform: none;
+}
+
+/* Read-only label styles */
+.readOnlyLabel {
+  font-size: 0.8em;
+  color: #666;
+  font-weight: normal;
+  margin-left: 8px;
+}
