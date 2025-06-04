@@ -27,7 +27,7 @@
   min-height: 100vh;
   position: relative;
   margin-left: 250px; /* Match the width of the sidebar */
-  padding: 48px 32px;
+  padding: 40px 24px;
   transition: margin-left 0.3s ease; /* Smooth transition when sidebar collapses */
   overflow-y: auto;
 }
@@ -57,6 +57,7 @@
   color: #1a202c;
   margin: 0;
   font-family: "montserrat";
+  font-weight: 600;
 }
 
 .addButton {

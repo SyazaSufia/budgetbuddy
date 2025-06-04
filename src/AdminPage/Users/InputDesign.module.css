@@ -4,7 +4,7 @@
     align-items: flex-start;
     gap: 16px;
     width: 100%;
-    padding: 48px 24px;
+    padding: 40px 24px;
     display: flex;
   }
   @media (width<=991px) {
@@ -18,14 +18,14 @@
     }
   }
   .div2 {
-    color: black;
+    color: #333;
     width: 100%;
     font-family: Montserrat;
     font-size: 24px;
-    font-weight: 500;
     line-height: 35px;
-    margin-bottom: 0px;
-    margin-top: 0px;
+    font-size: 24px;
+    margin: 0;
+    font-weight: 600;
   }
   @media (width<=991px) {
     .div2 {
@@ -45,6 +45,7 @@
     width: 100%;
     display: flex;
     overflow-x: auto;
+    padding: 16px;
   }
   @media (width<=991px) {
     .div6 {
@@ -58,18 +59,46 @@
   }
 
   .container {
-    display: flex;
-    align-items: flex-start; /* Ensures the content starts from the top */
-    min-height: 100vh;
-  }
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  position: relative;
+}
   
-  .content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    justify-content: flex-start; /* Align content to the top */
-    align-items: flex-start; /* Align to the left */
-  }
+  /* Sidebar styling - similar to ads page */
+.sidebar {
+  width: 250px;
+  background-color: white;
+  color: white;
+  position: fixed; /* Change to fixed positioning */
+  height: 100vh; /* Full viewport height */
+  transition: width 0.3s ease;
+  z-index: 10;
+  top: 0; /* Stick to top */
+  left: 0; /* Stick to left */
+}
+
+/* Collapsed sidebar state */
+.sidebarCollapsed {
+  width: 60px;
+}
+
+/* Content area styling */
+.content {
+  background: #f5f5f5;
+  flex: 1;
+  min-height: 100vh;
+  position: relative;
+  margin-left: 250px; /* Match sidebar width */
+  padding: 0px;
+  transition: margin-left 0.3s ease;
+  overflow-y: auto;
+}
+
+/* Content adjustment when sidebar is collapsed */
+.content.sidebarCollapsed {
+  margin-left: 60px; /* Match collapsed sidebar width */
+}
 
 /* Table Container */
 .tableContainer {
