@@ -72,7 +72,7 @@ const adminApiRequest = async (endpoint, options = {}) => {
     // Enhance error message for common issues
     if (error.message.includes('Failed to fetch')) {
       throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please check if the server is running.`);
-    }
+    }AC
     
     if (error.message.includes('Unexpected token')) {
       throw new Error(`Server returned invalid response. The endpoint ${endpoint} may not exist or may be misconfigured.`);

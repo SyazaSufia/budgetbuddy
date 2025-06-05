@@ -1,6 +1,44 @@
 const db = require("../db");
 
 /**
+ * Helper function to determine if we're in development
+ */
+const isDevelopment = () => process.env.NODE_ENV === "development";
+
+/**
+ * Get the base URL for the server (WITHOUT /api for static files)
+ */
+const getBaseUrl = (req) => {
+  if (isDevelopment()) {
+    return "http://localhost:43210";
+  }
+  // For production, use the same protocol and host as the request
+  return `${req.protocol}://${req.get("host")}`;
+};
+
+/**
+ * Process image URLs to ensure they are properly formed
+ */
+const processImageURL = (imageURL, req) => {
+  if (!imageURL) return null;
+  
+  // If already a full URL, return as-is
+  if (imageURL.startsWith('http://') || imageURL.startsWith('https://')) {
+    return imageURL;
+  }
+  
+  const baseUrl = getBaseUrl(req);
+  
+  // Remove leading slash if present
+  const cleanPath = imageURL.startsWith('/') ? imageURL.substring(1) : imageURL;
+  
+  // Add uploads prefix if not present
+  const path = cleanPath.includes('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+  
+  return `${baseUrl}/${path}`;
+};
+
+/**
  * Get active advertisements for user-facing pages
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -28,31 +66,14 @@ const getActiveAdvertisements = async (req, res) => {
       query += ` ORDER BY RAND()`; // Random selection without limit
     }
 
-    console.log("Executing query:", query);
-    console.log("With params:", params);
-
     const advertisements = await db.query(query, params);
-
-    console.log("Fetched advertisements:", advertisements);
-
-    // Get the base URL for the server
-    const getBaseUrl = (req) => {
-      if (process.env.NODE_ENV === "production") {
-        return `${req.protocol}://${req.get("host")}`;
-      }
-      return process.env.API_BASE_URL || "http://localhost:43210";
-    };
-
-    // Call the function to get the base URL
-    const baseUrl = getBaseUrl(req);
 
     // Process image URLs to ensure they are properly formed
     const processedAds = advertisements.map((ad) => {
-      if (ad.imageURL && !ad.imageURL.startsWith("http")) {
-        // Assuming imageURL is stored as a relative path to the public directory
-        ad.imageURL = `${baseUrl}${ad.imageURL}`;
-      }
-      return ad;
+      return {
+        ...ad,
+        imageURL: processImageURL(ad.imageURL, req)
+      };
     });
 
     // Format response to match your existing pattern
@@ -153,9 +174,17 @@ const getAllAdvertisements = async (req, res) => {
 
     const advertisements = await db.query(query);
 
+    // Process image URLs for admin panel
+    const processedAds = advertisements.map((ad) => {
+      return {
+        ...ad,
+        imageURL: processImageURL(ad.imageURL, req)
+      };
+    });
+
     res.json({
       success: true,
-      data: advertisements,
+      data: processedAds,
     });
   } catch (error) {
     console.error("Error fetching all advertisements:", error);
@@ -174,16 +203,7 @@ const getAllAdvertisements = async (req, res) => {
 const updateAdvertisement = async (req, res) => {
   try {
     const { adID } = req.params;
-    const {
-      title,
-      description,
-      imageURL,
-      linkURL,
-      position,
-      isActive,
-      startDate,
-      endDate,
-    } = req.body;
+    const updateFields = req.body;
 
     if (!adID) {
       return res.status(400).json({
@@ -192,83 +212,36 @@ const updateAdvertisement = async (req, res) => {
       });
     }
 
-    // First, check if advertisement exists
-    const checkQuery = "SELECT adID FROM advertisements WHERE adID = ?";
-    const existingAd = await db.query(checkQuery, [adID]);
+    // Remove undefined fields
+    const fieldsToUpdate = Object.keys(updateFields).filter(
+      key => updateFields[key] !== undefined
+    );
 
-    if (existingAd.length === 0) {
+    if (fieldsToUpdate.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "No fields provided for update",
+      });
+    }
+
+    // Build update query dynamically
+    const setClause = fieldsToUpdate.map(field => `${field} = ?`).join(', ');
+    const updateQuery = `UPDATE advertisements SET ${setClause} WHERE adID = ?`;
+    const updateParams = [...fieldsToUpdate.map(field => updateFields[field]), adID];
+
+    const result = await db.query(updateQuery, updateParams);
+
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         success: false,
         error: "Advertisement not found",
       });
     }
 
-    // Build update query dynamically based on provided fields
-    let updateQuery = "UPDATE advertisements SET ";
-    let updateParams = [];
-
-    if (title !== undefined) {
-      updateQuery += "title = ?, ";
-      updateParams.push(title);
-    }
-
-    if (description !== undefined) {
-      updateQuery += "description = ?, ";
-      updateParams.push(description);
-    }
-
-    if (imageURL !== undefined) {
-      updateQuery += "imageURL = ?, ";
-      updateParams.push(imageURL);
-    }
-
-    if (linkURL !== undefined) {
-      updateQuery += "linkURL = ?, ";
-      updateParams.push(linkURL);
-    }
-
-    if (position !== undefined) {
-      updateQuery += "position = ?, ";
-      updateParams.push(position);
-    }
-
-    if (isActive !== undefined) {
-      updateQuery += "isActive = ?, ";
-      updateParams.push(isActive);
-    }
-
-    if (startDate !== undefined) {
-      updateQuery += "startDate = ?, ";
-      updateParams.push(startDate);
-    }
-
-    if (endDate !== undefined) {
-      updateQuery += "endDate = ?, ";
-      updateParams.push(endDate);
-    }
-
-    // Remove trailing comma and space
-    updateQuery = updateQuery.slice(0, -2);
-
-    // Add WHERE clause
-    updateQuery += " WHERE adID = ?";
-    updateParams.push(adID);
-
-    // Execute update if there are fields to update
-    if (updateParams.length > 1) {
-      // > 1 because at least one param is for the WHERE clause
-      await db.query(updateQuery, updateParams);
-
-      res.json({
-        success: true,
-        message: "Advertisement updated successfully",
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        error: "No fields provided for update",
-      });
-    }
+    res.json({
+      success: true,
+      message: "Advertisement updated successfully",
+    });
   } catch (error) {
     console.error("Error updating advertisement:", error);
     res.status(500).json({
@@ -294,20 +267,16 @@ const deleteAdvertisement = async (req, res) => {
       });
     }
 
-    // Check if advertisement exists
-    const checkQuery = "SELECT adID FROM advertisements WHERE adID = ?";
-    const existingAd = await db.query(checkQuery, [adID]);
+    // Delete the advertisement directly - let the database handle if it exists
+    const deleteQuery = "DELETE FROM advertisements WHERE adID = ?";
+    const result = await db.query(deleteQuery, [adID]);
 
-    if (existingAd.length === 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         success: false,
         error: "Advertisement not found",
       });
     }
-
-    // Delete the advertisement
-    const deleteQuery = "DELETE FROM advertisements WHERE adID = ?";
-    await db.query(deleteQuery, [adID]);
 
     res.json({
       success: true,
