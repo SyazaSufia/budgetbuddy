@@ -115,16 +115,16 @@ app.use((req, res, next) => {
 });
 
 // Development environment
-// if (process.env.NODE_ENV === 'development') {
-//   // Development environment
-//   app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-//   app.use('/uploads/ads', express.static(path.join(__dirname, 'public', 'uploads', 'ads')));
-// } else {
-//   // Production environment - serve from VPS location
-//   const uploadPath = '/var/www/budgetbuddy/backend/public/uploads';
-//   app.use('/uploads', express.static(uploadPath));
-//   app.use('/uploads/ads', express.static(path.join(uploadPath, 'ads')));
-// }
+if (process.env.NODE_ENV === 'development') {
+  // Development environment
+  app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+  app.use('/uploads/ads', express.static(path.join(__dirname, 'public', 'uploads', 'ads')));
+} else {
+  // Production environment - serve from VPS location
+  const uploadPath = '/var/www/budgetbuddy/backend/public/uploads';
+  app.use('/uploads', express.static(uploadPath));
+  app.use('/uploads/ads', express.static(path.join(uploadPath, 'ads')));
+}
 
 // Debug middleware to log static file requests
 app.use((req, res, next) => {
