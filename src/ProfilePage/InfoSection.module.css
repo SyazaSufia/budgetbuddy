@@ -1,54 +1,79 @@
 .section {
-    border-radius: 8px;
-    background: #fff;
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    max-width: 2500px; /* Adjust as needed */
-    margin: 0 auto;
-  }
-  
-  .sectionHeader {
-    position: relative;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 0;
-  }
-  
-  .sectionTitle {
-    color: var(--textColor);
-    font: 600 16px Montserrat, sans-serif;
-    margin-bottom: 2;
-    margin-top: 2;
-  }
-  
-  .required {
-    color: red;
-    font: 500 16px Montserrat, sans-serif;
-    margin-bottom: 2;
-    margin-top: 2;
-  }
-  
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  max-width: 2500px;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.sectionTitle {
+  color: var(--textColor);
+  font: 600 16px Montserrat, sans-serif;
+  margin-bottom: 2px;
+  margin-top: 2px;
+}
+
+.required {
+  color: red;
+  font: 500 16px Montserrat, sans-serif;
+  margin-bottom: 2px;
+  margin-top: 2px;
+}
+
+.sectionContent {
+  border-radius: 8px;
+  display: flex;
+  margin-top: 16px;
+  width: 100%;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid var(--borderColor);
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  align-items: start;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.rowSpaced {
+  margin-top: 24px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
   .sectionContent {
-    border-radius: 8px;
-    display: flex;
-    margin-top: 16px;
-    width: 100%;
-    flex-direction: column;
-    padding: 16px;
-    border: 1px solid var(--borderColor);
+    padding: 12px;
   }
-  
+
   .row {
-    display: flex;
-    width: 100%;
-    align-items: start;
-    gap: 18px;
-    flex-wrap: wrap;
+    gap: 12px;
   }
-  
-  .rowSpaced {
-    margin-top: 24px;
+
+  .sectionTitle {
+    font-size: 14px;
   }
+}
+
+@media (max-width: 480px) {
+  .sectionContent {
+    padding: 8px;
+  }
+
+  .row {
+    gap: 8px;
+  }
+}

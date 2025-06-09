@@ -4,6 +4,7 @@
     align-items: center;
     gap: 8px;
     flex: 1;
+    flex-wrap: wrap;
   }
   
   .label {
@@ -19,7 +20,7 @@
     font: 500 16px Montserrat, sans-serif;
   }
   
-  .input {
+  .input, .select {
     border-radius: 4px;
     background: #fff;
     border: 1px solid #e0e0e0;
@@ -30,18 +31,25 @@
     color: var(--disableText);
   }
   
-  .select {
-    border-radius: 4px;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    padding: 0 16px;
-    height: 40px;
-    width: 100%;
-    font: 400 14px Montserrat, sans-serif;
-    color: var(--disableText);
-    appearance: none;
-    background-image: url('https://cdn.builder.io/api/v1/image/assets/TEMP/f4e17e78b6477eef12714b79a9a18f47248cc7d92a60229b8dc2e00435c43e4c?placeholderIfAbsent=true&apiKey=f57fde44dc854af1bb149ad964888ac0');
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    padding-right: 40px;
+  /* Media Queries */
+  @media (max-width: 768px) {
+    .field {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      width: 100%;
+    }
+  
+    .label {
+      width: 100%;
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .input, .select {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
   }
