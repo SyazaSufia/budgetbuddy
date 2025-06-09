@@ -114,8 +114,107 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files - IMPORTANT for serving uploaded images
-app.use(express.static(path.join(__dirname, 'public')));
+// Development environment
+// if (process.env.NODE_ENV === 'development') {
+//   // Development environment
+//   app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+//   app.use('/uploads/ads', express.static(path.join(__dirname, 'public', 'uploads', 'ads')));
+// } else {
+//   // Production environment - serve from VPS location
+//   const uploadPath = '/var/www/budgetbuddy/backend/public/uploads';
+//   app.use('/uploads', express.static(uploadPath));
+//   app.use('/uploads/ads', express.static(path.join(uploadPath, 'ads')));
+// }
+
+// Debug middleware to log static file requests
+app.use((req, res, next) => {
+  if (req.url.includes('/uploads/')) {
+    console.log(`[DEBUG] Static file request: ${req.url}`);
+    if (process.env.NODE_ENV === 'production') {
+      const fullPath = path.join('/var/www/budgetbuddy/backend/public', req.url);
+      console.log(`[DEBUG] Looking for file at: ${fullPath}`);
+      console.log(`[DEBUG] File exists: ${fs.existsSync(fullPath)}`);
+    }
+  }
+  next();
+});
+
+// Update the debug paths endpoint
+app.get('/debug/paths', (req, res) => {
+  const path = require('path');
+  const fs = require('fs');
+  
+  const isProd = process.env.NODE_ENV === 'production';
+  const baseDir = isProd ? '/var/www/budgetbuddy/backend' : __dirname;
+  
+  const serverDir = __dirname;
+  const publicDir = isProd ? `${baseDir}/public` : path.join(__dirname, 'public');
+  const uploadsDir = isProd ? `${baseDir}/public/uploads` : path.join(__dirname, 'public', 'uploads');
+  const adsDir = isProd ? `${baseDir}/public/uploads/ads` : path.join(__dirname, 'public', 'uploads', 'ads');
+  
+  // Check if directories exist
+  const debugInfo = {
+    environment: process.env.NODE_ENV,
+    serverDirectory: serverDir,
+    publicDirectory: publicDir,
+    uploadsDirectory: uploadsDir,
+    adsDirectory: adsDir,
+    publicExists: fs.existsSync(publicDir),
+    uploadsExists: fs.existsSync(uploadsDir),
+    adsExists: fs.existsSync(adsDir),
+    nodeEnv: process.env.NODE_ENV,
+    files: []
+  };
+  
+  // List files in ads directory
+  if (fs.existsSync(adsDir)) {
+    try {
+      const files = fs.readdirSync(adsDir);
+      debugInfo.files = files.map(file => {
+        const filePath = path.join(adsDir, file);
+        const stats = fs.statSync(filePath);
+        return {
+          name: file,
+          fullPath: filePath,
+          size: stats.size,
+          created: stats.birthtime,
+          url: `/uploads/ads/${file}`,
+          absolutePath: isProd ? `${adsDir}/${file}` : filePath
+        };
+      });
+    } catch (error) {
+      debugInfo.filesError = error.message;
+    }
+  }
+  
+  res.json(debugInfo);
+});
+
+// Test endpoint to verify specific file serving
+app.get('/debug/test-image/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, 'public', 'uploads', 'ads', filename);
+  
+  console.log(`Testing image: ${filename}`);
+  console.log(`File path: ${filePath}`);
+  console.log(`File exists: ${fs.existsSync(filePath)}`);
+  
+  if (fs.existsSync(filePath)) {
+    // Try to serve the file directly
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        res.status(500).json({ error: 'Could not send file', details: err.message });
+      }
+    });
+  } else {
+    res.status(404).json({ 
+      error: 'File not found', 
+      path: filePath,
+      available: fs.readdirSync(path.join(__dirname, 'public', 'uploads', 'ads'))
+    });
+  }
+});
 
 // Simple request logger
 app.use((req, res, next) => {
@@ -128,8 +227,84 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", environment: process.env.NODE_ENV });
 });
 
+// Add this to your server.js to debug exact paths
+// Place this BEFORE your other routes
+
+app.get('/debug/paths', (req, res) => {
+  const path = require('path');
+  const fs = require('fs');
+  
+  const serverDir = __dirname;
+  const publicDir = path.join(__dirname, 'public');
+  const uploadsDir = path.join(__dirname, 'public', 'uploads');
+  const adsDir = path.join(__dirname, 'public', 'uploads', 'ads');
+  
+  // Check if directories exist
+  const debugInfo = {
+    serverDirectory: serverDir,
+    publicDirectory: publicDir,
+    uploadsDirectory: uploadsDir,
+    adsDirectory: adsDir,
+    publicExists: fs.existsSync(publicDir),
+    uploadsExists: fs.existsSync(uploadsDir),
+    adsExists: fs.existsSync(adsDir),
+    nodeEnv: process.env.NODE_ENV,
+    files: []
+  };
+  
+  // List files in ads directory
+  if (fs.existsSync(adsDir)) {
+    try {
+      const files = fs.readdirSync(adsDir);
+      debugInfo.files = files.map(file => {
+        const filePath = path.join(adsDir, file);
+        const stats = fs.statSync(filePath);
+        return {
+          name: file,
+          fullPath: filePath,
+          size: stats.size,
+          created: stats.birthtime,
+          url: `/uploads/ads/${file}`
+        };
+      });
+    } catch (error) {
+      debugInfo.filesError = error.message;
+    }
+  }
+  
+  res.json(debugInfo);
+});
+
+// Test specific file access
+app.get('/debug/test-file/:filename', (req, res) => {
+  const path = require('path');
+  const fs = require('fs');
+  
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, 'public', 'uploads', 'ads', filename);
+  
+  const result = {
+    filename,
+    requestedPath: filePath,
+    exists: fs.existsSync(filePath),
+    expressStaticWillServe: `/uploads/ads/${filename}`,
+    fullUrl: `${req.protocol}://${req.get('host')}/uploads/ads/${filename}`
+  };
+  
+  if (result.exists) {
+    const stats = fs.statSync(filePath);
+    result.fileInfo = {
+      size: stats.size,
+      created: stats.birthtime,
+      modified: stats.mtime
+    };
+  }
+  
+  res.json(result);
+});
+
 // API Routes
-app.use("/api", passwordRoutes);
+app.use("/", passwordRoutes);
 app.use("/income", incomeRoutes);
 app.use("/expense", expenseRoutes);
 app.use('/expense', receiptRoutes);
@@ -437,45 +612,6 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
-
-// Path to check
-const publicDir = path.join(__dirname, 'public');
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'ads');
-
-// Check if directories exist
-console.log(`Checking if public directory exists: ${publicDir}`);
-console.log(`Public directory exists: ${fs.existsSync(publicDir)}`);
-
-console.log(`Checking if uploads directory exists: ${uploadsDir}`);
-console.log(`Uploads directory exists: ${fs.existsSync(uploadsDir)}`);
-
-// List files in uploads/ads directory if it exists
-if (fs.existsSync(uploadsDir)) {;
-  const files = fs.readdirSync(uploadsDir);
-  files.forEach(file => {
-    console.log(`- ${file}`);
-  });
-}
-
-// Simple route to test static file serving
-app.get('/', (req, res) => {
-  res.send(`
-    <h1>Image Path Checker</h1>
-    <p>Public directory: ${publicDir}</p>
-    <p>Public directory exists: ${fs.existsSync(publicDir)}</p>
-    <p>Uploads directory: ${uploadsDir}</p>
-    <p>Uploads directory exists: ${fs.existsSync(uploadsDir)}</p>
-    <h2>Files in uploads/ads:</h2>
-    <ul>
-      ${fs.existsSync(uploadsDir) 
-        ? fs.readdirSync(uploadsDir).map(file => `<li>${file} (<a href="/uploads/ads/${file}" target="_blank">view</a>)</li>`).join('') 
-        : 'Directory does not exist'}
-    </ul>
-  `);
-});
-
-// Serve static files - important for image display
-app.use(express.static(publicDir));
 
 // Start the server regardless of environment
 app.listen(PORT, () => {

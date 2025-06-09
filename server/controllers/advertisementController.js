@@ -16,9 +16,6 @@ const getBaseUrl = (req) => {
   return `${req.protocol}://${req.get("host")}`;
 };
 
-/**
- * Process image URLs to ensure they are properly formed
- */
 const processImageURL = (imageURL, req) => {
   if (!imageURL) return null;
   
@@ -32,8 +29,15 @@ const processImageURL = (imageURL, req) => {
   // Remove leading slash if present
   const cleanPath = imageURL.startsWith('/') ? imageURL.substring(1) : imageURL;
   
-  // Add uploads prefix if not present
-  const path = cleanPath.includes('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+  // Always use consistent /uploads/ads path
+  const path = cleanPath.includes('uploads/ads/') 
+    ? cleanPath 
+    : `uploads/ads/${cleanPath.split('/').pop()}`;
+  
+  // In production, ensure HTTPS
+  if (!isDevelopment() && baseUrl.startsWith('http://')) {
+    return `https://${req.get('host')}/${path}`;
+  }
   
   return `${baseUrl}/${path}`;
 };

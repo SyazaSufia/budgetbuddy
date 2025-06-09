@@ -48,8 +48,23 @@ export const getImageUrl = (imagePath) => {
   // Remove leading slash if present to avoid double slashes
   const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
   
-  // Add /uploads/ prefix if not present for image paths
-  const path = cleanPath.includes('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+  // Determine if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
+  // Always use the same path structure for both admin and user sides
+  let path;
+  if (isDevelopment) {
+    path = cleanPath.includes('uploads/') ? cleanPath : `uploads/ads/${cleanPath}`;
+  } else {
+    // In production, always use /uploads/ads path
+    if (cleanPath.includes('uploads/ads/')) {
+      path = cleanPath;
+    } else {
+      path = `uploads/ads/${cleanPath.split('/').pop()}`;
+    }
+  }
   
   return `${staticBaseUrl}/${path}`;
 };
