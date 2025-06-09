@@ -1,88 +1,113 @@
 .authContainer {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   min-height: 100vh;
-  min-width: fit-content;
+  width: 100%;
   background-color: aliceblue;
-  background-size: 110%;
-  background-position: center;
-  background-repeat: no-repeat;
-  }
-  
-  .logo {
-    color: #fff;
-    font: 800 36px Montserrat, -apple-system, Roboto, Helvetica, sans-serif;
-  }
-  
+  padding: 20px;
+}
+
+.logo {
+  color: #fff;
+  font: 800 36px Montserrat, -apple-system, Roboto, Helvetica;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.heroContent {
+  flex: 1;
+  max-width: 514px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.heroTitle {
+  color: var(--primaryColor);
+  font-size: 84px;
+  font-weight: 700;
+  line-height: 101px;
+}
+
+.heroDescription {
+  color: var(--textColor);
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 32px;
+  margin-top: 16px;
+}
+
+.authBox {
+  flex: 1;
+  max-width: 517px;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.heroImage {
+  width: 100%;
+  height: auto;
+  max-width: 514px;
+  object-fit: contain;
+}
+
+@media (max-width: 1024px) {
   .content {
-    display: flex;
-    margin-top: 6vh;
-    margin-bottom: 6vh;
-    width: 100%;
-    gap: 40px 60px;
-    justify-content: center;
-    flex-wrap: wrap;
+    padding: 30px 15px;
   }
-  
-  .heroContent {
-    display: flex;
-    min-width: 240px;
-    flex-direction: column;
-    font-family: 'Montserrat', sans-serif;
-    justify-content: center;
-    width: 514px;
-    padding: 7px 0;
-  }
-  
-  .heroTitle {
-    color: var(--primaryColor);
-    font-size: 84px;
-    font-weight: 700;
-    line-height: 101px;
-    margin-bottom: 8px;
-  }
-  
-  .heroDescription {
-    color: #000;
-    font-size: 21px;
-    font-weight: 400;
-    line-height: 32px;
-    margin-top: 8px;
-  }
-  
+
   .authBox {
-    border-radius: 20px;
-    background-color: #fff;
-    display: flex;
-    min-width: 240px;
-    width: 517px;
-    margin: auto 0;
     padding: 24px;
   }
-  
-  @media (max-width: 991px) {
-    .authContainer {
-      padding: 0 20px;
-    }
-    
-    .content {
-      margin-top: 40px;
-    }
-    
-    .heroContent,
-    .heroTitle,
-    .heroDescription,
-    .authBox {
-      max-width: 100%;
-    }
-    
-    .heroTitle {
-      font-size: 40px;
-      line-height: 53px;
-    }
-    
-    .authBox {
-      padding: 0 20px;
-    }
+}
+
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    padding: 20px 15px;
   }
+
+  .heroContent {
+    max-width: 100%;
+  }
+
+  .heroImage {
+    max-width: 80%;
+    margin: 0 auto;
+  }
+
+  .authBox {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .authContainer {
+    padding: 10px;
+  }
+
+  .content {
+    padding: 15px 10px;
+  }
+
+  .authBox {
+    padding: 20px 15px;
+  }
+
+  .heroImage {
+    max-width: 100%;
+  }
+}
