@@ -90,17 +90,11 @@ export const authAPI = {
       body: JSON.stringify(profileData),
     }),
 
-  // Password reset methods
-  forgotPassword: (email) =>
-    apiRequest("/forgot-password", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    }),
-
-  resetPassword: (token, password) =>
+  //password reset method
+  resetPassword: (email, newPassword) =>
     apiRequest("/reset-password", {
       method: "POST",
-      body: JSON.stringify({ token, password }),
+      body: JSON.stringify({ email, newPassword }),
     }),
 };
 

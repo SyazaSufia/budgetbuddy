@@ -12,7 +12,6 @@ import ContactBar from './HomePage/ContactBar';
 import SignIn from './SignInPage/SignIn';
 import SignUp from './SignUpPage/SignUp';
 import ForgotPassword from './ForgotPassword/ForgotPassword';
-import ResetPassword from './ForgotPassword/ResetPassword';
 import FAQPage from './FAQPage/FAQPage';
 import Guidelines from './Guidelines/Guidelines';
 import ProfilePage from './ProfilePage/ProfilePage';
@@ -67,7 +66,6 @@ const App = () => {
           <Route path="/sign-in" element={<SignIn onSignIn={handleSignIn} />} />
           <Route path="/sign-up" element={<SignUp onSignUp={handleSignUp} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/faqs" element={<FAQPage />} />
           <Route path="/guidelines" element={<Guidelines />} />
 
