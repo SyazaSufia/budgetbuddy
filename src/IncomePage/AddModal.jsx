@@ -146,7 +146,7 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
           {incomeType === "Passive" && scholarship === "Other" && (
             <div className={styles.formGroup}>
               <label htmlFor="customScholarship" className={styles.label}>
-                Custom Scholarship Title:
+                Scholarship Title:
               </label>
               <input
                 id="customScholarship"
