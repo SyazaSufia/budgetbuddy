@@ -118,6 +118,35 @@ export const Dashboard = ({ user }) => {
     fetchDashboardData(period);
   };
 
+  // Update the handleDownloadPDF function
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await dashboardAPI.downloadPDF(activePeriod);
+      
+      // Convert response to blob
+      const blob = new Blob([response], { type: 'application/pdf' });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `dashboard-${activePeriod}-${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      // Trigger download
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      // Add user feedback
+      alert('Failed to download PDF. Please try again.');
+    }
+  };
+
   return (
     <div className={styles.dashboard}>
       <link
@@ -130,18 +159,26 @@ export const Dashboard = ({ user }) => {
         <main className={styles.mainContent}>
           <header className={styles.pageHeader}>
             <h2 className={styles.welcomeText}>Hello, {user ? user.name : "Guest"}!</h2>
-            <div className={styles.periodSelector}>
-              <div className={styles.periodButtons}>
-                {periods.map(period => (
-                  <button 
-                    key={period.id}
-                    className={`${styles.periodButton} ${activePeriod === period.id ? styles.active : ''}`}
-                    onClick={() => handlePeriodChange(period.id)}
-                  >
-                    {period.label}
-                  </button>
-                ))}
+            <div className={styles.pageActions}>
+              <div className={styles.periodSelector}>
+                <div className={styles.periodButtons}>
+                  {periods.map(period => (
+                    <button 
+                      key={period.id}
+                      className={`${styles.periodButton} ${activePeriod === period.id ? styles.active : ''}`}
+                      onClick={() => handlePeriodChange(period.id)}
+                    >
+                      {period.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <button 
+                className={styles.downloadButton}
+                onClick={handleDownloadPDF}
+              >
+                Download PDF
+              </button>
             </div>
           </header>
 

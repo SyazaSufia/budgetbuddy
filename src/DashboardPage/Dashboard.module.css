@@ -460,6 +460,35 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
+/* Page actions section */
+.pageActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.downloadButton {
+  padding: 8px 16px;
+  background: #41b883;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font: 500 14px Montserrat, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.downloadButton:hover {
+  background: #3aa876;
+}
+
+.downloadButton:active {
+  transform: translateY(1px);
+}
+
 /* Media queries for responsiveness */
 @media (max-width: 1200px) {
   .expenseBudgetContainer {

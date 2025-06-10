@@ -12,6 +12,7 @@ console.log("API_BASE_URL:", API_BASE_URL); // For debugging
 
 export { API_BASE_URL };
 
+// Update the apiRequest function
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -32,10 +33,19 @@ const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
-    console.log("Making API request to:", url); // For debugging
+    console.log("Making API request to:", url);
     const response = await fetch(url, config);
 
-    // Check if response is HTML (error page) instead of JSON
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Check if response is expected to be binary data
+    if (options.responseType === 'blob') {
+      return await response.arrayBuffer();
+    }
+
+    // Check if response is JSON
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
@@ -48,13 +58,7 @@ const apiRequest = async (endpoint, options = {}) => {
       );
     }
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return data;
+    return await response.json();
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
     throw error;
@@ -119,6 +123,16 @@ export const profileAPI = {
 export const dashboardAPI = {
   getSummary: (period = "month") =>
     apiRequest(`/dashboard/summary?period=${period}`),
+  
+  // Download pdf method
+  downloadPDF: (period = "month") =>
+    apiRequest(`/dashboard/download-pdf?period=${period}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/pdf'
+      },
+      responseType: 'blob'  // This tells fetch to handle binary data
+    }),
 };
 
 // Advertisement API methods
