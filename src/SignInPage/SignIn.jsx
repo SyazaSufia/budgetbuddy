@@ -16,11 +16,30 @@ const SignIn = ({ onSignIn }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const validateForm = () => {
+    const errors = {};
+
+    // Email validation
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!password.trim()) {
+      errors.password = 'Password is required';
+    }
+
+    return errors;
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     
-    if (!email.trim() || !password.trim()) {
-      setError("Please fill in all fields");
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setError(Object.values(formErrors)[0]);
       return;
     }
 

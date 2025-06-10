@@ -4,6 +4,7 @@ import { AuthLayout } from "./components/AuthLayout";
 import { Input } from "./components/Input";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { authAPI } from "../services/UserApi";
+import { validatePassword } from "../utils/validation";
 import styles from "./SignUp.module.css";
 
 const SignUp = ({ onSignUp }) => {
@@ -25,16 +26,26 @@ const SignUp = ({ onSignUp }) => {
       setError("All fields are required.");
       return false;
     }
+
+    // Password validation
+    const passwordValidationError = validatePassword(password);
+    if (passwordValidationError) {
+      setError(passwordValidationError);
+      return false;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return false;
     }
+
     return true;
   };
 
   // Check if the form is valid for enabling/disabling the submit button
   const isFormValid = name && email && dob && password && 
-                     confirmPassword && password === confirmPassword;
+                     confirmPassword && password === confirmPassword &&
+                     !validatePassword(password);
 
   // Updated HandleSignUp function using your centralized API
   const handleSignUp = async (e) => {
@@ -130,22 +141,29 @@ const SignUp = ({ onSignUp }) => {
             onChange={(e) => setDob(e.target.value)}
             disabled={isLoading}
           />
-          <Input
-            label="Enter your password"
-            placeholder="Password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            icon={
-              <span
-                className={styles.eyeIcon}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            }
-          />
+          
+          <div>
+            <Input
+              label="Enter your password"
+              placeholder="Password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+              icon={
+                <span
+                  className={styles.eyeIcon}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              }
+            />
+            <small className={styles.passwordRequirements}>
+              Password must be at least 8 characters with uppercase, lowercase, and numbers
+            </small>
+          </div>
+
           <Input
             label="Confirm password"
             placeholder="Confirm password"

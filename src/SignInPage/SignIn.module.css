@@ -1,3 +1,13 @@
+.authBox{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: var(--backgroundColor);
+  }
+
 .container {
     display: flex;
     height: 100%;
@@ -123,6 +133,13 @@
     font-size: 20px;
     cursor: pointer;
     position: absolute;
+  }
+
+  .passwordRequirements {
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 8px;
   }
   
   @media (max-width: 991px) {
