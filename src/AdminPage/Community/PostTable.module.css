@@ -41,7 +41,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: help;
   font-weight: 400;
 }
 
