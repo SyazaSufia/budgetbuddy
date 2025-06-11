@@ -32,15 +32,21 @@ function PostDetail({ user }) {
       setIsLoading(true);
       try {
         const data = await communityAPI.getPostById(postId);
-
+        
         if (data.success) {
-          setPost(data.data);
+          if (data.data.status === 'violated') {
+            setError('This post has been removed due to community guidelines violation.');
+            setPost(null);
+          } else {
+            setPost(data.data);
+          }
         } else {
           throw new Error(data.error || "Unknown error occurred");
         }
       } catch (err) {
         console.error("Error fetching post details:", err);
-        setError(err.message);
+        setError(err.message || 'This post is not available.');
+        setPost(null);
       } finally {
         setIsLoading(false);
       }

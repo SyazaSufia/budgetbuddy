@@ -62,19 +62,22 @@ function ForumFeed({ user }) {
 
   // Function to create rows of posts
   const renderPostRows = () => {
-    // If no posts, show a message
+    // If no valid posts, show a message
     if (posts.length === 0 && !isLoading) {
       return (
         <div className={styles.noPostsMessage}>
-          No posts found. Be the first to create a post!
+          No posts available. Be the first to create a post!
         </div>
       );
     }
 
+    // Filter out any violated posts that might have slipped through
+    const validPosts = posts.filter(post => post.status !== 'violated');
+
     // Split posts into rows of 3
     const rows = [];
-    for (let i = 0; i < posts.length; i += 3) {
-      const rowPosts = posts.slice(i, i + 3);
+    for (let i = 0; i < validPosts.length; i += 3) {
+      const rowPosts = validPosts.slice(i, i + 3);
       rows.push(
         <div key={`row-${i}`} className={styles.postRow}>
           {rowPosts.map(post => (

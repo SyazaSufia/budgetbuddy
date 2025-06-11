@@ -65,24 +65,25 @@ const cleanContent = (htmlContent) => {
 // Get all community posts
 const getAllPosts = async (req, res) => {
   try {
-    // Pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    // Query to get total count of posts
+    // Update count query to exclude violated posts
     const countQuery = `
       SELECT COUNT(*) as total 
       FROM community_posts
+      WHERE status != 'violated'
     `;
 
-    // Updated query to get paginated posts with user info, comment count AND like count
+    // Update posts query to exclude violated posts
     const postsQuery = `
       SELECT 
         p.postID, 
         p.subject, 
         p.content, 
         p.createdAt,
+        p.status,
         u.userID,
         u.username, 
         u.profileImage,
@@ -92,6 +93,8 @@ const getAllPosts = async (req, res) => {
         community_posts p
       JOIN 
         user u ON p.userID = u.userID
+      WHERE 
+        p.status != 'violated'
       ORDER BY 
         p.createdAt DESC
       LIMIT ? OFFSET ?
@@ -425,13 +428,14 @@ const getPostById = async (req, res) => {
     const postID = req.params.id;
     const userID = req.session.user ? req.session.user.id : null;
 
-    // Query to get post details
+    // Update post query to include status check
     const postQuery = `
       SELECT 
         p.postID, 
         p.subject, 
         p.content, 
         p.createdAt,
+        p.status,
         u.userID,
         u.username, 
         u.profileImage
@@ -440,7 +444,7 @@ const getPostById = async (req, res) => {
       JOIN 
         user u ON p.userID = u.userID
       WHERE 
-        p.postID = ?
+        p.postID = ? AND p.status != 'violated'
     `;
 
     // Query to get comments for the post
@@ -479,7 +483,10 @@ const getPostById = async (req, res) => {
     const posts = await db.query(postQuery, [postID]);
 
     if (posts.length === 0) {
-      return res.status(404).json({ error: "Post not found" });
+      return res.status(404).json({ 
+        success: false,
+        error: "Post not found or has been removed" 
+      });
     }
 
     const post = posts[0];
