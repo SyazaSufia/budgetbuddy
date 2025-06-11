@@ -288,49 +288,63 @@ exports.deleteBudget = async (req, res) => {
     const userID = req.session.user.id;
     const { budgetID } = req.params;
 
-    // First check if there are any categories associated with this budget
-    const checkCategoriesQuery = `
-      SELECT COUNT(*) as categoryCount 
-      FROM categories 
-      WHERE budgetID = ? AND userID = ?
-    `;
+    // Start a transaction
+    await db.query('START TRANSACTION');
 
-    const checkResults = await db.query(checkCategoriesQuery, [
-      budgetID,
-      userID,
-    ]);
-    const categoryCount = checkResults[0].categoryCount;
+    try {
+      // First, delete all expenses associated with the budget's categories
+      const deleteExpensesQuery = `
+        DELETE e FROM expenses e
+        INNER JOIN categories c ON e.categoryID = c.categoryID
+        WHERE c.budgetID = ? AND c.userID = ?
+      `;
+      
+      await db.query(deleteExpensesQuery, [budgetID, userID]);
 
-    if (categoryCount > 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Cannot delete budget with associated categories. Delete categories first.",
+      // Then delete all categories associated with this budget
+      const deleteCategoriesQuery = `
+        DELETE FROM categories 
+        WHERE budgetID = ? AND userID = ?
+      `;
+
+      await db.query(deleteCategoriesQuery, [budgetID, userID]);
+
+      // Finally delete the budget
+      const deleteBudgetQuery = `
+        DELETE FROM budgets 
+        WHERE budgetID = ? AND userID = ?
+      `;
+
+      const result = await db.query(deleteBudgetQuery, [budgetID, userID]);
+
+      if (result.affectedRows === 0) {
+        await db.query('ROLLBACK');
+        return res.status(404).json({
+          success: false,
+          message: "Budget not found or you don't have permission to delete it"
+        });
+      }
+
+      // Commit the transaction
+      await db.query('COMMIT');
+
+      res.status(200).json({
+        success: true,
+        message: "Budget and all associated data deleted successfully"
       });
+
+    } catch (err) {
+      // Rollback the transaction on error
+      await db.query('ROLLBACK');
+      throw err;
     }
 
-    // If no categories exist, proceed with deletion
-    const deleteQuery = `
-      DELETE FROM budgets 
-      WHERE budgetID = ? AND userID = ?
-    `;
-
-    const result = await db.query(deleteQuery, [budgetID, userID]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Budget not found or you don't have permission to delete it",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Budget deleted successfully",
-    });
   } catch (err) {
     console.error("Delete error:", err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to delete budget. Please try again." 
+    });
   }
 };
 

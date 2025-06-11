@@ -189,16 +189,6 @@ function BudgetDetails() {
     
     setIsDeleting(true);
     try {
-      // Check if budget has categories
-      if (budgetDetails.categories && budgetDetails.categories.length > 0) {
-        toast.error(
-          "Cannot delete budget with associated categories. Delete categories first."
-        );
-        setShowDeleteModal(false);
-        setIsDeleting(false);
-        return;
-      }
-
       const response = await budgetAPI.deleteBudget(budgetID);
 
       if (response.success) {
@@ -207,7 +197,7 @@ function BudgetDetails() {
 
         // Redirect to budget page after successful deletion
         navigate("/budget", {
-          state: { message: "Budget deleted successfully" },
+          state: { message: "Budget deleted successfully" }
         });
       } else {
         setError(response.message || "Failed to delete budget");

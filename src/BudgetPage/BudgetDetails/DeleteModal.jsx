@@ -7,7 +7,7 @@ export const DeleteModal = ({ onCancel, onConfirm }) => {
       <div className={styles.modalContent}>
         <h2 className={styles.modalTitle}>Delete Budget?</h2>
         <p className={styles.modalText}>
-          Are you sure you want to delete this budget? This action cannot be undone.
+          Are you sure you want to delete this budget? This will also delete all categories and expenses associated with this budget. This action cannot be undone.
         </p>
         <div className={styles.modalActions}>
           <button 
