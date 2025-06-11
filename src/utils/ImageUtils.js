@@ -1,5 +1,3 @@
-// ImageUtils.js - Centralized image URL handling utilities
-
 // Get the base URL for static files (without /api prefix)
 export const getStaticBaseUrl = () => {
   const isDevelopment = 
@@ -30,43 +28,54 @@ export const getApiBaseUrl = () => {
 
 // Convert a relative image path to a full URL for display
 export const getImageUrl = (imagePath) => {
-  if (!imagePath) return null;
+  console.log(`[ImageUtils] Processing imagePath: ${imagePath}`);
+  
+  if (!imagePath) {
+    console.log(`[ImageUtils] No image path provided`);
+    return null;
+  }
   
   // If it's already a full URL, return as-is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    console.log(`[ImageUtils] Already full URL: ${imagePath}`);
     return imagePath;
   }
   
   // If it's a data URL (base64), return as-is
   if (imagePath.startsWith('data:')) {
+    console.log(`[ImageUtils] Data URL detected`);
     return imagePath;
   }
   
   // For relative paths, construct the full URL
   const staticBaseUrl = getStaticBaseUrl();
   
-  // Remove leading slash if present to avoid double slashes
-  const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+  // Clean the path
+  let cleanPath = imagePath;
   
-  // Determine if we're in development mode
-  const isDevelopment = process.env.NODE_ENV === "development" ||
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
-  // Always use the same path structure for both admin and user sides
-  let path;
-  if (isDevelopment) {
-    path = cleanPath.includes('uploads/') ? cleanPath : `uploads/ads/${cleanPath}`;
-  } else {
-    // In production, always use /uploads/ads path
-    if (cleanPath.includes('uploads/ads/')) {
-      path = cleanPath;
-    } else {
-      path = `uploads/ads/${cleanPath.split('/').pop()}`;
-    }
+  // Remove leading slash if present
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
   }
   
-  return `${staticBaseUrl}/${path}`;
+  // Ensure proper path structure
+  let finalPath;
+  if (cleanPath.includes('uploads/ads/')) {
+    // Path already contains the full structure
+    finalPath = cleanPath;
+  } else if (cleanPath.includes('uploads/')) {
+    // Path contains uploads but not ads - this might be an old format
+    const filename = cleanPath.split('/').pop();
+    finalPath = `uploads/ads/${filename}`;
+  } else {
+    // Just a filename - assume it's an ad image
+    finalPath = `uploads/ads/${cleanPath}`;
+  }
+  
+  const fullUrl = `${staticBaseUrl}/${finalPath}`;
+  console.log(`[ImageUtils] Final URL: ${fullUrl}`);
+  
+  return fullUrl;
 };
 
 // Truncate text to a specified length

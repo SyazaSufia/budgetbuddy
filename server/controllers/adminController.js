@@ -5,15 +5,9 @@ const fs = require("fs");
 // Configuration object for file paths - centralized configuration
 const CONFIG = {
   UPLOAD_DIRS: {
-    ADS: process.env.NODE_ENV === 'production' 
-      ? '/var/www/budgetbuddy/backend/public/uploads/ads'
-      : 'uploads/ads',
-    USERS: process.env.NODE_ENV === 'production'
-      ? '/var/www/budgetbuddy/backend/public/uploads/users'
-      : 'uploads/users',
-    GENERAL: process.env.NODE_ENV === 'production'
-      ? '/var/www/budgetbuddy/backend/public/uploads'
-      : 'uploads'
+    ADS: 'uploads/ads',
+    USERS: 'uploads/users',
+    GENERAL: 'uploads'
   },
   FILE_LIMITS: {
     MAX_SIZE: 5 * 1024 * 1024, // 5MB
@@ -26,16 +20,12 @@ const CONFIG = {
 const FileUtils = {
   // Get absolute path for uploads
   getUploadPath: (subDir = '') => {
-    if (process.env.NODE_ENV === 'production') {
-      return path.join('/var/www/budgetbuddy/backend/public', subDir);
-    }
     return path.join(process.cwd(), 'public', subDir);
   },
 
   // Get relative URL path for database storage
   getUrlPath: (subDir, filename) => {
-    // Always store relative paths in the database
-    return `/uploads/${subDir.split('/').pop()}/${filename}`;
+    return `/${subDir}/${filename}`;
   },
 
   // Ensure directory exists
@@ -62,14 +52,7 @@ const FileUtils = {
   // Convert relative URL to absolute file path
   urlToFilePath: (relativeUrl) => {
     if (!relativeUrl) return null;
-    
-    // Remove leading slash if present
-    const cleanUrl = relativeUrl.startsWith('/') ? relativeUrl.substring(1) : relativeUrl;
-    
-    if (process.env.NODE_ENV === 'production') {
-      return path.join('/var/www/budgetbuddy/backend/public', cleanUrl);
-    }
-    return path.join(process.cwd(), 'public', cleanUrl);
+    return path.join(process.cwd(), 'public', relativeUrl);
   }
 };
 

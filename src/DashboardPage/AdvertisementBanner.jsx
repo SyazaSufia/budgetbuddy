@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { advertisementAPI } from '../services/UserApi';
-import { getImageUrl } from '../utils/ImageUtils';
+import { advertisementAPI, API_BASE_URL } from '../services/UserApi';
 import styles from './AdvertisementBanner.module.css';
 
 // Base64 encoded placeholder image
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='100' viewBox='0 0 300 100'%3E%3Crect width='300' height='100' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='18' text-anchor='middle' dominant-baseline='middle' fill='%23666666'%3EAdvertisement%3C/text%3E%3C/svg%3E";
 
-const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
+const AdvertisementBanner = ({ limit = 3, showPlaceholder = true }) => {
   const [advertisements, setAdvertisements] = useState([]);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,7 +13,6 @@ const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
   const [imageStates, setImageStates] = useState({});
   const [showModal, setShowModal] = useState(false);
   const intervalRef = useRef(null);
-  const imageTestCache = useRef(new Set()); // Cache to prevent duplicate tests
 
   // Fetch advertisements using the centralized API
   const fetchAdvertisements = async () => {
@@ -25,7 +23,6 @@ const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
       const result = await advertisementAPI.getActiveAds(limit);
       
       if (result.data && result.data.length > 0) {
-        console.log('Raw advertisements from API:', result.data);
         setAdvertisements(result.data);
       } else {
         setAdvertisements([]);
@@ -144,7 +141,7 @@ const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
     };
   };
 
-  // FIXED: Enhanced image URL handling with memoization to prevent loops
+  // Helper to get the display image URL
   const getDisplayImage = (ad) => {
     if (!ad.imageURL) return PLACEHOLDER_IMAGE;
     
@@ -152,39 +149,28 @@ const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
       return PLACEHOLDER_IMAGE;
     }
     
-    return getImageUrl(ad.imageURL);
+    if (ad.imageURL.startsWith('http')) {
+      return ad.imageURL;
+    }
+    
+    return `${API_BASE_URL}${ad.imageURL}`;
   };
 
-  // Enhanced image load success handler
-  const handleImageLoad = (adId, source = 'unknown') => {
-    // Only update if not already loaded to prevent unnecessary re-renders
-    if (imageStates[adId] !== 'loaded') {
-      console.log(`✅ Image loaded successfully for ad ${adId} from ${source}`);
-      setImageStates(prev => ({
-        ...prev,
-        [adId]: 'loaded'
-      }));
-    }
+  // Handle image load success
+  const handleImageLoad = (adId) => {
+    setImageStates(prev => ({
+      ...prev,
+      [adId]: 'loaded'
+    }));
   };
 
-  // FIXED: Simplified image load error handler to prevent loops
-  const handleImageError = (adId, imageUrl, source = 'unknown') => {
-    // Only handle error if not already in error state
-    if (imageStates[adId] !== 'error') {
-      console.warn(`❌ Failed to load image for ad ID ${adId} from ${source}:`, imageUrl);
-      
-      // Set error state immediately to prevent further attempts
-      setImageStates(prev => ({
-        ...prev,
-        [adId]: 'error'
-      }));
-      
-      // Only test the image URL once per ad to prevent loops
-      if (!imageTestCache.current.has(adId)) {
-        imageTestCache.current.add(adId);
-        console.log(`Image test cached for ad ${adId} to prevent duplicate attempts`);
-      }
-    }
+  // Handle image load error
+  const handleImageError = (adId) => {
+    console.warn(`Failed to load image for ad ID: ${adId}`);
+    setImageStates(prev => ({
+      ...prev,
+      [adId]: 'error'
+    }));
   };
 
   // Open modal to show full ad
@@ -234,9 +220,8 @@ const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
         src={getDisplayImage(currentAd)} 
         alt={currentAd.title || "Advertisement"} 
         className={styles.adImage}
-        onLoad={() => !isPlaceholder && handleImageLoad(currentAd.adID, 'banner')}
-        onError={() => !isPlaceholder && handleImageError(currentAd.adID, currentAd.imageURL, 'banner')}
-        loading="lazy"
+        onLoad={() => !isPlaceholder && handleImageLoad(currentAd.adID)}
+        onError={() => !isPlaceholder && handleImageError(currentAd.adID)}
       />
       <div className={styles.adTextOverlay}>
         <h3 className={styles.adTitle}>{currentAd.title}</h3>
@@ -322,9 +307,6 @@ const AdvertisementBanner = ({ limit = Infinity, showPlaceholder = true }) => {
                 src={getDisplayImage(currentAd)} 
                 alt={currentAd.title || "Advertisement"} 
                 className={styles.modalImage}
-                onLoad={() => !isPlaceholder && handleImageLoad(currentAd.adID, 'modal')}
-                onError={() => !isPlaceholder && handleImageError(currentAd.adID, currentAd.imageURL, 'modal')}
-                loading="lazy"
               />
               
               {/* Counter for modal */}
