@@ -19,7 +19,7 @@ const ProfilePage = () => {
     profileImage: "",
     incomeType: "",
     scholarshipType: "",
-    scholarshipTitle: "", // Added new field for custom scholarship title
+    scholarshipTitle: "",
   });
 
   const [isFormComplete, setIsFormComplete] = useState(false);
@@ -31,8 +31,58 @@ const ProfilePage = () => {
     age: "",
     email: "",
     phoneNumber: "",
-    scholarshipTitle: "", // Added new error field
+    scholarshipTitle: "",
   });
+
+  // Enhanced validation functions
+  const validateEmail = (email) => {
+    if (!email) return "Email is required";
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address (e.g., user@example.com)";
+    }
+    return "";
+  };
+
+  const validateAge = (age) => {
+    if (!age) return "Age is required";
+    const ageNum = parseInt(age);
+    if (isNaN(ageNum)) return "Age must be a number";
+    if (ageNum < 1 || ageNum > 150) return "Age must be between 1 and 150";
+    return "";
+  };
+
+  const validatePhoneNumber = (phone) => {
+    if (!phone) return "Phone number should be numbers";
+    // Remove any spaces, dashes, or parentheses for validation
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+    
+    // Check if it contains only digits after cleaning
+    if (!/^\d+$/.test(cleanPhone)) {
+      return "Phone number must contain only numbers";
+    }
+    
+    // Check length (Malaysian phone numbers are typically 10-11 digits)
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      return "Phone number must be 10-11 digits long";
+    }
+    
+    // Check if it starts with valid Malaysian prefixes
+    if (!cleanPhone.startsWith('01') && !cleanPhone.startsWith('60')) {
+      return "Please enter a valid Malaysian phone number";
+    }
+    
+    return "";
+  };
+
+  // Format phone number for display (add dashes for readability)
+  const formatPhoneNumber = (phone) => {
+    const cleanPhone = phone.replace(/[\s\-]/g, '');
+    if (cleanPhone.length >= 10) {
+      return cleanPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    return cleanPhone;
+  };
 
   // Get avatar name from path
   const getAvatarName = (path) => {
@@ -61,46 +111,35 @@ const ProfilePage = () => {
     try {
       setIsLoading(true);
       
-      // Use the centralized API for fetching user details
       const data = await profileAPI.getUserDetails();
 
       if (data.user) {
         const userData = data.user;
 
-        // Format the date correctly for HTML date input (YYYY-MM-DD)
         let dob = userData.userDOB || "";
         if (dob) {
-          // Extract just the YYYY-MM-DD part if it contains time info
           dob = dob.split('T')[0];
         }
 
-        // Calculate age based on the DOB
         const age = calculateAge(dob);
-
-        // Set default avatar if none is set
         let profileImage = userData.profileImage || "/avatars/Default.svg";
         
-        // Handle scholarship type and title
         const predefinedTypes = ["JPA", "MARA", "Yayasan", "Petronas"];
         let scholarshipType = userData.scholarshipType || "";
         let scholarshipTitle = "";
         
-        // If scholarshipType is not one of the predefined types and not empty,
-        // consider it as a custom scholarship
         if (scholarshipType && !predefinedTypes.includes(scholarshipType)) {
-          scholarshipTitle = scholarshipType; // The title is the full value
+          scholarshipTitle = scholarshipType;
           scholarshipType = "other";
         }
         
-        // The backend now ensures proper capitalization
         const incomeType = userData.incomeType || "";
         
-        // Set form data with all user details
         setFormData({
           id: userData.id,
           name: userData.name || "",
           age: age.toString(),
-          dob, // Now just the YYYY-MM-DD part
+          dob,
           email: userData.email || "",
           phoneNumber: userData.phoneNumber || "",
           profileImage: profileImage,
@@ -137,21 +176,30 @@ const ProfilePage = () => {
   const handleInputChange = (field, value) => {
     const updatedErrors = { ...errors };
 
+    // Enhanced validation based on field type
     if (field === "age") {
-      updatedErrors.age = !/^\d+$/.test(value) ? "Age must be a number" : "";
+      // Allow only numeric input
+      if (value && !/^\d+$/.test(value)) {
+        return; // Don't update if input contains non-numeric characters
+      }
+      updatedErrors.age = validateAge(value);
     }
 
     if (field === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      updatedErrors.email = emailRegex.test(value)
-        ? ""
-        : "Please enter a valid email address";
+      updatedErrors.email = validateEmail(value);
     }
 
     if (field === "phoneNumber") {
-      updatedErrors.phoneNumber = !/^\d*$/.test(value)
-        ? "Phone number must contain only numbers"
-        : "";
+      // Allow only digits, spaces, and dashes during input
+      const filteredValue = value.replace(/[^\d\s\-]/g, '');
+      updatedErrors.phoneNumber = validatePhoneNumber(filteredValue);
+      
+      setFormData(prev => ({
+        ...prev,
+        [field]: filteredValue
+      }));
+      setErrors(updatedErrors);
+      return;
     }
     
     if (field === "scholarshipTitle") {
@@ -160,19 +208,17 @@ const ProfilePage = () => {
         : "";
     }
 
-    // If the field is DOB, we should also update age
+    // Handle DOB and age calculation
     if (field === "dob") {
-      // Calculate age from the date
       const age = calculateAge(value);
+      updatedErrors.age = validateAge(age.toString());
 
-      // Update form with both the new DOB and calculated age
       setFormData((prev) => ({
         ...prev,
-        [field]: value, // Keep DOB exactly as entered (already in YYYY-MM-DD format)
+        [field]: value,
         age: age.toString(),
       }));
     } else if (field === "incomeType") {
-      // If changing income type and it's not "Passive", clear scholarship type and title
       setFormData((prev) => ({
         ...prev,
         [field]: value,
@@ -180,20 +226,19 @@ const ProfilePage = () => {
         scholarshipTitle: value === "Passive" ? prev.scholarshipTitle : ""
       }));
     } else if (field === "scholarshipType") {
-      // If changing scholarship type and it's not "other", clear scholarship title
       setFormData((prev) => ({
         ...prev,
         [field]: value,
         scholarshipTitle: value === "other" ? prev.scholarshipTitle : ""
       }));
     } else {
-      // Handle other fields normally
       setFormData((prev) => ({ ...prev, [field]: value }));
     }
 
     setErrors(updatedErrors);
   };
 
+  // Enhanced form completion check
   const checkFormCompletion = () => {
     const requiredFields = [
       "name",
@@ -205,30 +250,30 @@ const ProfilePage = () => {
       "incomeType"
     ];
     
-    // Add scholarshipType to required fields only if incomeType is Passive
     if (formData.incomeType === "Passive") {
       requiredFields.push("scholarshipType");
       
-      // Add scholarshipTitle to required fields only if scholarshipType is other
       if (formData.scholarshipType === "other") {
         requiredFields.push("scholarshipTitle");
       }
     }
     
-    const isComplete = requiredFields.every(
-      (field) => formData[field] && formData[field].trim() !== ""
-    );
-    const hasErrors = Object.values(errors).some((err) => err !== "");
+    const isComplete = requiredFields.every(field => {
+      const value = formData[field];
+      if (typeof value === 'string') {
+        return value && value.trim() !== "";
+      }
+      return value !== null && value !== undefined && value !== "";
+    });
 
+    const hasErrors = Object.values(errors).some(err => err !== "");
     setIsFormComplete(isComplete && !hasErrors);
   };
 
-  // Handle avatar selection
   const handleAvatarSelect = (avatarPath) => {
     handleInputChange("profileImage", avatarPath);
   };
 
-  // Handle sidebar collapse state changes
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
   };
@@ -236,24 +281,38 @@ const ProfilePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Final validation before submission
+    const finalErrors = {
+      email: validateEmail(formData.email),
+      age: validateAge(formData.age),
+      phoneNumber: validatePhoneNumber(formData.phoneNumber),
+      scholarshipTitle: formData.incomeType === "Passive" && formData.scholarshipType === "other" && !formData.scholarshipTitle.trim() 
+        ? "Scholarship name is required" 
+        : ""
+    };
+
+    const hasErrors = Object.values(finalErrors).some(err => err !== "");
+    
+    if (hasErrors) {
+      setErrors(finalErrors);
+      toast.error("Please correct the errors before submitting");
+      return;
+    }
+
     try {
       setIsSaving(true);
       
-      // Create a copy of form data for submission
       const formDataToSubmit = { ...formData };
       
-      // If "other" is selected, use the scholarshipTitle directly as the scholarshipType value
       if (formData.incomeType === "Passive" && formData.scholarshipType === "other" && formData.scholarshipTitle) {
         formDataToSubmit.scholarshipType = formData.scholarshipTitle.trim();
       }
 
       console.log("Submitting profile data:", formDataToSubmit);
 
-      // Use the centralized API for updating profile
       await profileAPI.updateProfile(formDataToSubmit);
       
       toast.success("Profile updated successfully!");
-      // Reload the user data after successful update
       await fetchUserData();
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -263,7 +322,6 @@ const ProfilePage = () => {
     }
   };
 
-  // Show loading state while fetching user data
   if (isLoading) {
     return (
       <main className={styles.profile}>
@@ -334,7 +392,7 @@ const ProfilePage = () => {
                         className={styles.select}
                         placeholder="Full name"
                         value={formData.name}
-                        onChange={(e) => handleInputChange("name", e)}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
                         disabled={isSaving}
                       />
                     </div>
@@ -349,13 +407,15 @@ const ProfilePage = () => {
                     </div>
                     <div className={styles.inputContainer}>
                       <input
-                        className={styles.select}
+                        className={`${styles.select} ${errors.age ? styles.errorInput : ''}`}
                         type="number"
                         placeholder="Age"
                         value={formData.age}
-                        onChange={(e) => handleInputChange("age", e)}
+                        onChange={(e) => handleInputChange("age", e.target.value)}
                         readOnly={true}
                         disabled={isSaving}
+                        min="1"
+                        max="150"
                       />
                     </div>
                   </div>
@@ -375,8 +435,9 @@ const ProfilePage = () => {
                         className={styles.select}
                         type="date"
                         value={formData.dob}
-                        onChange={(e) => handleInputChange("dob", e)}
+                        onChange={(e) => handleInputChange("dob", e.target.value)}
                         disabled={isSaving}
+                        max={new Date().toISOString().split('T')[0]} // Prevent future dates
                       />
                     </div>
                   </div>
@@ -392,11 +453,11 @@ const ProfilePage = () => {
                     </div>
                     <div className={styles.inputContainer}>
                       <input
-                        className={styles.select}
+                        className={`${styles.select} ${errors.email ? styles.errorInput : ''}`}
                         type="email"
-                        placeholder="Email address"
+                        placeholder="example@email.com"
                         value={formData.email}
-                        onChange={(e) => handleInputChange("email", e)}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
                         disabled={isSaving}
                       />
                     </div>
@@ -414,12 +475,13 @@ const ProfilePage = () => {
                     </div>
                     <div className={styles.inputContainer}>
                       <input
-                        className={styles.select}
+                        className={`${styles.select} ${errors.phoneNumber ? styles.errorInput : ''}`}
                         type="tel"
-                        placeholder="Phone Number"
+                        placeholder="012-345-6789"
                         value={formData.phoneNumber}
-                        onChange={(e) => handleInputChange("phoneNumber", e)}
+                        onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                         disabled={isSaving}
+                        maxLength="12" // Allow for formatted number with dashes
                       />
                     </div>
                   </div>
@@ -431,7 +493,6 @@ const ProfilePage = () => {
               </div>
             </InfoSection>
 
-            {/* New Financial Information Section */}
             <InfoSection title="Financial Information" required>
               <div className={styles.row}>
                 <div className={styles.formGroup}>
@@ -490,7 +551,7 @@ const ProfilePage = () => {
                       </div>
                       <div className={styles.inputContainer}>
                         <input
-                          className={styles.select}
+                          className={`${styles.select} ${errors.scholarshipTitle ? styles.errorInput : ''}`}
                           type="text"
                           placeholder="Enter scholarship name"
                           value={formData.scholarshipTitle}
@@ -505,7 +566,6 @@ const ProfilePage = () => {
                   </div>
                 )}
                 
-                {/* Empty div to keep layout balanced if not all fields are shown */}
                 {!(formData.incomeType === "Passive" && formData.scholarshipType === "other") && 
                  (formData.incomeType !== "Passive" || <div className={styles.formGroup}></div>)}
               </div>
@@ -523,7 +583,6 @@ const ProfilePage = () => {
         </div>
       </div>
       
-      {/* Avatar Selection Modal */}
       <AvatarSelectionModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
