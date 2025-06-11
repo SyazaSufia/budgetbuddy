@@ -1,18 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { incomeAPI } from "../services/UserApi";
+import { incomeAPI, profileAPI } from "../services/UserApi";
 import styles from "./AddModal.module.css";
 
 export const AddIncomeModal = ({ onClose, onAddIncome }) => {
   const [incomeType, setIncomeType] = useState("");
   const [scholarship, setScholarship] = useState("");
-  const [customScholarship, setCustomScholarship] = useState(""); // New state for custom scholarship title
+  const [customScholarship, setCustomScholarship] = useState("");
   const [amount, setAmount] = useState("");
   const [title, setTitle] = useState("");
-  const [occurrence, setOccurrence] = useState("once"); // Default to one-time payment
+  const [occurrence, setOccurrence] = useState("once");
   const [startDate, setStartDate] = useState(
     new Date().toISOString().split("T")[0]
-  ); // Default to today
+  );
 
   const scholarshipOptions = [
     "Jabatan Perkhidmatan Awam (JPA)",
@@ -30,25 +30,62 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
     { value: "yearly", label: "Yearly" },
   ];
 
+  // Add useEffect to fetch and set user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const { success, user } = await profileAPI.getUserDetails();
+        if (success && user) {
+          // Set income type from profile
+          if (user.incomeType) {
+            setIncomeType(user.incomeType);
+          }
+
+          // Handle scholarship information
+          if (user.incomeType === "Passive" && user.scholarshipType) {
+            if (
+              ["JPA", "MARA", "Yayasan", "Petronas"].includes(
+                user.scholarshipType
+              )
+            ) {
+              // For predefined scholarship types
+              setScholarship(
+                scholarshipOptions.find((opt) => opt.includes(user.scholarshipType)) ||
+                  ""
+              );
+            } else {
+              // For custom scholarship
+              setScholarship("Other");
+              setCustomScholarship(user.scholarshipType);
+            }
+
+            // Pre-fill the title with scholarship name
+            setTitle(user.scholarshipType);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Determine the title based on income type and selections
     let finalTitle = "";
     let finalSource = null;
 
     if (incomeType === "Passive") {
       if (scholarship === "Other") {
-        // For custom scholarships
         finalTitle = customScholarship.trim();
         finalSource = "Other";
       } else {
-        // For predefined scholarships
         finalTitle = scholarship;
         finalSource = scholarship;
       }
     } else {
-      // For Active income
       finalTitle = title;
     }
 
@@ -57,7 +94,7 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
       title: finalTitle,
       source: finalSource,
       date: startDate,
-      amount: parseFloat(amount), // Ensure amount is a number, not a string
+      amount: parseFloat(amount),
       occurrence,
     };
 
@@ -74,23 +111,14 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
         theme: "light",
       });
 
-      // Call the onAddIncome callback after successful addition
       if (onAddIncome) {
         onAddIncome();
       }
 
-      onClose(); // Close the modal after successful submission
+      onClose();
     } catch (error) {
       console.error("Error adding income:", error);
-      toast.error(error.message || "Failed to add income.", {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
-      });
+      toast.error(error.message || "Failed to add income.");
     }
   };
 
@@ -119,45 +147,46 @@ export const AddIncomeModal = ({ onClose, onAddIncome }) => {
           </div>
 
           {incomeType === "Passive" && (
-            <div className={styles.formGroup}>
-              <label htmlFor="scholarship" className={styles.label}>
-                Scholarship:
-              </label>
-              <select
-                id="scholarship"
-                className={styles.input}
-                value={scholarship}
-                onChange={(e) => setScholarship(e.target.value)}
-                required
-              >
-                <option value="" disabled>
-                  Select scholarship
-                </option>
-                {scholarshipOptions.map((option, index) => (
-                  <option key={index} value={option}>
-                    {option}
+            <>
+              <div className={styles.formGroup}>
+                <label htmlFor="scholarship" className={styles.label}>
+                  Scholarship:
+                </label>
+                <select
+                  id="scholarship"
+                  className={styles.input}
+                  value={scholarship}
+                  onChange={(e) => setScholarship(e.target.value)}
+                  required
+                >
+                  <option value="" disabled>
+                    Select scholarship
                   </option>
-                ))}
-              </select>
-            </div>
-          )}
+                  {scholarshipOptions.map((option, index) => (
+                    <option key={index} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* New custom scholarship input field */}
-          {incomeType === "Passive" && scholarship === "Other" && (
-            <div className={styles.formGroup}>
-              <label htmlFor="customScholarship" className={styles.label}>
-                Scholarship Title:
-              </label>
-              <input
-                id="customScholarship"
-                type="text"
-                className={styles.input}
-                placeholder="Enter custom scholarship title"
-                value={customScholarship}
-                onChange={(e) => setCustomScholarship(e.target.value)}
-                required
-              />
-            </div>
+              {scholarship === "Other" && (
+                <div className={styles.formGroup}>
+                  <label htmlFor="customScholarship" className={styles.label}>
+                    Scholarship Name:
+                  </label>
+                  <input
+                    id="customScholarship"
+                    type="text"
+                    className={styles.input}
+                    placeholder="Enter scholarship name"
+                    value={customScholarship}
+                    onChange={(e) => setCustomScholarship(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+            </>
           )}
 
           {incomeType === "Active" && (
