@@ -21,8 +21,8 @@ const formatPeriodLabel = (period) => {
 
 // Generate pie chart for expenses
 async function generatePieChart(categories) {
-  const width = 400;
-  const height = 400;
+  const width = 350;
+  const height = 350;
   const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
   const configuration = {
@@ -40,15 +40,27 @@ async function generatePieChart(categories) {
           '#4FC3F7',
           '#4DD0E1',
           '#4DB6AC',
-        ]
+          '#81C784',
+          '#FFB74D'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     },
     options: {
+      responsive: true,
       plugins: {
         legend: {
           position: 'right',
           labels: {
-            color: '#000000'
+            color: '#333333',
+            font: {
+              size: 11,
+              family: 'Arial'
+            },
+            padding: 15,
+            usePointStyle: true,
+            pointStyle: 'circle'
           }
         }
       }
@@ -62,8 +74,8 @@ const generateDashboardPDF = async (data) => {
   return new Promise(async (resolve) => {
     const doc = new PDFDocument({
       size: 'A4',
-      margin: 50,
-      bufferPages: true
+      margin: 40,
+      bufferPages: false // Disable page buffering to prevent blank pages
     });
 
     // Store PDF chunks
@@ -71,140 +83,272 @@ const generateDashboardPDF = async (data) => {
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
 
-    // Header with title only
-    doc.fontSize(24)
-       .fillColor('#151AA5')
-       .text('Budget Buddy Dashboard', 50, 50)
-       .fontSize(14)
-       .fillColor('#666666')
-       .text(`Period: ${formatPeriodLabel(data.period)}`, 50, 80);
+    // Colors
+    const primaryColor = '#151AA5';
+    const secondaryColor = '#666666';
+    const accentColor = '#4CAF50';
+    const warningColor = '#FF9800';
+    const dangerColor = '#F44336';
 
-    // Add decorative header line
-    doc.moveTo(50, 110)
-       .lineTo(545, 110)
-       .strokeColor('#151AA5')
+    // Header Section
+    doc.fontSize(20)
+       .fillColor(primaryColor)
+       .font('Helvetica-Bold')
+       .text('BudgetBuddy Dashboard', 40, 40);
+
+    doc.fontSize(11)
+       .fillColor(secondaryColor)
+       .font('Helvetica')
+       .text(`Period: ${formatPeriodLabel(data.period)}`, 40, 70)
+       .text(`Generated on: ${new Date().toLocaleDateString()}`, 40, 85);
+
+    // Header line
+    doc.moveTo(40, 105)
+       .lineTo(555, 105)
+       .strokeColor(primaryColor)
+       .lineWidth(2)
        .stroke();
 
     // Financial Overview Section
-    doc.moveDown(2)
-       .fontSize(18)
-       .fillColor('#151AA5')
-       .text('Financial Overview', { underline: true });
+    let currentY = 125;
+    doc.fontSize(14)
+       .fillColor(primaryColor)
+       .font('Helvetica-Bold')
+       .text('Financial Overview', 40, currentY);
 
-    // Create summary cards
+    currentY += 25;
+
+    // Summary cards in a row
+    const cardWidth = 160;
+    const cardHeight = 60;
+    const cardSpacing = 17;
+    
     const summaryData = [
-      { label: 'Balance', amount: `RM ${data.balance}`, color: '#151AA5' },
-      { label: 'Total Income', amount: `RM ${data.income}`, color: '#4CAF50' },
-      { label: 'Total Expenses', amount: `RM ${data.expense}`, color: '#F44336' }
+      { 
+        label: 'Balance', 
+        amount: `RM ${parseFloat(data.balance).toFixed(2)}`, 
+        color: parseFloat(data.balance) >= 0 ? accentColor : dangerColor 
+      },
+      { 
+        label: 'Total Income', 
+        amount: `RM ${parseFloat(data.income).toFixed(2)}`, 
+        color: accentColor 
+      },
+      { 
+        label: 'Total Expenses', 
+        amount: `RM ${parseFloat(data.expense).toFixed(2)}`, 
+        color: dangerColor 
+      }
     ];
 
-    // Draw summary cards
-    let yPos = doc.y + 20;
     summaryData.forEach((item, index) => {
-      const xPos = 50 + (index * 165);
-      doc.rect(xPos, yPos, 150, 80)
+      const xPos = 40 + (index * (cardWidth + cardSpacing));
+      
+      // Card background with rounded corners (simulate with multiple small rects)
+      const cornerRadius = 4;
+      doc.roundedRect(xPos, currentY, cardWidth, cardHeight, cornerRadius)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      // Card border with rounded corners
+      doc.roundedRect(xPos, currentY, cardWidth, cardHeight, cornerRadius)
+         .strokeColor('#e9ecef')
+         .lineWidth(1)
+         .stroke();
+      
+      // Label
+      doc.fontSize(9)
+         .fillColor(secondaryColor)
+         .font('Helvetica')
+         .text(item.label, xPos + 10, currentY + 10);
+      
+      // Amount
+      doc.fontSize(14)
          .fillColor(item.color)
-         .fillOpacity(0.1)
-         .fill()
-         .fillColor(item.color)
-         .fillOpacity(1)
-         .fontSize(12)
-         .text(item.label, xPos + 10, yPos + 10)
-         .fontSize(16)
-         .text(item.amount, xPos + 10, yPos + 40);
+         .font('Helvetica-Bold')
+         .text(item.amount, xPos + 10, currentY + 25);
     });
+
+    currentY += cardHeight + 30;
 
     // Expenses by Category Section
-    doc.moveDown(6)
-       .fontSize(18)
-       .fillColor('#151AA5')
-       .text('Expenses by Category', { underline: true });
+    if (data.expensesByCategory && data.expensesByCategory.length > 0) {
+      doc.fontSize(14)
+         .fillColor(primaryColor)
+         .font('Helvetica-Bold')
+         .text('Expenses by Category', 40, currentY);
 
-    // Add pie chart
-    const chartBuffer = await generatePieChart(data.expensesByCategory);
-    doc.image(chartBuffer, 50, doc.y + 20, { width: 300 });
+      currentY += 25;
 
-    // Category details table
-    let tableY = doc.y + 320;
-    doc.fontSize(12)
-       .fillColor('#000000');
+      // Check if we need a new page for the chart
+      if (currentY + 200 > doc.page.height - 40) {
+        doc.addPage();
+        currentY = 40;
+        doc.fontSize(14)
+           .fillColor(primaryColor)
+           .font('Helvetica-Bold')
+           .text('Expenses by Category (continued)', 40, currentY);
+        currentY += 25;
+      }
 
-    // Table headers
-    const headers = ['Category', 'Amount', 'Percentage'];
-    let xPositions = [50, 300, 450];
-    
-    headers.forEach((header, i) => {
-      doc.text(header, xPositions[i], tableY);
-    });
+      // Generate and add pie chart
+      const chartBuffer = await generatePieChart(data.expensesByCategory);
+      const chartSize = 200;
+      doc.image(chartBuffer, 40, currentY, { width: chartSize });
 
-    // Table rows
-    data.expensesByCategory.forEach((category, index) => {
+      // Category details table next to chart
+      const tableX = 260;
+      let tableY = currentY;
+
+      // Table headers
+      doc.fontSize(10)
+         .fillColor(primaryColor)
+         .font('Helvetica-Bold')
+         .text('Category', tableX, tableY)
+         .text('Amount (RM)', tableX + 120, tableY)
+         .text('Share (%)', tableX + 200, tableY);
+
+      // Header line
+      doc.moveTo(tableX, tableY + 15)
+         .lineTo(tableX + 250, tableY + 15)
+         .strokeColor('#dee2e6')
+         .lineWidth(1)
+         .stroke();
+
       tableY += 25;
-      doc.text(category.category, xPositions[0], tableY)
-         .text(`RM ${parseFloat(category.amount).toFixed(2)}`, xPositions[1], tableY)
-         .text(`${category.percentage}%`, xPositions[2], tableY);
-    });
 
-    // Budget Overview Section
-    doc.addPage()
-       .fontSize(18)
-       .fillColor('#151AA5')
-       .text('Budget Overview', { underline: true });
+      // Table rows
+      data.expensesByCategory.forEach((category, index) => {
+        if (tableY > doc.page.height - 60) {
+          doc.addPage();
+          tableY = 40;
+          // Repeat headers on new page
+          doc.fontSize(10)
+             .fillColor(primaryColor)
+             .font('Helvetica-Bold')
+             .text('Category', tableX, tableY)
+             .text('Amount (RM)', tableX + 120, tableY)
+             .text('Share (%)', tableX + 200, tableY);
+          doc.moveTo(tableX, tableY + 15)
+             .lineTo(tableX + 250, tableY + 15)
+             .strokeColor('#dee2e6')
+             .lineWidth(1)
+             .stroke();
+          tableY += 25;
+        }
 
-    // Add budget overview content
-    if (data.budgetOverview && data.budgetOverview.length > 0) {
-      let budgetY = doc.y + 20;
-      data.budgetOverview.forEach(budget => {
-        // Convert values to numbers and set defaults if undefined
-        const spent = parseFloat(budget.spent) || 0;
-        const budgetLimit = parseFloat(budget.budgetLimit) || 0;
-        
-        // Calculate progress with validation
-        const progress = budgetLimit > 0 ? (spent / budgetLimit) * 100 : 0;
-        const barWidth = 400;
-        
-        doc.fontSize(12)
-           .fillColor('#000000')
-           .text(budget.categoryName, 50, budgetY)
-           .text(`RM ${spent.toFixed(2)} / RM ${budgetLimit.toFixed(2)}`, 50, budgetY + 20);
-
-        // Draw background bar
-        doc.rect(50, budgetY + 40, barWidth, 20)
-           .fillColor('#EEEEEE')
-           .fill();
-
-        // Draw progress bar only if width is valid
-        const progressWidth = Math.min(barWidth * (progress / 100), barWidth);
-        if (progressWidth > 0) {
-          doc.rect(50, budgetY + 40, progressWidth, 20)
-             .fillColor(progress > 100 ? '#F44336' : '#151AA5')
+        // Alternate row colors
+        if (index % 2 === 1) {
+          doc.roundedRect(tableX - 5, tableY - 5, 260, 18, 2)
+             .fillColor('#f8f9fa')
              .fill();
         }
 
-        // Add percentage text
-        doc.fillColor('#000000')
-           .text(`${progress.toFixed(1)}%`, 460, budgetY + 40);
+        doc.fontSize(9)
+           .fillColor('#333333')
+           .font('Helvetica')
+           .text(category.category, tableX, tableY)
+           .text(parseFloat(category.amount).toFixed(2), tableX + 120, tableY)
+           .text(`${category.percentage}%`, tableX + 200, tableY);
 
-        budgetY += 80;
+        tableY += 18;
       });
-    } else {
-      doc.fontSize(12)
-         .fillColor('#666666')
-         .text('No budget data available for this period.');
+
+      currentY = Math.max(currentY + chartSize, tableY) + 30;
     }
 
-    // Add page numbers
-    const pages = doc.bufferedPageRange();
-    for (let i = 0; i < pages.count; i++) {
-      doc.switchToPage(i);
-      doc.fontSize(10)
-         .fillColor('#666666')
-         .text(
-           `Page ${i + 1} of ${pages.count}`,
-           50,
-           doc.page.height - 50,
-           { align: 'center' }
-         );
+    // Budget Overview Section
+    if (data.budgetOverview && data.budgetOverview.length > 0) {
+      // Filter out budget items with 0% progress for the current period
+      const activeBudgets = data.budgetOverview.filter(budget => {
+        const spent = parseFloat(budget.spent) || 0;
+        return spent > 0; // Only show budgets with actual spending
+      });
+
+      if (activeBudgets.length > 0) {
+        // Check if we need a new page
+        if (currentY + 100 > doc.page.height - 80) {
+          doc.addPage();
+          currentY = 40;
+        }
+
+        doc.fontSize(14)
+           .fillColor(primaryColor)
+           .font('Helvetica-Bold')
+           .text('Budget Overview', 40, currentY);
+
+        currentY += 25;
+
+        activeBudgets.forEach((budget, index) => {
+          // Check if we need a new page for each budget item
+          if (currentY + 70 > doc.page.height - 80) {
+            doc.addPage();
+            currentY = 40;
+          }
+
+          const spent = parseFloat(budget.spent) || 0;
+          const budgetLimit = parseFloat(budget.budgetLimit) || 0;
+          const progress = budgetLimit > 0 ? (spent / budgetLimit) * 100 : 0;
+
+          // Budget category name
+          doc.fontSize(11)
+             .fillColor('#333333')
+             .font('Helvetica-Bold')
+             .text(budget.categoryName, 40, currentY);
+
+          // Budget amounts
+          doc.fontSize(9)
+             .fillColor(secondaryColor)
+             .font('Helvetica')
+             .text(`RM ${spent.toFixed(2)} of RM ${budgetLimit.toFixed(2)}`, 40, currentY + 15);
+
+          // Progress bar background with rounded corners
+          const barWidth = 300;
+          const barHeight = 12;
+          const barY = currentY + 30;
+          const barRadius = 6;
+
+          doc.roundedRect(40, barY, barWidth, barHeight, barRadius)
+             .fillColor('#e9ecef')
+             .fill();
+
+          // Progress bar fill with rounded corners
+          if (budgetLimit > 0 && spent > 0) {
+            const progressWidth = Math.min(barWidth * (progress / 100), barWidth);
+            const progressColor = progress > 100 ? dangerColor : progress > 80 ? warningColor : accentColor;
+            
+            doc.roundedRect(40, barY, progressWidth, barHeight, barRadius)
+               .fillColor(progressColor)
+               .fill();
+          }
+
+          // Progress percentage
+          doc.fontSize(9)
+             .fillColor('#333333')
+             .font('Helvetica')
+             .text(`${progress.toFixed(1)}%`, 350, barY + 2);
+
+          currentY += 60;
+        });
+      }
+    }
+
+    // Footer with generation info (only if there's enough space)
+    const footerHeight = 50;
+    if (currentY + footerHeight + 20 <= doc.page.height - 40) {
+      const footerY = doc.page.height - 60;
+      doc.moveTo(40, footerY)
+         .lineTo(555, footerY)
+         .strokeColor('#dee2e6')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fontSize(8)
+         .fillColor(secondaryColor)
+         .font('Helvetica')
+         .text('Generated by BudgetBuddy', 40, footerY + 10)
+         .text(`Report Date: ${new Date().toLocaleDateString()}`, 40, footerY + 23)
+         .text('This report contains your personal financial data. Keep it secure.', 40, footerY + 36);
     }
 
     doc.end();
