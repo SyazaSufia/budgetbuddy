@@ -324,67 +324,109 @@ const ProfilePage = () => {
             <InfoSection title="Personal Information" required>
               <div className={styles.row}>
                 <div className={styles.formGroup}>
-                  <FormField
-                    label="Name"
-                    placeholder="Full name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e)}
-                    disabled={isSaving}
-                  />
+                  <div className={styles.fieldContainer}>
+                    <div className={styles.labelContainer}>
+                      <label className={styles.label}>Name</label>
+                      <span className={styles.labelColon}>:</span>
+                    </div>
+                    <div className={styles.inputContainer}>
+                      <input
+                        className={styles.select}
+                        placeholder="Full name"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e)}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
                 </div>
+
                 <div className={styles.formGroup}>
-                  <FormField
-                    label="Age"
-                    placeholder="Age"
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => handleInputChange("age", e)}
-                    readOnly={true}
-                    disabled={isSaving}
-                  />
+                  <div className={styles.fieldContainer}>
+                    <div className={styles.labelContainer}>
+                      <label className={styles.label}>Age</label>
+                      <span className={styles.labelColon}>:</span>
+                    </div>
+                    <div className={styles.inputContainer}>
+                      <input
+                        className={styles.select}
+                        type="number"
+                        placeholder="Age"
+                        value={formData.age}
+                        onChange={(e) => handleInputChange("age", e)}
+                        readOnly={true}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
                   {errors.age && (
                     <p className={styles.errorText}>{errors.age}</p>
                   )}
                 </div>
+
                 <div className={styles.formGroup}>
-                  <FormField
-                    label="Date of Birth"
-                    type="date"
-                    value={formData.dob}
-                    onChange={(e) => handleInputChange("dob", e)}
-                    disabled={isSaving}
-                  />
+                  <div className={styles.fieldContainer}>
+                    <div className={styles.labelContainer}>
+                      <label className={styles.label}>Date of Birth</label>
+                      <span className={styles.labelColon}>:</span>
+                    </div>
+                    <div className={styles.inputContainer}>
+                      <input
+                        className={styles.select}
+                        type="date"
+                        value={formData.dob}
+                        onChange={(e) => handleInputChange("dob", e)}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className={styles.row}>
                 <div className={styles.formGroup}>
-                  <FormField
-                    label="Email"
-                    placeholder="Email address"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e)}
-                    disabled={isSaving}
-                  />
+                  <div className={styles.fieldContainer}>
+                    <div className={styles.labelContainer}>
+                      <label className={styles.label}>Email</label>
+                      <span className={styles.labelColon}>:</span>
+                    </div>
+                    <div className={styles.inputContainer}>
+                      <input
+                        className={styles.select}
+                        type="email"
+                        placeholder="Email address"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e)}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
                   {errors.email && (
                     <p className={styles.errorText}>{errors.email}</p>
                   )}
                 </div>
+
                 <div className={styles.formGroup}>
-                  <FormField
-                    label="Phone Number"
-                    placeholder="Phone Number"
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) => handleInputChange("phoneNumber", e)}
-                    disabled={isSaving}
-                  />
+                  <div className={styles.fieldContainer}>
+                    <div className={styles.labelContainer}>
+                      <label className={styles.label}>Phone Number</label>
+                      <span className={styles.labelColon}>:</span>
+                    </div>
+                    <div className={styles.inputContainer}>
+                      <input
+                        className={styles.select}
+                        type="tel"
+                        placeholder="Phone Number"
+                        value={formData.phoneNumber}
+                        onChange={(e) => handleInputChange("phoneNumber", e)}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
                   {errors.phoneNumber && (
                     <p className={styles.errorText}>{errors.phoneNumber}</p>
                   )}
                 </div>
-                {/* Empty space to keep layout balanced */}
                 <div className={styles.formGroup}></div>
               </div>
             </InfoSection>
@@ -441,13 +483,22 @@ const ProfilePage = () => {
                 
                 {formData.incomeType === "Passive" && formData.scholarshipType === "other" && (
                   <div className={styles.formGroup}>
-                    <FormField
-                      label="Scholarship Name"
-                      placeholder="Enter scholarship name"
-                      value={formData.scholarshipTitle}
-                      onChange={(e) => handleInputChange("scholarshipTitle", e)}
-                      disabled={isSaving}
-                    />
+                    <div className={styles.fieldContainer}>
+                      <div className={styles.labelContainer}>
+                        <label className={styles.label}>Scholarship Name</label>
+                        <span className={styles.labelColon}>:</span>
+                      </div>
+                      <div className={styles.inputContainer}>
+                        <input
+                          className={styles.select}
+                          type="text"
+                          placeholder="Enter scholarship name"
+                          value={formData.scholarshipTitle}
+                          onChange={(e) => handleInputChange("scholarshipTitle", e.target.value)}
+                          disabled={isSaving}
+                        />
+                      </div>
+                    </div>
                     {errors.scholarshipTitle && (
                       <p className={styles.errorText}>{errors.scholarshipTitle}</p>
                     )}

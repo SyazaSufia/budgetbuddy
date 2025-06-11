@@ -228,14 +228,13 @@
 /* Styling for select dropdowns */
 .select {
   width: 100%;
-  min-width: 200px;
-  padding: 8px 12px;
+  height: 40px;
+  padding: 0 16px;
   border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  font-family: "Montserrat", sans-serif;
-  background-color: white;
-  transition: border-color 0.3s ease;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  font: 400 14px Montserrat, sans-serif;
+  color: var(--disableText);
 }
 
 .select:focus {
@@ -248,12 +247,15 @@
 .fieldContainer {
   display: flex;
   width: 100%;
+  align-items: center;
+  margin-bottom: 4px;
 }
 
 .labelContainer {
   display: flex;
   min-width: 150px;
   align-items: center;
+  gap: 4px;
 }
 
 .inputContainer {
@@ -303,6 +305,21 @@
   .pageHeader {
     font-size: 24px;
     margin-bottom: 16px;
+  }
+
+  .fieldContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .labelContainer {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .errorText {
+    margin-left: 0;
   }
 }
 
