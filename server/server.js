@@ -31,6 +31,8 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
 }
 
 // Import routes
+const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 const incomeRoutes = require("./routes/incomeRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
@@ -46,8 +48,6 @@ const communityRoutes = require("./routes/communityRoutes");
 // Enable the income scheduler since we're not using serverless anymore
 const incomeScheduler = require('./services/incomeScheduler');
 incomeScheduler.initialize();
-
-const isAuthenticated = require("./middleware/isAuthenticated");
 
 // CORS options - allow the deployed frontend and local development
 const corsOptions = {
@@ -227,54 +227,6 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", environment: process.env.NODE_ENV });
 });
 
-// Add this to your server.js to debug exact paths
-// Place this BEFORE your other routes
-
-app.get('/debug/paths', (req, res) => {
-  const path = require('path');
-  const fs = require('fs');
-  
-  const serverDir = __dirname;
-  const publicDir = path.join(__dirname, 'public');
-  const uploadsDir = path.join(__dirname, 'public', 'uploads');
-  const adsDir = path.join(__dirname, 'public', 'uploads', 'ads');
-  
-  // Check if directories exist
-  const debugInfo = {
-    serverDirectory: serverDir,
-    publicDirectory: publicDir,
-    uploadsDirectory: uploadsDir,
-    adsDirectory: adsDir,
-    publicExists: fs.existsSync(publicDir),
-    uploadsExists: fs.existsSync(uploadsDir),
-    adsExists: fs.existsSync(adsDir),
-    nodeEnv: process.env.NODE_ENV,
-    files: []
-  };
-  
-  // List files in ads directory
-  if (fs.existsSync(adsDir)) {
-    try {
-      const files = fs.readdirSync(adsDir);
-      debugInfo.files = files.map(file => {
-        const filePath = path.join(adsDir, file);
-        const stats = fs.statSync(filePath);
-        return {
-          name: file,
-          fullPath: filePath,
-          size: stats.size,
-          created: stats.birthtime,
-          url: `/uploads/ads/${file}`
-        };
-      });
-    } catch (error) {
-      debugInfo.filesError = error.message;
-    }
-  }
-  
-  res.json(debugInfo);
-});
-
 // Test specific file access
 app.get('/debug/test-file/:filename', (req, res) => {
   const path = require('path');
@@ -304,6 +256,8 @@ app.get('/debug/test-file/:filename', (req, res) => {
 });
 
 // API Routes
+app.use("/", authRoutes);
+app.use("/", profileRoutes);
 app.use("/", passwordRoutes);
 app.use("/income", incomeRoutes);
 app.use("/expense", expenseRoutes);
@@ -315,253 +269,6 @@ app.use("/community", communityRoutes);
 app.use("/advertisement", advertisementRoutes);
 app.use("/admin/community", adminCommRoutes);
 app.use("/admin/stats", adminStatsRoutes);
-
-// Sign-up endpoint
-app.post("/sign-up", async (req, res) => {
-  try {
-    const { userName, userEmail, userPassword, userDOB } = req.body;
-
-    if (!userName || !userEmail || !userPassword || !userDOB) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required." });
-    }
-
-    // Check if email exists
-    const existingUsers = await db.query("SELECT * FROM user WHERE userEmail = ?", [userEmail]);
-    
-    if (existingUsers.length > 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already exists." });
-    }
-
-    // Hash password
-    const hash = await bcrypt.hash(userPassword, saltRounds);
-    
-    // Insert user
-    await db.query(
-      'INSERT INTO user (userName, userEmail, userPassword, userDOB) VALUES (?, ?, ?, STR_TO_DATE(?, "%Y-%m-%d"))',
-      [userName, userEmail, hash, userDOB]
-    );
-    
-    return res
-      .status(201)
-      .json({ success: true, message: "User registered successfully." });
-      
-  } catch (error) {
-    console.error("Error in sign-up:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during registration." });
-  }
-});
-
-// Sign-in endpoint
-app.post("/sign-in", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Check user table
-    const userData = await db.query(
-      "SELECT userID AS id, userName AS name, userEmail AS email, userPassword AS password, 'user' AS role FROM user WHERE userEmail = ?",
-      [email]
-    );
-
-    if (userData.length > 0) {
-      const user = userData[0];
-      const isMatch = await bcrypt.compare(password, user.password);
-      
-      if (isMatch) {
-        req.session.user = {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
-        return res.json({ success: true, user: user });
-      }
-    }
-
-    // Check admin table
-    const adminData = await db.query(
-      "SELECT adminID AS id, adminName AS name, adminEmail AS email, adminPassword AS password, 'admin' AS role FROM admin WHERE adminEmail = ?",
-      [email]
-    );
-
-    if (adminData.length > 0) {
-      const admin = adminData[0];
-      const isMatch = await bcrypt.compare(password, admin.password);
-      
-      if (isMatch) {
-        req.session.user = {
-          id: admin.id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
-        };
-        return res.json({ success: true, user: admin });
-      }
-    }
-
-    return res.json({
-      success: false,
-      message: "Invalid email or password.",
-    });
-    
-  } catch (error) {
-    console.error("Error in sign-in:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Sign-out endpoint
-app.post("/sign-out", (req, res) => {
-  if (!req.session.user) {
-    return res
-      .status(400)
-      .json({ success: false, message: "No active session" });
-  }
-
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Error destroying session:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: "Error logging out" });
-    }
-
-    res.clearCookie("connect.sid", {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
-    });
-
-    return res.json({ success: true, message: "Logged out successfully" });
-  });
-});
-
-// Check authentication status
-app.get("/check-auth", (req, res) => {
-  if (req.session.user) {
-    return res.json({ isAuthenticated: true, user: req.session.user });
-  }
-  return res.json({ isAuthenticated: false });
-});
-
-// Update the GET User Details Endpoint to ensure consistent capitalization
-app.get("/get-user-details", isAuthenticated, async (req, res) => {
-  try {
-    const { id } = req.session.user;
-
-    const users = await db.query(
-      `SELECT 
-        userID AS id, 
-        userName AS name, 
-        userEmail AS email, 
-        DATE_FORMAT(userDOB, '%Y-%m-%d') AS userDOB, 
-        userPhoneNumber AS phoneNumber, 
-        profileImage,
-        incomeType,
-        scholarshipType 
-      FROM user 
-      WHERE userID = ?`,
-      [id]
-    );
-
-    if (users.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found." });
-    }
-
-    const user = users[0];
-    
-    // Ensure consistent capitalization for incomeType if it exists
-    if (user.incomeType) {
-      if (user.incomeType.toLowerCase() === "passive") {
-        user.incomeType = "Passive";
-      } else if (user.incomeType.toLowerCase() === "active") {
-        user.incomeType = "Active";
-      }
-    }
-    
-    console.log("Retrieved user with:", {
-      incomeType: user.incomeType,
-      scholarshipType: user.scholarshipType
-    });
-    
-    return res.json({ success: true, user });
-  } catch (error) {
-    console.error("Error fetching user details:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Error fetching user details." });
-  }
-});
-
-// Update the Profile Update Endpoint to properly capitalize incomeType
-app.post("/update-profile", isAuthenticated, async (req, res) => {
-  try {
-    const { id, name, email, dob, phoneNumber, profileImage, incomeType, scholarshipType } = req.body;
-    const userId = req.session.user.id;
-
-    // Validation: ensure the ID matches the logged-in user
-    if (id !== userId) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Unauthorized action." });
-    }
-
-    // Properly capitalize incomeType
-    let formattedIncomeType = null;
-    if (incomeType) {
-      if (incomeType.toLowerCase() === "passive") {
-        formattedIncomeType = "Passive";
-      } else if (incomeType.toLowerCase() === "active") {
-        formattedIncomeType = "Active";
-      } else {
-        formattedIncomeType = incomeType; // Keep as is if it's something else
-      }
-    }
-
-    // Handle scholarshipType based on incomeType
-    // If incomeType is not Passive, set scholarshipType to null
-    const finalScholarshipType = formattedIncomeType === 'Passive' ? scholarshipType : null;
-
-    console.log("Saving profile with:", {
-      incomeType: formattedIncomeType,
-      scholarshipType: finalScholarshipType
-    });
-
-    await db.query(
-      `UPDATE user 
-      SET 
-        userName = ?, 
-        userDOB = STR_TO_DATE(?, '%Y-%m-%d'), 
-        userEmail = ?, 
-        userPhoneNumber = ?, 
-        profileImage = ?,
-        incomeType = ?,
-        scholarshipType = ?
-      WHERE userID = ?`,
-      [name, dob, email, phoneNumber, profileImage, formattedIncomeType, finalScholarshipType, userId]
-    );
-    
-    return res.json({
-      success: true,
-      message: "Profile updated successfully.",
-    });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Error updating profile." });
-  }
-});
 
 //---------------------------ADMIN ENDPOINTS---------------------------//
 
