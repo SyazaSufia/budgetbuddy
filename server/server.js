@@ -45,7 +45,7 @@ const adminStatsRoutes = require("./routes/adminStatsRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 
-// Enable the income scheduler since we're not using serverless anymore
+// Enable the income scheduler
 const incomeScheduler = require('./services/incomeScheduler');
 incomeScheduler.initialize();
 
@@ -89,7 +89,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-// Session configuration - Note that for production you should use a proper session store
+// Session configurati
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "4eba08474238b7a30245666cec4ab4b199199473a2fc9020b8d766cf2cf8731f",
