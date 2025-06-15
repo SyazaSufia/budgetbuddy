@@ -12,9 +12,16 @@ These are the main functionalities proposed in the system:
 ## How to Get Started
 1. Sign Up: Create a user account by inputting the required details.
 2. Manage Income: Adding income based on types such as passive or active.
-3. Managing  Expenses: Adding expense categories as well as the specific expenses for each categories.
-4. Managing Budgets: Creating budgets based on the expense categories created.
-5. Community Engagement: Explore other users' posts and create a post yourself while following the community guidelines.
+3. Managing Budgets: Creating budgets categories.
+4. Managing  Expenses: Adding expense into the categories created (based on budget categories).
+6. Community Engagement: Explore other users' posts and create a post yourself while following the community guidelines.
+
+## Admin Features
+1. Sign In
+2. Statistics Page: View overall total users and insights for user income types.
+3. Manage User Accounts: Deleting inactive users.
+4. Manage Community Posts: Deleting posts, update post status, and view posts details.
+5. Manage Advertisements: Add, edit, and change advertisement status.
 
 ## Related UIs - User Side
 ![image](https://github.com/user-attachments/assets/6e39f99b-9d8f-4b8f-846c-99c066d9700d)
