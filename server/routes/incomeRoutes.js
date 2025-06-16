@@ -15,4 +15,10 @@ router.delete("/delete/:incomeID", isAuthenticated, incomeController.deleteIncom
 // Update Income
 router.put("/update/:incomeID", isAuthenticated, incomeController.updateIncome);
 
+// Get monthly income total
+router.get("/monthly", isAuthenticated, incomeController.getMonthlyIncome);
+
+// Check if user has income for a specific month
+router.get("/check-monthly", isAuthenticated, incomeController.checkMonthlyIncomeExists);
+
 module.exports = router;

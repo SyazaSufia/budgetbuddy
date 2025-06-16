@@ -1,5 +1,40 @@
 const db = require("../db");
 
+// Helper function to get monthly income total
+const getMonthlyIncomeTotal = async (userID, month, year) => {
+  const query = `
+    SELECT SUM(amount) as totalIncome
+    FROM income
+    WHERE userID = ? 
+      AND MONTH(date) = ? 
+      AND YEAR(date) = ?
+  `;
+  
+  const results = await db.query(query, [userID, month, year]);
+  return parseFloat(results[0]?.totalIncome || 0);
+};
+
+// Helper function to get monthly budget total
+const getMonthlyBudgetTotal = async (userID, month, year, excludeBudgetID = null) => {
+  let query = `
+    SELECT SUM(targetAmount) as totalBudget
+    FROM budgets
+    WHERE userID = ? 
+      AND MONTH(createdAt) = ? 
+      AND YEAR(createdAt) = ?
+  `;
+  
+  const params = [userID, month, year];
+  
+  if (excludeBudgetID) {
+    query += " AND budgetID != ?";
+    params.push(excludeBudgetID);
+  }
+  
+  const results = await db.query(query, params);
+  return parseFloat(results[0]?.totalBudget || 0);
+};
+
 // Get all budgets for logged-in user
 exports.getBudgets = async (req, res) => {
   try {
@@ -142,7 +177,130 @@ exports.getBudgetDetails = async (req, res) => {
   }
 };
 
-// Create a new budget
+// NEW: Validate budget creation against income
+exports.validateBudgetCreation = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const { budgetName, targetAmount } = req.body;
+
+    if (!budgetName || !targetAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget name and target amount are required."
+      });
+    }
+
+    // Get current month/year
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11
+    const currentYear = now.getFullYear();
+
+    // Check if user has income for current month
+    const monthlyIncome = await getMonthlyIncomeTotal(userID, currentMonth, currentYear);
+    
+    if (monthlyIncome <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You must add income for this month before creating a budget.",
+        code: "NO_INCOME"
+      });
+    }
+
+    // Get current month's total budgets
+    const currentBudgetTotal = await getMonthlyBudgetTotal(userID, currentMonth, currentYear);
+    
+    // Check if new budget would exceed income
+    const newTotalBudget = currentBudgetTotal + parseFloat(targetAmount);
+    
+    if (newTotalBudget > monthlyIncome) {
+      return res.status(400).json({
+        success: false,
+        message: `Total budget amount (RM ${newTotalBudget.toFixed(2)}) would exceed your monthly income (RM ${monthlyIncome.toFixed(2)}). Available budget: RM ${(monthlyIncome - currentBudgetTotal).toFixed(2)}`,
+        code: "EXCEEDS_INCOME",
+        data: {
+          monthlyIncome,
+          currentBudgetTotal,
+          requestedAmount: parseFloat(targetAmount),
+          availableBudget: monthlyIncome - currentBudgetTotal
+        }
+      });
+    }
+
+    // Validation passed
+    res.status(200).json({
+      success: true,
+      message: "Budget can be created.",
+      data: {
+        monthlyIncome,
+        currentBudgetTotal,
+        requestedAmount: parseFloat(targetAmount),
+        remainingBudget: monthlyIncome - newTotalBudget
+      }
+    });
+
+  } catch (err) {
+    console.error("Error validating budget creation:", err);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to validate budget creation." 
+    });
+  }
+};
+
+// NEW: Get budget summary for validation
+exports.getBudgetSummary = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const { month, year } = req.query;
+
+    // If no month/year provided, use current month/year
+    const now = new Date();
+    const targetMonth = month ? parseInt(month) : now.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : now.getFullYear();
+
+    // Get monthly income
+    const monthlyIncome = await getMonthlyIncomeTotal(userID, targetMonth, targetYear);
+    
+    // Get monthly budget total
+    const monthlyBudgetTotal = await getMonthlyBudgetTotal(userID, targetMonth, targetYear);
+
+    // Get monthly expense total
+    const expenseQuery = `
+      SELECT SUM(e.amount) as totalExpenses
+      FROM expenses e
+      JOIN categories c ON e.categoryID = c.categoryID
+      JOIN budgets b ON c.budgetID = b.budgetID
+      WHERE e.userID = ? 
+        AND MONTH(e.date) = ? 
+        AND YEAR(e.date) = ?
+    `;
+    
+    const expenseResults = await db.query(expenseQuery, [userID, targetMonth, targetYear]);
+    const monthlyExpenseTotal = parseFloat(expenseResults[0]?.totalExpenses || 0);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        monthlyIncome,
+        monthlyBudgetTotal,
+        monthlyExpenseTotal,
+        remainingBudget: monthlyIncome - monthlyBudgetTotal,
+        remainingIncome: monthlyIncome - monthlyExpenseTotal,
+        month: targetMonth,
+        year: targetYear
+      }
+    });
+
+  } catch (err) {
+    console.error("Error getting budget summary:", err);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to get budget summary." 
+    });
+  }
+};
+
+// Create a new budget - UPDATED with validation
 exports.createBudget = async (req, res) => {
   try {
     const userID = req.session.user.id;
@@ -155,24 +313,45 @@ exports.createBudget = async (req, res) => {
       });
     }
 
-    // Get current date for monthly duplicate check
+    // Get current month/year for validation
     const now = new Date();
+    const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
 
-    // Define current month boundaries
-    const startOfMonth = new Date(currentYear, currentMonth, 1);
-    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+    // Check if user has income for current month
+    const monthlyIncome = await getMonthlyIncomeTotal(userID, currentMonth, currentYear);
+    
+    if (monthlyIncome <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You must add income for this month before creating a budget.",
+        code: "NO_INCOME"
+      });
+    }
 
-    // For debugging - let's see what we're checking
-    console.log('Creating budget check:', {
-      budgetName,
-      userID,
-      currentMonth: currentMonth + 1,
-      currentYear,
-      startOfMonth: startOfMonth.toISOString(),
-      endOfMonth: endOfMonth.toISOString()
-    });
+    // Get current month's total budgets
+    const currentBudgetTotal = await getMonthlyBudgetTotal(userID, currentMonth, currentYear);
+    
+    // Check if new budget would exceed income
+    const newTotalBudget = currentBudgetTotal + parseFloat(targetAmount);
+    
+    if (newTotalBudget > monthlyIncome) {
+      return res.status(400).json({
+        success: false,
+        message: `Total budget amount (RM ${newTotalBudget.toFixed(2)}) would exceed your monthly income (RM ${monthlyIncome.toFixed(2)}). Available budget: RM ${(monthlyIncome - currentBudgetTotal).toFixed(2)}`,
+        code: "EXCEEDS_INCOME",
+        data: {
+          monthlyIncome,
+          currentBudgetTotal,
+          requestedAmount: parseFloat(targetAmount),
+          availableBudget: monthlyIncome - currentBudgetTotal
+        }
+      });
+    }
+
+    // Define current month boundaries for duplicate check
+    const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
 
     // Check if a budget with this name already exists for this user IN THE CURRENT MONTH ONLY
     const checkQuery = `
@@ -188,8 +367,6 @@ exports.createBudget = async (req, res) => {
       endOfMonth,
     ]);
 
-    console.log('Check results:', checkResults);
-
     if (checkResults.length > 0) {
       return res.status(400).json({
         success: false,
@@ -197,7 +374,7 @@ exports.createBudget = async (req, res) => {
       });
     }
 
-    // If not exists in current month, proceed to insert
+    // If all validations pass, proceed to insert
     const insertQuery = `INSERT INTO budgets (userID, budgetName, targetAmount, icon) VALUES (?, ?, ?, ?)`;
     const result = await db.query(insertQuery, [
       userID,
@@ -222,7 +399,7 @@ exports.createBudget = async (req, res) => {
   }
 };
 
-// Update a budget's details
+// Update a budget's details - UPDATED with validation
 exports.updateBudget = async (req, res) => {
   try {
     const userID = req.session.user.id;
@@ -235,6 +412,52 @@ exports.updateBudget = async (req, res) => {
         message:
           "At least one field (budgetName, targetAmount, or icon) is required",
       });
+    }
+
+    // If targetAmount is being updated, validate against income
+    if (targetAmount) {
+      // Get current budget info
+      const currentBudgetQuery = `
+        SELECT targetAmount, createdAt FROM budgets 
+        WHERE budgetID = ? AND userID = ?
+      `;
+      
+      const currentBudgetResults = await db.query(currentBudgetQuery, [budgetID, userID]);
+      
+      if (currentBudgetResults.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Budget not found",
+        });
+      }
+
+      const currentBudget = currentBudgetResults[0];
+      const budgetDate = new Date(currentBudget.createdAt);
+      const budgetMonth = budgetDate.getMonth() + 1;
+      const budgetYear = budgetDate.getFullYear();
+
+      // Get monthly income for the budget's month
+      const monthlyIncome = await getMonthlyIncomeTotal(userID, budgetMonth, budgetYear);
+      
+      // Get current month's total budgets (excluding this budget)
+      const currentBudgetTotal = await getMonthlyBudgetTotal(userID, budgetMonth, budgetYear, budgetID);
+      
+      // Check if updated budget would exceed income
+      const newTotalBudget = currentBudgetTotal + parseFloat(targetAmount);
+      
+      if (newTotalBudget > monthlyIncome) {
+        return res.status(400).json({
+          success: false,
+          message: `Updated budget amount would cause total budgets (RM ${newTotalBudget.toFixed(2)}) to exceed monthly income (RM ${monthlyIncome.toFixed(2)}). Available budget: RM ${(monthlyIncome - currentBudgetTotal).toFixed(2)}`,
+          code: "EXCEEDS_INCOME",
+          data: {
+            monthlyIncome,
+            currentBudgetTotal,
+            requestedAmount: parseFloat(targetAmount),
+            availableBudget: monthlyIncome - currentBudgetTotal
+          }
+        });
+      }
     }
 
     let updateQuery = "UPDATE budgets SET ";

@@ -183,6 +183,21 @@ export const budgetAPI = {
     apiRequest(`/budget/budgets/${id}`, {
       method: "DELETE",
     }),
+
+  // NEW: Validate budget against income
+  validateBudgetCreation: (budgetData) =>
+    apiRequest("/budget/validate-creation", {
+      method: "POST",
+      body: JSON.stringify(budgetData),
+    }),
+
+  // NEW: Get budget summary for validation
+  getBudgetSummary: (month, year) => {
+    const endpoint = month && year 
+      ? `/budget/summary?month=${month}&year=${year}`
+      : "/budget/summary";
+    return apiRequest(endpoint);
+  },
 };
 
 // Category API methods
@@ -222,7 +237,7 @@ export const categoryAPI = {
   },
 };
 
-// Income API methods
+// Enhanced Income API methods
 export const incomeAPI = {
   getIncome: () => apiRequest("/income"),
 
@@ -254,9 +269,25 @@ export const incomeAPI = {
 
   getRecurringIncomeSeries: (parentId) =>
     apiRequest(`/income/recurring/${parentId}`),
+
+  // NEW: Get monthly income total
+  getMonthlyIncome: (month, year) => {
+    const endpoint = month && year 
+      ? `/income/monthly?month=${month}&year=${year}`
+      : `/income/monthly`;
+    return apiRequest(endpoint);
+  },
+
+  // NEW: Check if user has income for current month
+  checkMonthlyIncomeExists: (month, year) => {
+    const endpoint = month && year 
+      ? `/income/check-monthly?month=${month}&year=${year}`
+      : `/income/check-monthly`;
+    return apiRequest(endpoint);
+  },
 };
 
-// Expense API methods
+// Enhanced Expense API methods
 export const expenseAPI = {
   getExpenses: () => apiRequest("/expense/expenses"),
 
@@ -301,6 +332,21 @@ export const expenseAPI = {
         throw new Error(`Server returned non-JSON response: ${text}`);
       }
     });
+  },
+
+  // NEW: Validate expense against budget and income
+  validateExpenseAddition: (expenseData) =>
+    apiRequest("/expense/validate-addition", {
+      method: "POST",
+      body: JSON.stringify(expenseData),
+    }),
+
+  // NEW: Get monthly expense summary
+  getMonthlyExpenseSummary: (month, year) => {
+    const endpoint = month && year 
+      ? `/expense/monthly-summary?month=${month}&year=${year}`
+      : `/expense/monthly-summary`;
+    return apiRequest(endpoint);
   },
 };
 

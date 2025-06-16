@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { CreateBudgetModal } from "./CreateModal";
 import { useNavigate } from "react-router-dom";
 import BudgetIndicator from "./BudgetIndicator";
-import { budgetAPI } from "../services/UserApi";
+import { budgetAPI, incomeAPI } from "../services/UserApi";
 
 function BudgetCard({ activeTimeFilter = 'month' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,6 +12,7 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
   const [budgetExpenses, setBudgetExpenses] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [incomeInfo, setIncomeInfo] = useState(null);
   const navigate = useNavigate();
 
   // Check if the current filter allows editing (only "thisMonth" allows editing)
@@ -26,6 +27,31 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
       'last12Months': 'last12Months'
     };
     return periodMap[dashboardPeriod] || 'thisMonth';
+  };
+
+  // Check if user has income for current month (only when not in read-only mode)
+  const checkCurrentMonthIncome = async () => {
+    if (isReadOnlyMode) return; // Skip income check for historical data
+    
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      const incomeCheck = await incomeAPI.checkMonthlyIncomeExists(currentMonth, currentYear);
+      
+      if (incomeCheck.success) {
+        setIncomeInfo({
+          hasIncome: incomeCheck.data.hasIncome,
+          totalIncome: incomeCheck.data.totalIncome,
+          month: currentMonth,
+          year: currentYear
+        });
+      }
+    } catch (err) {
+      console.error("Error checking income:", err);
+      setIncomeInfo({ hasIncome: false, totalIncome: 0 });
+    }
   };
 
   const fetchBudgets = async (timeFilter) => {
@@ -88,6 +114,9 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
   }; 
 
   useEffect(() => {
+    // Check income for current month when component mounts or filter changes
+    checkCurrentMonthIncome();
+    
     // Fetch budgets with the active time filter
     fetchBudgets(activeTimeFilter);
   }, [activeTimeFilter]); // Re-fetch when activeTimeFilter changes
@@ -104,6 +133,26 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
 
     // Refresh the budgets from the server to get the actual amounts
     fetchBudgets(activeTimeFilter);
+    
+    // Refresh income info to update available budget
+    checkCurrentMonthIncome();
+  };
+
+  // Handle create budget button click with income validation
+  const handleCreateBudgetClick = async () => {
+    if (isReadOnlyMode) {
+      toast.info("Creating budgets is only available for the current month.");
+      return;
+    }
+
+    // Check if user has income for current month
+    if (!incomeInfo || !incomeInfo.hasIncome) {
+      toast.error("You must add income for this month before creating a budget. Please go to the Income section first.");
+      return;
+    }
+
+    // If user has income, open the modal
+    setIsModalOpen(true);
   };
 
   // Navigate to budget details with budget ID and read-only state
@@ -136,6 +185,23 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
   return (
     <div className={styles.cardContainer}>
 
+      {/* Show income status banner when in current month mode */}
+      {!isReadOnlyMode && (
+        <div className={styles.incomeStatusBanner}>
+          {incomeInfo && incomeInfo.hasIncome ? (
+            <div className={styles.incomeSuccess}>
+              <span className={styles.incomeIcon}>✓</span>
+              Monthly Income: RM {incomeInfo.totalIncome.toFixed(2)}
+            </div>
+          ) : (
+            <div className={styles.incomeWarning}>
+              <span className={styles.incomeIcon}>⚠</span>
+              No income added for this month. Add income first to create budgets.
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Render each budget as a card */}
       {budgets.length === 0 ? (
         <div className={styles.noBudgets}>
@@ -144,8 +210,13 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
             alt="No budgets"
             className={styles.emptyIllustration}
           />
-          <p>No budgets found for this time period. 
-            {!isReadOnlyMode && " Create a new budget!"}
+          <p>
+            {!isReadOnlyMode && (!incomeInfo || !incomeInfo.hasIncome) 
+              ? "Add income first, then create your first budget!"
+              : isReadOnlyMode 
+                ? "No budgets found for this time period."
+                : "No budgets found for this time period. Create a new budget!"
+            }
           </p>
         </div>
       ) : (
@@ -199,20 +270,33 @@ function BudgetCard({ activeTimeFilter = 'month' }) {
         })
       )}
 
-      {/* Only show Create New Budget button when not in read-only mode */}
+      {/* Only show Create New Budget button when not in read-only mode and user has income */}
       {!isReadOnlyMode && (
         <section className={styles.createBudgetButton}>
           <button
-            className={styles.addBudgetButton}
-            onClick={() => setIsModalOpen(true)}
+            className={`${styles.addBudgetButton} ${
+              (!incomeInfo || !incomeInfo.hasIncome) ? styles.disabledButton : ''
+            }`}
+            onClick={handleCreateBudgetClick}
+            disabled={!incomeInfo || !incomeInfo.hasIncome}
+            title={
+              (!incomeInfo || !incomeInfo.hasIncome) 
+                ? "Add income first to create budgets" 
+                : "Create New Budget"
+            }
           >
             <img src="/add-icon.svg" alt="Add" />
             <span>Create New Budget</span>
           </button>
+          {(!incomeInfo || !incomeInfo.hasIncome) && (
+            <div className={styles.helperText}>
+              Add income first to create budgets
+            </div>
+          )}
         </section>
       )}
 
-      {/* Modal for creating a new budget - only functional when not in read-only mode */}
+      {/* Modal for creating a new budget - only functional when not in read-only mode and user has income */}
       {isModalOpen && !isReadOnlyMode && (
         <CreateBudgetModal
           onClose={() => setIsModalOpen(false)}

@@ -392,9 +392,100 @@ const updateSingleIncome = async (incomeID, userID, data) => {
   return result;
 };
 
+// NEW: Get monthly income total
+const getMonthlyIncome = async (req, res) => {
+  try {
+    if (!req.session || !req.session.user || !req.session.user.id) {
+      return res.status(401).json({ error: "User not authenticated." });
+    }
+
+    const userID = req.session.user.id;
+    const { month, year } = req.query;
+
+    // If no month/year provided, use current month/year
+    const now = new Date();
+    const targetMonth = month ? parseInt(month) : now.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : now.getFullYear();
+
+    const query = `
+      SELECT SUM(amount) as totalIncome
+      FROM income
+      WHERE userID = ? 
+        AND MONTH(date) = ? 
+        AND YEAR(date) = ?
+    `;
+
+    const results = await db.query(query, [userID, targetMonth, targetYear]);
+    const totalIncome = results[0]?.totalIncome || 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalIncome: parseFloat(totalIncome),
+        month: targetMonth,
+        year: targetYear
+      }
+    });
+  } catch (err) {
+    console.error("Error getting monthly income:", err);
+    res.status(500).json({ 
+      success: false,
+      error: "Failed to get monthly income." 
+    });
+  }
+};
+
+// NEW: Check if user has income for a specific month
+const checkMonthlyIncomeExists = async (req, res) => {
+  try {
+    if (!req.session || !req.session.user || !req.session.user.id) {
+      return res.status(401).json({ error: "User not authenticated." });
+    }
+
+    const userID = req.session.user.id;
+    const { month, year } = req.query;
+
+    // If no month/year provided, use current month/year
+    const now = new Date();
+    const targetMonth = month ? parseInt(month) : now.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : now.getFullYear();
+
+    const query = `
+      SELECT COUNT(*) as incomeCount, SUM(amount) as totalIncome
+      FROM income
+      WHERE userID = ? 
+        AND MONTH(date) = ? 
+        AND YEAR(date) = ?
+    `;
+
+    const results = await db.query(query, [userID, targetMonth, targetYear]);
+    const incomeCount = results[0]?.incomeCount || 0;
+    const totalIncome = results[0]?.totalIncome || 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        hasIncome: incomeCount > 0,
+        incomeCount: parseInt(incomeCount),
+        totalIncome: parseFloat(totalIncome),
+        month: targetMonth,
+        year: targetYear
+      }
+    });
+  } catch (err) {
+    console.error("Error checking monthly income:", err);
+    res.status(500).json({ 
+      success: false,
+      error: "Failed to check monthly income." 
+    });
+  }
+};
+
 module.exports = {
   addIncome,
   fetchIncomes,
   deleteIncome,
   updateIncome,
+  getMonthlyIncome,
+  checkMonthlyIncomeExists,
 };

@@ -19,4 +19,7 @@ router.delete("/categories/:categoryID", isAuthenticated, budgetController.delet
 // This parameterized route MUST come LAST among category GET routes
 router.get("/categories/:categoryID", isAuthenticated, budgetController.getCategory);
 
+router.post("/validate-creation", isAuthenticated, budgetController.validateBudgetCreation);
+router.get("/summary", isAuthenticated, budgetController.getBudgetSummary);
+
 module.exports = router;

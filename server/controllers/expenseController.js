@@ -1,6 +1,148 @@
 const db = require("../db");
 
-// Add a new expense
+// Helper function to get monthly income total
+const getMonthlyIncomeTotal = async (userID, month, year) => {
+  const query = `
+    SELECT SUM(amount) as totalIncome
+    FROM income
+    WHERE userID = ? 
+      AND MONTH(date) = ? 
+      AND YEAR(date) = ?
+  `;
+  
+  const results = await db.query(query, [userID, month, year]);
+  return parseFloat(results[0]?.totalIncome || 0);
+};
+
+// Helper function to get monthly expense total
+const getMonthlyExpenseTotal = async (userID, month, year, excludeExpenseID = null) => {
+  let query = `
+    SELECT SUM(amount) as totalExpenses
+    FROM expenses
+    WHERE userID = ? 
+      AND MONTH(date) = ? 
+      AND YEAR(date) = ?
+  `;
+  
+  const params = [userID, month, year];
+  
+  if (excludeExpenseID) {
+    query += " AND expenseID != ?";
+    params.push(excludeExpenseID);
+  }
+  
+  const results = await db.query(query, params);
+  return parseFloat(results[0]?.totalExpenses || 0);
+};
+
+// NEW: Validate expense addition against income
+exports.validateExpenseAddition = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const { categoryID, amount, date } = req.body;
+
+    if (!categoryID || !amount || !date) {
+      return res.status(400).json({
+        success: false,
+        message: "Category ID, amount, and date are required."
+      });
+    }
+
+    // Get the month and year from expense date
+    const expenseDate = new Date(date);
+    const expenseMonth = expenseDate.getMonth() + 1;
+    const expenseYear = expenseDate.getFullYear();
+
+    // Check if user has income for the expense month
+    const monthlyIncome = await getMonthlyIncomeTotal(userID, expenseMonth, expenseYear);
+    
+    if (monthlyIncome <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You must add income for this month before adding expenses.",
+        code: "NO_INCOME"
+      });
+    }
+
+    // Get current month's total expenses
+    const currentExpenseTotal = await getMonthlyExpenseTotal(userID, expenseMonth, expenseYear);
+    
+    // Check if new expense would exceed income
+    const newTotalExpense = currentExpenseTotal + parseFloat(amount);
+    
+    if (newTotalExpense > monthlyIncome) {
+      return res.status(400).json({
+        success: false,
+        message: `Total expenses (RM ${newTotalExpense.toFixed(2)}) would exceed your monthly income (RM ${monthlyIncome.toFixed(2)}). Available spending: RM ${(monthlyIncome - currentExpenseTotal).toFixed(2)}`,
+        code: "EXCEEDS_INCOME",
+        data: {
+          monthlyIncome,
+          currentExpenseTotal,
+          requestedAmount: parseFloat(amount),
+          availableSpending: monthlyIncome - currentExpenseTotal
+        }
+      });
+    }
+
+    // Validation passed
+    res.status(200).json({
+      success: true,
+      message: "Expense can be added.",
+      data: {
+        monthlyIncome,
+        currentExpenseTotal,
+        requestedAmount: parseFloat(amount),
+        remainingIncome: monthlyIncome - newTotalExpense
+      }
+    });
+
+  } catch (err) {
+    console.error("Error validating expense addition:", err);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to validate expense addition." 
+    });
+  }
+};
+
+// NEW: Get monthly expense summary
+exports.getMonthlyExpenseSummary = async (req, res) => {
+  try {
+    const userID = req.session.user.id;
+    const { month, year } = req.query;
+
+    // If no month/year provided, use current month/year
+    const now = new Date();
+    const targetMonth = month ? parseInt(month) : now.getMonth() + 1;
+    const targetYear = year ? parseInt(year) : now.getFullYear();
+
+    // Get monthly income
+    const monthlyIncome = await getMonthlyIncomeTotal(userID, targetMonth, targetYear);
+    
+    // Get monthly expense total
+    const monthlyExpenseTotal = await getMonthlyExpenseTotal(userID, targetMonth, targetYear);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        monthlyIncome,
+        monthlyExpenseTotal,
+        remainingIncome: monthlyIncome - monthlyExpenseTotal,
+        month: targetMonth,
+        year: targetYear
+      }
+    });
+
+  } catch (err) {
+    console.error("Error getting monthly expense summary:", err);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to get monthly expense summary." 
+    });
+  }
+};
+
+// Add a new expense - UPDATED with validation
 exports.addExpense = async (req, res) => {
   try {
     const { categoryID, title, date, amount } = req.body;
@@ -10,6 +152,42 @@ exports.addExpense = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "All fields are required.",
+      });
+    }
+
+    // Get the month and year from expense date
+    const expenseDate = new Date(date);
+    const expenseMonth = expenseDate.getMonth() + 1;
+    const expenseYear = expenseDate.getFullYear();
+
+    // Check if user has income for the expense month
+    const monthlyIncome = await getMonthlyIncomeTotal(userID, expenseMonth, expenseYear);
+    
+    if (monthlyIncome <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You must add income for this month before adding expenses.",
+        code: "NO_INCOME"
+      });
+    }
+
+    // Get current month's total expenses
+    const currentExpenseTotal = await getMonthlyExpenseTotal(userID, expenseMonth, expenseYear);
+    
+    // Check if new expense would exceed income
+    const newTotalExpense = currentExpenseTotal + parseFloat(amount);
+    
+    if (newTotalExpense > monthlyIncome) {
+      return res.status(400).json({
+        success: false,
+        message: `Total expenses (RM ${newTotalExpense.toFixed(2)}) would exceed your monthly income (RM ${monthlyIncome.toFixed(2)}). Available spending: RM ${(monthlyIncome - currentExpenseTotal).toFixed(2)}`,
+        code: "EXCEEDS_INCOME",
+        data: {
+          monthlyIncome,
+          currentExpenseTotal,
+          requestedAmount: parseFloat(amount),
+          availableSpending: monthlyIncome - currentExpenseTotal
+        }
       });
     }
 
@@ -189,7 +367,7 @@ exports.getExpense = async (req, res) => {
   }
 };
 
-// Update an expense
+// Update an expense - UPDATED with validation
 exports.updateExpense = async (req, res) => {
   try {
     const { expenseID } = req.params;
@@ -220,6 +398,47 @@ exports.updateExpense = async (req, res) => {
 
     const oldAmount = parseFloat(getResults[0].amount);
     const categoryID = getResults[0].categoryID;
+    const oldDate = getResults[0].date;
+
+    // If amount or date is being updated, validate against income
+    if (amount !== undefined || date) {
+      const targetDate = date ? new Date(date) : new Date(oldDate);
+      const targetAmount = amount !== undefined ? parseFloat(amount) : oldAmount;
+      
+      const expenseMonth = targetDate.getMonth() + 1;
+      const expenseYear = targetDate.getFullYear();
+
+      // Check if user has income for the expense month
+      const monthlyIncome = await getMonthlyIncomeTotal(userID, expenseMonth, expenseYear);
+      
+      if (monthlyIncome <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "You must add income for this month before updating expenses.",
+          code: "NO_INCOME"
+        });
+      }
+
+      // Get current month's total expenses (excluding this expense)
+      const currentExpenseTotal = await getMonthlyExpenseTotal(userID, expenseMonth, expenseYear, expenseID);
+      
+      // Check if updated expense would exceed income
+      const newTotalExpense = currentExpenseTotal + targetAmount;
+      
+      if (newTotalExpense > monthlyIncome) {
+        return res.status(400).json({
+          success: false,
+          message: `Updated expenses (RM ${newTotalExpense.toFixed(2)}) would exceed your monthly income (RM ${monthlyIncome.toFixed(2)}). Available spending: RM ${(monthlyIncome - currentExpenseTotal).toFixed(2)}`,
+          code: "EXCEEDS_INCOME",
+          data: {
+            monthlyIncome,
+            currentExpenseTotal,
+            requestedAmount: targetAmount,
+            availableSpending: monthlyIncome - currentExpenseTotal
+          }
+        });
+      }
+    }
 
     // Build the update query
     let updateQuery = "UPDATE expenses SET ";

@@ -6,7 +6,7 @@ import { AddExpenseModal } from "./AddExpenseModal";
 import { EditExpenseModal } from "./EditExpenseModal";
 import TimeFilter from "./TimeFilter";
 import { toast } from "react-toastify";
-import { expenseAPI, budgetAPI, categoryAPI } from "../services/UserApi";
+import { expenseAPI, budgetAPI, categoryAPI, incomeAPI } from "../services/UserApi";
 
 // Component to display a single expense item
 const ExpenseItem = ({ expense, onEdit, onDelete, isViewOnly }) => (
@@ -53,6 +53,7 @@ const CategoryItem = ({
   onDeleteExpense,
   budgetName,
   isViewOnly, // New prop to control view-only mode
+  hasIncomeForMonth, // New prop to check income
 }) => (
   <div className={styles.categoryContainer}>
     <div className={styles.categoryHeader}>
@@ -82,9 +83,14 @@ const CategoryItem = ({
         </button>
       </div>
       <div className={styles.actionButtons}>
-        {/* Only show add button when not in view-only mode */}
+        {/* Only show add button when not in view-only mode and user has income */}
         {!isViewOnly && (
-          <button className={styles.iconButton} onClick={onAddExpense}>
+          <button 
+            className={`${styles.iconButton} ${!hasIncomeForMonth ? styles.disabledButton : ''}`}
+            onClick={hasIncomeForMonth ? onAddExpense : undefined}
+            disabled={!hasIncomeForMonth}
+            title={!hasIncomeForMonth ? "Add income first to add expenses" : "Add expense"}
+          >
             <img src="/add-icon.svg" alt="Add" />
           </button>
         )}
@@ -162,9 +168,37 @@ export default function Expense({ user }) {
   const [categoryBudgetMap, setCategoryBudgetMap] = useState({}); // Map categories to their budget names
   const [selectedCategoryName, setSelectedCategoryName] = useState(null);
   const [categoryHasExpenses, setCategoryHasExpenses] = useState(false);
+  const [incomeInfo, setIncomeInfo] = useState(null); // Track income status
 
   // Check if current filter is view-only (everything except "thisMonth")
   const isViewOnlyMode = activeFilter !== "thisMonth";
+
+  // Check if user has income for current month (only when not in view-only mode)
+  const checkCurrentMonthIncome = async () => {
+    if (isViewOnlyMode) return; // Skip income check for historical data
+    
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      const incomeCheck = await incomeAPI.checkMonthlyIncomeExists(currentMonth, currentYear);
+      
+      if (incomeCheck.success) {
+        setIncomeInfo({
+          hasIncome: incomeCheck.data.hasIncome,
+          totalIncome: incomeCheck.data.totalIncome,
+          month: currentMonth,
+          year: currentYear
+        });
+      } else {
+        setIncomeInfo({ hasIncome: false, totalIncome: 0 });
+      }
+    } catch (err) {
+      console.error("Error checking income:", err);
+      setIncomeInfo({ hasIncome: false, totalIncome: 0 });
+    }
+  };
 
   //Fetch categories based on time filter
   const fetchCategoriesForTimeFilter = async (timeFilter) => {
@@ -309,6 +343,12 @@ export default function Expense({ user }) {
       toast.info("Editing expenses is only available for the current month.");
       return;
     }
+
+    // Check if user has income
+    if (!incomeInfo || !incomeInfo.hasIncome) {
+      toast.info("You must add income for this month before editing expenses.");
+      return;
+    }
     
     setSelectedExpense(expense);
     setIsEditExpenseModalOpen(true);
@@ -425,6 +465,12 @@ export default function Expense({ user }) {
       toast.info("Adding expenses is only available for the current month.");
       return;
     }
+
+    // Check if user has income
+    if (!incomeInfo || !incomeInfo.hasIncome) {
+      toast.info("You must add income for this month before adding expenses.");
+      return;
+    }
     
     setSelectedCategoryId(categoryId);
     setIsAddExpenseModalOpen(true);
@@ -447,6 +493,12 @@ export default function Expense({ user }) {
     // Prevent deleting expenses in view-only mode
     if (isViewOnlyMode) {
       toast.info("Deleting expenses is only available for the current month.");
+      return;
+    }
+
+    // Check if user has income
+    if (!incomeInfo || !incomeInfo.hasIncome) {
+      toast.info("You must add income for this month before deleting expenses.");
       return;
     }
     
@@ -507,6 +559,9 @@ export default function Expense({ user }) {
   // Get message for empty states
   const getEmptyStateMessage = () => {
     if (categories.length === 0) {
+      if (!isViewOnlyMode && (!incomeInfo || !incomeInfo.hasIncome)) {
+        return "Add income first, then create budgets to track your expenses.";
+      }
       return `No expense categories found for the selected ${
         activeFilter === "thisMonth"
           ? "month"
@@ -533,11 +588,18 @@ export default function Expense({ user }) {
     // Initialize data with current filter
     fetchCategoriesForTimeFilter(activeFilter);
     fetchBudgets(); // Keep for compatibility if needed elsewhere
+    checkCurrentMonthIncome(); // Check income status
   }, []);
 
   useEffect(() => {
     // Re-fetch categories when filter changes
     fetchCategoriesForTimeFilter(activeFilter);
+    // Check income when switching to current month
+    if (activeFilter === "thisMonth") {
+      checkCurrentMonthIncome();
+    } else {
+      setIncomeInfo(null); // Clear income info for historical data
+    }
   }, [activeFilter]);
 
   useEffect(() => {
@@ -565,6 +627,23 @@ export default function Expense({ user }) {
                 />
               </div>
             </header>
+
+            {/* Show income status banner when in current month mode */}
+            {!isViewOnlyMode && (
+              <section className={styles.incomeStatusSection}>
+                {incomeInfo && incomeInfo.hasIncome ? (
+                  <div className={styles.incomeSuccess}>
+                    <span className={styles.incomeIcon}>✓</span>
+                    Monthly Income: RM {incomeInfo.totalIncome.toFixed(2)}
+                  </div>
+                ) : (
+                  <div className={styles.incomeWarning}>
+                    <span className={styles.incomeIcon}>⚠</span>
+                    No income added for this month. Add income first to manage expenses.
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Total Expense Section */}
             <section className={styles.content3}>
@@ -611,6 +690,7 @@ export default function Expense({ user }) {
                     onDeleteExpense={handleDeleteExpenseClick}
                     budgetName={categoryBudgetMap[category.categoryID]}
                     isViewOnly={isViewOnlyMode} // Pass view-only state
+                    hasIncomeForMonth={incomeInfo?.hasIncome || false} // Pass income status
                   />
                 ))
               ) : (
@@ -628,7 +708,7 @@ export default function Expense({ user }) {
           </section>
         </div>
 
-        {/* Add Expense Modal - Only show when not in view-only mode */}
+        {/* Add Expense Modal - Only show when not in view-only mode and user has income */}
         {isAddExpenseModalOpen && !isViewOnlyMode && (
           <AddExpenseModal
             categoryId={selectedCategoryId}
@@ -637,7 +717,7 @@ export default function Expense({ user }) {
           />
         )}
 
-        {/* Edit Expense Modal - Only show when not in view-only mode */}
+        {/* Edit Expense Modal - Only show when not in view-only mode and user has income */}
         {isEditExpenseModalOpen && !isViewOnlyMode && (
           <EditExpenseModal
             expense={selectedExpense}

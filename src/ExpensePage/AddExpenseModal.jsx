@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./AddModal.module.css";
 import { toast } from "react-toastify";
 import ReceiptScanner from "./ReceiptScanner";
-import { expenseAPI, categoryAPI } from "../services/UserApi";
+import { expenseAPI, categoryAPI, incomeAPI } from "../services/UserApi";
 
 export const AddExpenseModal = ({
   onClose,
@@ -11,11 +11,78 @@ export const AddExpenseModal = ({
   updateCategoryAmount,
 }) => {
   const [expenseItems, setExpenseItems] = useState([
-    { tempId: `temp-${Date.now()}`, title: "", amount: "", date: new Date().toISOString().split("T")[0] }
+    { tempId: `temp-${Date.now()}`, title: "", amount: "" }
   ]);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
+  const [incomeInfo, setIncomeInfo] = useState(null);
+  const [isCheckingIncome, setIsCheckingIncome] = useState(true);
+  const [expenseSummary, setExpenseSummary] = useState(null);
+
+  // Check income and expense summary when modal opens
+  useEffect(() => {
+    const checkIncomeAndExpenseInfo = async () => {
+      try {
+        setIsCheckingIncome(true);
+        
+        // Get current month/year
+        const now = new Date();
+        const expenseMonth = now.getMonth() + 1;
+        const expenseYear = now.getFullYear();
+
+        // Check if user has income for the current month
+        const incomeCheck = await incomeAPI.checkMonthlyIncomeExists(expenseMonth, expenseYear);
+        
+        if (incomeCheck.success) {
+          setIncomeInfo({
+            hasIncome: incomeCheck.data.hasIncome,
+            totalIncome: incomeCheck.data.totalIncome,
+            month: expenseMonth,
+            year: expenseYear
+          });
+
+          if (incomeCheck.data.hasIncome) {
+            // Get current expense summary
+            const expenseSummaryData = await expenseAPI.getMonthlyExpenseSummary(expenseMonth, expenseYear);
+            if (expenseSummaryData.success) {
+              setExpenseSummary({
+                totalExpenses: expenseSummaryData.data.monthlyExpenseTotal,
+                remainingIncome: expenseSummaryData.data.remainingIncome
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error checking income and expenses:", err);
+        setIncomeInfo({ hasIncome: false, totalIncome: 0 });
+      } finally {
+        setIsCheckingIncome(false);
+      }
+    };
+
+    checkIncomeAndExpenseInfo();
+  }, []);
+
+  // Calculate projected remaining income when expense amounts change
+  const calculateProjectedRemainingIncome = () => {
+    if (incomeInfo && incomeInfo.hasIncome && expenseSummary) {
+      const totalNewExpenses = expenseItems.reduce((sum, item) => {
+        return sum + (parseFloat(item.amount) || 0);
+      }, 0);
+      
+      return expenseSummary.remainingIncome - totalNewExpenses;
+    }
+    return null;
+  };
+
+  const projectedRemainingIncome = calculateProjectedRemainingIncome();
 
   const handleSubmit = async () => {
+    // Check if user has income
+    if (!incomeInfo || !incomeInfo.hasIncome) {
+      toast.error("You must add income for this month before adding expenses.");
+      return;
+    }
+
     // Validate form
     const validItems = expenseItems.filter(item => {
       const trimmedTitle = item.title.trim();
@@ -31,6 +98,38 @@ export const AddExpenseModal = ({
       toast.error("No category selected!");
       console.error("Missing categoryId for expense");
       return;
+    }
+
+    // Get current date for all expenses
+    const currentDate = new Date().toISOString().split("T")[0];
+
+    // Validate each expense against income
+    for (const item of validItems) {
+      try {
+        const validation = await expenseAPI.validateExpenseAddition({
+          categoryID: categoryId,
+          amount: parseFloat(item.amount),
+          date: currentDate
+        });
+
+        if (!validation.success) {
+          if (validation.code === "NO_INCOME") {
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
+            toast.error(`You must add income for ${month}/${year} before adding expenses for that month.`);
+          } else if (validation.code === "EXCEEDS_INCOME") {
+            toast.error(validation.message);
+          } else {
+            toast.error(validation.message || "Unable to add expense.");
+          }
+          return;
+        }
+      } catch (err) {
+        console.error("Error validating expense:", err);
+        toast.error("Error validating expense. Please try again.");
+        return;
+      }
     }
 
     // Check budget limits
@@ -50,14 +149,13 @@ export const AddExpenseModal = ({
       // Process each valid expense item
       for (const item of validItems) {
         const trimmedTitle = item.title.trim();
-        const date = item.date || new Date().toISOString().split("T")[0];
 
         try {
           const payload = {
             categoryID: categoryId,
             title: trimmedTitle,
             amount: parseFloat(item.amount),
-            date,
+            date: currentDate,
           };
 
           // Use the API method instead of direct fetch
@@ -70,15 +168,27 @@ export const AddExpenseModal = ({
               categoryID: categoryId,
               title: trimmedTitle,
               amount: parseFloat(item.amount),
-              date,
+              date: currentDate,
             };
 
             successfulItems.push(newExpense);
           } else {
-            errors.push(`Error with "${trimmedTitle}": ${result.message || "Unknown error"}`);
+            if (result.code === "NO_INCOME") {
+              errors.push(`"${trimmedTitle}": You must add income for this month first.`);
+            } else if (result.code === "EXCEEDS_INCOME") {
+              errors.push(`"${trimmedTitle}": ${result.message}`);
+            } else {
+              errors.push(`Error with "${trimmedTitle}": ${result.message || "Unknown error"}`);
+            }
           }
         } catch (error) {
-          errors.push(`Error with "${trimmedTitle}": ${error.message}`);
+          if (error.message.includes("NO_INCOME")) {
+            errors.push(`"${trimmedTitle}": You must add income for this month first.`);
+          } else if (error.message.includes("EXCEEDS_INCOME")) {
+            errors.push(`"${trimmedTitle}": Expense would exceed monthly income.`);
+          } else {
+            errors.push(`Error with "${trimmedTitle}": ${error.message}`);
+          }
         }
       }
 
@@ -119,7 +229,7 @@ export const AddExpenseModal = ({
   const addNewExpenseItem = () => {
     setExpenseItems([
       ...expenseItems,
-      { tempId: `temp-${Date.now()}`, title: "", amount: "", date: new Date().toISOString().split("T")[0] }
+      { tempId: `temp-${Date.now()}`, title: "", amount: "" }
     ]);
   };
 
@@ -128,7 +238,7 @@ export const AddExpenseModal = ({
     if (expenseItems.length === 1) {
       // Don't remove the last item, just clear it
       setExpenseItems([
-        { tempId: `temp-${Date.now()}`, title: "", amount: "", date: new Date().toISOString().split("T")[0] }
+        { tempId: `temp-${Date.now()}`, title: "", amount: "" }
       ]);
     } else {
       setExpenseItems(expenseItems.filter(item => item.tempId !== tempId));
@@ -153,7 +263,6 @@ export const AddExpenseModal = ({
         tempId: item.tempId || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         title: item.title || "",
         amount: typeof item.amount === 'number' ? item.amount.toString() : item.amount || "",
-        date: item.date || new Date().toISOString().split("T")[0]
       })));
     }
     
@@ -217,6 +326,44 @@ export const AddExpenseModal = ({
     }
   };
 
+  // If still checking income, show loading state
+  if (isCheckingIncome) {
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={styles.modalContent}>
+          <div className={styles.modalHeader}>Add Expense</div>
+          <div className={styles.loadingMessage}>Checking income information...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // If no income, show income requirement message
+  if (incomeInfo && !incomeInfo.hasIncome) {
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={styles.modalContent}>
+          <div className={styles.modalHeader}>Income Required</div>
+          <div className={styles.errorMessage}>
+            You must add income for {incomeInfo.month}/{incomeInfo.year} before adding expenses.
+          </div>
+          <div className={styles.infoMessage}>
+            Please go to the Income section and add your income first, then try adding expenses again.
+          </div>
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={onClose}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {showReceiptScanner ? (
@@ -229,7 +376,6 @@ export const AddExpenseModal = ({
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>Add Expense</div>
-            
             <div className={styles.expensesContainer}>
               {expenseItems.map((item, index) => (
                 <div key={item.tempId} className={styles.expenseItemRow}>
@@ -254,6 +400,7 @@ export const AddExpenseModal = ({
                         placeholder="00.00"
                         min="0.01"
                         step="0.01"
+                        max={expenseSummary ? expenseSummary.remainingIncome : undefined}
                       />
                     </div>
                   </div>
@@ -285,6 +432,13 @@ export const AddExpenseModal = ({
               ))}
             </div>
             
+            {/* Warning if total would exceed available spending */}
+            {projectedRemainingIncome !== null && projectedRemainingIncome < 0 && (
+              <div className={styles.warningMessage}>
+                ⚠ This expense would exceed your available income by RM {Math.abs(projectedRemainingIncome).toFixed(2)}
+              </div>
+            )}
+            
             <div className={styles.modalActions}>
               <button
                 type="button"
@@ -297,6 +451,7 @@ export const AddExpenseModal = ({
                 type="button" 
                 className={styles.confirmButton}
                 onClick={handleSubmit}
+                disabled={!incomeInfo?.hasIncome}
               >
                 Add
               </button>
@@ -306,6 +461,7 @@ export const AddExpenseModal = ({
               type="button"
               className={styles.scanButton}
               onClick={() => setShowReceiptScanner(true)}
+              disabled={!incomeInfo?.hasIncome}
             >
               Scan Receipt
             </button>
