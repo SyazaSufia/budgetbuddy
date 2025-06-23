@@ -18,6 +18,14 @@ const addIncome = async (req, res) => {
         .json({ error: "All required fields must be provided!" });
     }
 
+    // Validate amount - must be a positive number
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Amount must be a positive number greater than 0!" });
+    }
+
     // Create the initial income entry
     const insertQuery = `
       INSERT INTO income (userID, type, title, source, date, amount, occurrence, isRecurring)
@@ -32,7 +40,7 @@ const addIncome = async (req, res) => {
       title,
       source || null,
       date,
-      amount,
+      numericAmount, // Use the validated numeric amount
       occurrence,
       isRecurring,
     ]);
@@ -305,6 +313,14 @@ const updateIncome = async (req, res) => {
         .json({ error: "All required fields must be provided!" });
     }
 
+    // Validate amount - must be a positive number
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Amount must be a positive number greater than 0!" });
+    }
+
     // If updating all recurrences of a recurring income
     if (updateAllRecurrences) {
       // Update parent income
@@ -313,7 +329,7 @@ const updateIncome = async (req, res) => {
         title,
         source,
         date,
-        amount,
+        amount: numericAmount, // Use validated numeric amount
         occurrence,
       });
 
@@ -328,7 +344,7 @@ const updateIncome = async (req, res) => {
         type,
         title,
         source || null,
-        amount,
+        numericAmount, // Use validated numeric amount
         occurrence,
         incomeID,
         userID,
@@ -347,7 +363,7 @@ const updateIncome = async (req, res) => {
         title,
         source,
         date,
-        amount,
+        amount: numericAmount, // Use validated numeric amount
         occurrence,
       });
 
@@ -382,7 +398,7 @@ const updateSingleIncome = async (incomeID, userID, data) => {
     title,
     source || null,
     date,
-    amount,
+    amount, // Amount is already validated as numeric in calling functions
     occurrence || "once",
     isRecurring,
     incomeID,
