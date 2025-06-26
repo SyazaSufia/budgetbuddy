@@ -13,60 +13,34 @@ const getDashboardSummary = async (req, res) => {
     // Calculate date ranges based on the selected time period
     switch (timeFilter) {
       case "month":
-        startDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1
-        );
-        endDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0
-        );
+        // Current month: first day to last day
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         break;
       case "lastMonth":
-        startDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() - 1,
-          1
-        );
-        endDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          0
-        );
+        // Last month: first day to last day of previous month
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
         break;
       case "year":
+        // Current year: Jan 1 to Dec 31
         startDate = new Date(currentDate.getFullYear(), 0, 1);
         endDate = new Date(currentDate.getFullYear(), 11, 31);
         break;
       case "last12Months":
-        startDate = new Date(
-          currentDate.getFullYear() - 1,
-          currentDate.getMonth(),
-          1
-        );
-        endDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0
-        );
+        // Last 12 months: same day last year to end of current month
+        startDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         break;
       default:
-        startDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1
-        );
-        endDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0
-        );
+        // Default to current month
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     }
 
-    const formattedStartDate = startDate.toISOString().split("T")[0];
-    const formattedEndDate = endDate.toISOString().split("T")[0];
+    // Format dates to YYYY-MM-DD string format without timezone issues
+    const formattedStartDate = formatDateToYMD(startDate);
+    const formattedEndDate = formatDateToYMD(endDate);
 
     // Queries
     const incomeQuery = `
@@ -157,6 +131,14 @@ const getDashboardSummary = async (req, res) => {
   }
 };
 
+// Helper function to format date to YYYY-MM-DD without timezone issues
+const formatDateToYMD = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Update the downloadDashboardPDF function
 const downloadDashboardPDF = async (req, res) => {
   try {
@@ -192,60 +174,28 @@ const getDashboardData = async (userID, timeFilter) => {
   // Calculate date ranges based on the selected time period
   switch (timeFilter) {
     case "month":
-      startDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        1
-      );
-      endDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0
-      );
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       break;
     case "lastMonth":
-      startDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() - 1,
-        1
-      );
-      endDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        0
-      );
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
       break;
     case "year":
       startDate = new Date(currentDate.getFullYear(), 0, 1);
       endDate = new Date(currentDate.getFullYear(), 11, 31);
       break;
     case "last12Months":
-      startDate = new Date(
-        currentDate.getFullYear() - 1,
-        currentDate.getMonth(),
-        1
-      );
-      endDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0
-      );
+      startDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       break;
     default:
-      startDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        1
-      );
-      endDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0
-      );
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
   }
 
-  const formattedStartDate = startDate.toISOString().split("T")[0];
-  const formattedEndDate = endDate.toISOString().split("T")[0];
+  const formattedStartDate = formatDateToYMD(startDate);
+  const formattedEndDate = formatDateToYMD(endDate);
 
   // Queries
   const incomeQuery = `
